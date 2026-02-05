@@ -1,1 +1,31 @@
-<p>login works!</p>
+<h2>Login</h2>
+
+<form (ngSubmit)="login()">
+  <input
+    type="email"
+    placeholder="Email"
+    [(ngModel)]="email"
+    name="email"
+    required
+  />
+
+  <br><br>
+
+  <input
+    type="password"
+    placeholder="Password"
+    [(ngModel)]="password"
+    name="password"
+    required
+  />
+
+  <br><br>
+
+  <button type="submit">Login</button>
+  <p>
+  New user?
+  <a routerLink="/register">Register here</a>
+</p>
+</form>
+
+<p style="color:red">{{ errorMessage }}</p>

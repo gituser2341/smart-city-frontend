@@ -1,10 +1,20 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home/home';
 import { LoginComponent } from './login/login';
-import { RegisterComponent } from './register/register';
+import { CitizenComponent } from './citizen/citizen';
+import { OfficerComponent } from './officer/officer';
+import { AdminComponent } from './admin/admin';
+import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent }
+  { path: 'citizen', component: CitizenComponent, canActivate: [authGuard] },
+  { path: 'officer', component: OfficerComponent, canActivate: [authGuard] },
+  { path: 'admin', component: AdminComponent, canActivate: [authGuard] },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' },
+  {
+  path: 'register',
+  loadComponent: () =>
+    import('./register/register').then(m => m.RegisterComponent)
+}
 ];
