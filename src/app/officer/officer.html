@@ -1,0 +1,20 @@
+<h2>Officer Dashboard</h2>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Title</th>
+    <th>Status</th>
+    <th>Action</th>
+  </tr>
+
+  <tr *ngFor="let c of complaints">
+    <td>{{c.id}}</td>
+    <td>{{c.title}}</td>
+    <td>{{c.status}}</td>
+    <td>
+      <button (click)="updateStatus(c.id,'IN_PROGRESS')">In Progress</button>
+      <button (click)="updateStatus(c.id,'RESOLVED')">Resolved</button>
+    </td>
+  </tr>
+</table>

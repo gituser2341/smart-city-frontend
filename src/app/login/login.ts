@@ -32,27 +32,33 @@ export class LoginComponent {
   constructor(private http: HttpClient, private router: Router) {}
 
   login() {
-    this.http.post<any>('http://localhost:8080/api/auth/login', {
-      email: this.email,
-      password: this.password
-    }).subscribe({
-      next: (res) => {
-        // store role (optional)
-        localStorage.setItem('role', res.role);
+  this.http.post<any>('http://localhost:8080/api/auth/login', {
+    email: this.email,
+    password: this.password
+  }).subscribe({
+    next: (res) => {
 
-        if (res.role === 'CITIZEN') {
-          this.router.navigate(['/citizen']);
-        } else if (res.role === 'OFFICER') {
-          this.router.navigate(['/officer']);
-        } else if (res.role === 'ADMIN') {
-          this.router.navigate(['/admin']);
-        } else {
-          this.errorMessage = 'Unknown role';
-        }
-      },
-      error: () => {
-        this.errorMessage = 'Invalid credentials';
+      // ✅ STORE TOKEN
+      localStorage.setItem('token', res.token);
+
+      // ✅ Store role
+      localStorage.setItem('role', res.role);
+
+      // Navigation
+      if (res.role === 'CITIZEN') {
+        this.router.navigate(['/citizen']);
+      } else if (res.role === 'OFFICER') {
+        this.router.navigate(['/officer']);
+      } else if (res.role === 'ADMIN') {
+        this.router.navigate(['/admin']);
+      } else {
+        this.errorMessage = 'Unknown role';
       }
-    });
-  }
+    },
+    error: () => {
+      this.errorMessage = 'Invalid credentials';
+    }
+  });
+}
+
 }
