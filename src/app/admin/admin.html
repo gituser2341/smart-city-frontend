@@ -5,3 +5,27 @@
 <p>Open: {{statusStats?.OPEN}}</p>
 <p>In Progress: {{statusStats?.IN_PROGRESS}}</p>
 <p>Resolved: {{statusStats?.RESOLVED}}</p>
+
+<hr>
+
+<button routerLink="/add-officer">
+  Add Officer
+</button>
+
+<h3>Status Distribution</h3>
+<div style="width:400px;">
+  <canvas id="statusChart"></canvas>
+</div>
+
+<br><br>
+
+<h3>Department Complaints</h3>
+<div style="width:500px;">
+  <canvas id="deptChart"></canvas>
+</div>
+
+<hr>
+
+<h3>Complaint Locations</h3>
+
+<div id="map" style="height: 400px; width: 100%;"></div>

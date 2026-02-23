@@ -1,0 +1,203 @@
+<div class="page">
+  <div class="card">
+
+    <div class="card-header">
+      <button class="back-btn" routerLink="/admin">
+        ← Back to Dashboard
+      </button>
+      <h2>Add Officer</h2>
+      <p class="subtitle">Create a new officer account</p>
+    </div>
+
+    <!-- Success State -->
+    <div class="alert success" *ngIf="message">
+      <span class="alert-icon">✅</span>
+      <div>
+        <strong>Officer Added!</strong>
+        <p>{{ message }}</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div class="alert error" *ngIf="errorMessage">
+      <span class="alert-icon">❌</span>
+      <div>
+        <strong>Error</strong>
+        <p>{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <form (ngSubmit)="addOfficer()">
+
+      <div class="field">
+        <label>Officer Name</label>
+        <input
+          type="text"
+          [(ngModel)]="name"
+          name="name"
+          placeholder="e.g. John Smith"
+          autocomplete="off"
+          required />
+      </div>
+
+      <div class="field">
+        <label>Email Address</label>
+        <input
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="e.g. john@smartcity.gov"
+          autocomplete="off"
+          required />
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Set a secure password"
+          autocomplete="new-password"
+          required />
+      </div>
+
+      <div class="field">
+        <label>Department</label>
+        <select [(ngModel)]="department" name="department" required>
+          <option value="" disabled selected>Select Department</option>
+          <option value="WATER">💧 Water</option>
+          <option value="ROAD">🛣️ Road</option>
+          <option value="ELECTRICITY">⚡ Electricity</option>
+          <option value="SANITATION">🧹 Sanitation</option>
+        </select>
+      </div>
+
+      <button type="submit" class="submit-btn">Add Officer</button>
+
+    </form>
+
+  </div>
+</div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+
+  .page {
+    min-height: 100vh;
+    background: #f0f4f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  .card-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: #6366f1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 1rem;
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .back-btn:hover { text-decoration: underline; }
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 0.25rem;
+  }
+
+  .subtitle {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.2rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+
+  .alert.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+  .alert.error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+  .alert strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .alert p { margin: 0; opacity: 0.85; }
+  .alert-icon { font-size: 1.1rem; margin-top: 1px; }
+
+  .field {
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.4rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    color: #0f172a;
+    background: #fafafa;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    background: white;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .submit-btn:hover { background: #4f46e5; }
+  .submit-btn:active { transform: scale(0.98); }
+</style>

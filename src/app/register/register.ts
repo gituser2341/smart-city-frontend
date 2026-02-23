@@ -16,27 +16,31 @@ export class RegisterComponent {
   name = '';
   email = '';
   password = '';
-  role = '';
   errorMessage = '';
 
   constructor(private http: HttpClient, private router: Router) {}
 
   register() {
+
+    if (!this.name || !this.email || !this.password) {
+      this.errorMessage = 'All fields are required';
+      return;
+    }
+
     this.http.post(
       'http://localhost:8080/api/auth/register',
       {
         name: this.name,
         email: this.email,
-        password: this.password,
-        role: this.role
+        password: this.password
       }
     ).subscribe({
       next: () => {
         alert('Registration successful');
         this.router.navigate(['/login']);
       },
-      error: () => {
-        this.errorMessage = 'Registration failed';
+      error: (err) => {
+        this.errorMessage = err.error || 'Registration failed';
       }
     });
   }
