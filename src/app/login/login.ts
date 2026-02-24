@@ -3,24 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule],
-  template: `
-    <h2>Login</h2>
-
-    <form (ngSubmit)="login()">
-      <input type="email" [(ngModel)]="email" name="email" placeholder="Email" required />
-      <br><br>
-      <input type="password" [(ngModel)]="password" name="password" placeholder="Password" required />
-      <br><br>
-      <button type="submit">Login</button>
-    </form>
-
-    <p style="color:red">{{ errorMessage }}</p>
-  `,
+  imports: [FormsModule, CommonModule, RouterModule],
+  templateUrl: './login.html',
   styleUrls: ['./login.css']
 })
 export class LoginComponent {

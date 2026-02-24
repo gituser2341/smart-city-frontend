@@ -1,33 +1,45 @@
-<h2>Login</h2>
+<div class="login-container">
 
-<form (ngSubmit)="login()">
-  <input
-    type="email"
-    placeholder="Email"
-    [(ngModel)]="email"
-    name="email"
-    autocomplete="email"
-    required
-  />
+  <h2>Smart City Grievance Portal</h2>
 
-  <br><br>
+  <form (ngSubmit)="login()" #loginForm="ngForm">
 
-  <input
-    type="password"
-    placeholder="Password"
-    [(ngModel)]="password"
-    name="password"
-    autocomplete="current-password"
-    required
-  />
+    <input
+      type="email"
+      placeholder="Enter Email"
+      [(ngModel)]="email"
+      name="email"
+      autocomplete="email"
+      required
+    />
 
-  <br><br>
+    <br><br>
 
-  <button type="submit">Login</button>
-  <p>
-  New user?
-  <a routerLink="/register">Register here</a>
-</p>
-</form>
+    <input
+      type="password"
+      placeholder="Enter Password"
+      [(ngModel)]="password"
+      name="password"
+      autocomplete="current-password"
+      required
+    />
 
-<p style="color:red">{{ errorMessage }}</p>
+    <br><br>
+
+    <button type="submit" [disabled]="loginForm.invalid">
+      Login
+    </button>
+
+  </form>
+
+  <!-- ✅ Register Redirect (Outside Form) -->
+  <div class="register-link">
+    <p>Don't have an account?</p>
+    <button routerLink="/register" class="register-btn">
+      Register as Citizen
+    </button>
+  </div>
+
+  <p class="error">{{ errorMessage }}</p>
+
+</div>
