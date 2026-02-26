@@ -1,0 +1,174 @@
+<div class="page-wrapper">
+
+  <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+
+  <div class="form-shell">
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="left-content">
+        <div class="brand-icon">📝</div>
+        <h1 class="brand-title">Raise a<br/>Complaint</h1>
+        <p class="brand-sub">Help us make your city better by reporting issues directly to the right department.</p>
+
+        <div class="steps-list">
+          <div class="step-item" [ngClass]="{'step-active': currentStep >= 1, 'step-done': currentStep > 1}">
+            <div class="step-dot">{{ currentStep > 1 ? '✓' : '1' }}</div>
+            <div class="step-info">
+              <span class="step-name">Basic Info</span>
+              <span class="step-desc">Title & Description</span>
+            </div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-item" [ngClass]="{'step-active': currentStep >= 2, 'step-done': currentStep > 2}">
+            <div class="step-dot">{{ currentStep > 2 ? '✓' : '2' }}</div>
+            <div class="step-info">
+              <span class="step-name">Category</span>
+              <span class="step-desc">Department & Priority</span>
+            </div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step-item" [ngClass]="{'step-active': currentStep >= 3}">
+            <div class="step-dot">3</div>
+            <div class="step-info">
+              <span class="step-name">Evidence</span>
+              <span class="step-desc">Photo & Location</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-track">
+          <div class="progress-fill" [style.width]="progressWidth"></div>
+        </div>
+        <p class="progress-label">Step {{ currentStep }} of 3</p>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+
+      <!-- STEP 1 -->
+      <div class="step-panel" *ngIf="currentStep === 1">
+        <h2 class="step-title">What's the issue?</h2>
+        <p class="step-subtitle">Give us a clear description of the problem</p>
+
+        <div class="field-group">
+          <label class="field-label">Complaint Title *</label>
+          <input
+            type="text"
+            class="field-input"
+            [(ngModel)]="title"
+            name="title"
+            placeholder="e.g. Broken streetlight on MG Road"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Detailed Description *</label>
+          <textarea
+            class="field-input field-textarea"
+            [(ngModel)]="description"
+            name="description"
+            placeholder="Describe the issue in detail — where exactly, how severe, how long it's been happening...">
+          </textarea>
+        </div>
+
+        <div class="step-actions">
+          <div></div>
+          <button class="btn-next" (click)="nextStep()" [disabled]="!title || !description">
+            Next → Category
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-panel" *ngIf="currentStep === 2">
+        <h2 class="step-title">Category & Priority</h2>
+        <p class="step-subtitle">Help us route your complaint to the right team</p>
+
+        <div class="field-group">
+          <label class="field-label">Department *</label>
+          <div class="dept-grid">
+            <div
+              *ngFor="let d of departments"
+              class="dept-card"
+              [ngClass]="{'dept-selected': department === d.value}"
+              (click)="setDepartment(d.value)">
+              <span class="dept-icon">{{ d.icon }}</span>
+              <span class="dept-label">{{ d.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Priority Level *</label>
+          <div class="priority-grid">
+            <div
+              *ngFor="let p of priorities"
+              class="priority-card"
+              [ngClass]="{'priority-selected': priority === p.value}"
+              [style.--p-color]="p.color"
+              [style.--p-bg]="p.bg"
+              [style.--p-border]="p.border"
+              (click)="setPriority(p.value)">
+              <span class="priority-icon">{{ p.icon }}</span>
+              <span class="priority-label">{{ p.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn-back-step" (click)="prevStep()">← Back</button>
+          <button class="btn-next" (click)="nextStep()" [disabled]="!department">
+            Next → Evidence
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-panel" *ngIf="currentStep === 3">
+        <h2 class="step-title">Photo & Location</h2>
+        <p class="step-subtitle">Add evidence and confirm your location</p>
+
+        <div class="field-group">
+          <label class="field-label">Upload Photo (Optional)</label>
+          <div class="upload-zone" *ngIf="!imagePreviewUrl" (click)="fileInput.click()">
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelect($event)" style="display:none" />
+            <div class="upload-icon">📷</div>
+            <p class="upload-text">Click to upload photo</p>
+            <span class="upload-hint">JPG, PNG up to 10MB</span>
+          </div>
+          <div class="image-preview" *ngIf="imagePreviewUrl">
+            <img [src]="imagePreviewUrl" alt="Preview" class="preview-img" />
+            <button class="remove-img-btn" (click)="removeImage()">✕ Remove</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Location</label>
+          <div class="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}">
+            <span>{{ locationStatus }}</span>
+          </div>
+          <div class="map-preview" *ngIf="locationReady && latitude && longitude">
+            <iframe
+              [src]="'https://www.openstreetmap.org/export/embed.html?bbox=' + (longitude!-0.005) + ',' + (latitude!-0.005) + ',' + (longitude!+0.005) + ',' + (latitude!+0.005) + '&layer=mapnik&marker=' + latitude + ',' + longitude | safeUrl"
+              class="map-iframe"
+              frameborder="0">
+            </iframe>
+          </div>
+        </div>
+
+        <p class="error-msg" *ngIf="message">⚠️ {{ message }}</p>
+
+        <div class="step-actions">
+          <button class="btn-back-step" (click)="prevStep()">← Back</button>
+          <button class="btn-submit" (click)="submitComplaint()" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">🚀 Submit Complaint</span>
+            <span *ngIf="isSubmitting">Submitting...</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

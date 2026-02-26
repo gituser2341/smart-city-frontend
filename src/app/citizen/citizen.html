@@ -1,0 +1,88 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="city-icon">🏙️</div>
+      <div>
+        <h1 class="header-title">Smart City Portal</h1>
+        <p class="header-sub">Citizen Dashboard</p>
+      </div>
+    </div>
+    <!-- ✅ Notification button added here in header -->
+    <div class="header-right">
+      <button class="btn-raise" (click)="raiseComplaint()">
+        <span class="btn-icon">+</span> Raise Complaint
+      </button>
+      <button class="btn-notif" routerLink="/notifications">
+        🔔 Notifications
+      </button>
+      <button class="btn-logout" (click)="logout()">
+        ⎋ Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <section class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">📋</div>
+      <div class="stat-number">{{total}}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card stat-open">
+      <div class="stat-icon">🔴</div>
+      <div class="stat-number">{{open}}</div>
+      <div class="stat-label">Open</div>
+    </div>
+    <div class="stat-card stat-progress">
+      <div class="stat-icon">⚙️</div>
+      <div class="stat-number">{{inProgress}}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card stat-resolved">
+      <div class="stat-icon">✅</div>
+      <div class="stat-number">{{resolved}}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </section>
+
+  <!-- Complaints List -->
+  <section class="complaints-section">
+    <h2 class="section-title">My Complaints</h2>
+
+    <div class="complaints-list">
+      <div *ngFor="let c of complaints" class="complaint-card">
+
+        <div class="complaint-header">
+          <h3 class="complaint-title">{{c.title}}</h3>
+          <span class="status-badge"
+            [ngClass]="{
+              'status-open': c.status === 'OPEN',
+              'status-progress': c.status === 'IN_PROGRESS',
+              'status-resolved': c.status === 'RESOLVED'
+            }">
+            {{c.status}}
+          </span>
+        </div>
+
+        <p class="complaint-desc">{{c.description}}</p>
+
+        <div class="complaint-meta">
+          <span class="meta-item">🏢 {{c.department}}</span>
+          <span class="meta-item">🕐 {{c.createdAt | date: 'dd MMM yyyy, h:mm a'}}</span>
+          <span class="meta-item">📍 {{c.latitude}}, {{c.longitude}}</span>
+        </div>
+
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="complaints.length === 0" class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>No complaints raised yet.</p>
+        <button class="btn-raise" (click)="raiseComplaint()">Raise your first complaint</button>
+      </div>
+    </div>
+  </section>
+
+</div>
