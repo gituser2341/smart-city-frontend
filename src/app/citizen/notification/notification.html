@@ -12,34 +12,40 @@
       <p class="notif-subtitle">Stay updated on your complaint activity</p>
     </div>
 
-    <!-- Loading -->
-    <div class="loading-state" *ngIf="isLoading">
-      <div class="spinner"></div>
-      <p>Loading notifications...</p>
-    </div>
-
-    <!-- Error -->
-    <div class="error-msg" *ngIf="!isLoading && errorMessage">
-      ⚠️ {{ errorMessage }}
-    </div>
-
-    <!-- Empty -->
-    <div class="empty-state" *ngIf="!isLoading && notifications.length === 0">
-      <div class="empty-icon">📭</div>
-      <p>No notifications yet</p>
-      <span>You'll be notified when your complaint status changes</span>
-    </div>
-
-    <!-- List -->
-    <div class="notif-list" *ngIf="!isLoading && notifications.length > 0">
-      <div class="notif-item" *ngFor="let n of notifications">
-        <div class="notif-item-icon">{{ getIcon(n.message) }}</div>
-        <div class="notif-item-body">
-          <p class="notif-message">{{ n.message }}</p>
-          <span class="notif-time">{{ n.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
-        </div>
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading notifications...</p>
       </div>
-    </div>
+    }
+
+    @if (!isLoading && errorMessage) {
+      <div class="error-msg">
+        ⚠️ {{ errorMessage }}
+      </div>
+    }
+
+    @if (!isLoading && !errorMessage && notifications.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>No notifications yet</p>
+        <span>You'll be notified when your complaint status changes</span>
+      </div>
+    }
+
+    @if (!isLoading && notifications.length > 0) {
+      <div class="notif-list">
+        @for (n of notifications; track n.id) {
+          <div class="notif-item">
+            <div class="notif-item-icon">{{ getIcon(n.message) }}</div>
+            <div class="notif-item-body">
+              <p class="notif-message">{{ n.message }}</p>
+              <span class="notif-time">{{ n.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
 
   </div>
 </div>

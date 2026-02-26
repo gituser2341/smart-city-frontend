@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-notification',
@@ -14,12 +14,17 @@ export class NotificationComponent implements OnInit {
 
   private http = inject(HttpClient);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);  // ← ADD
 
   notifications: any[] = [];
   isLoading = true;
   errorMessage = '';
 
   ngOnInit(): void {
+    this.isLoading = true;
+    this.notifications = [];
+    this.errorMessage = '';
+
     let role = localStorage.getItem('role') || '';
     const token = localStorage.getItem('token');
 
@@ -41,11 +46,13 @@ export class NotificationComponent implements OnInit {
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
           this.isLoading = false;
+          this.cdr.detectChanges();  // ← ADD
         },
         error: (err) => {
           this.errorMessage = 'Failed to load notifications.';
           this.isLoading = false;
           if (err.status === 401) this.router.navigate(['/login']);
+          this.cdr.detectChanges();  // ← ADD
         }
       });
   }
