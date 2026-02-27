@@ -81,19 +81,9 @@ export class CreateComplaintComponent implements OnInit {
 
   setPriority(p: string) { this.priority = p; }
   setDepartment(d: string) { this.department = d; }
-
   nextStep() { if (this.currentStep < 3) this.currentStep++; }
   prevStep() { if (this.currentStep > 1) this.currentStep--; }
-
   get progressWidth() { return `${(this.currentStep / 3) * 100}%`; }
-
-  get selectedPriority() {
-    return this.priorities.find(p => p.value === this.priority);
-  }
-
-  get selectedDepartment() {
-    return this.departments.find(d => d.value === this.department);
-  }
 
   submitComplaint() {
     if (!this.title || !this.description || !this.department) {
@@ -111,6 +101,28 @@ export class CreateComplaintComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
+    // ✅ If image selected → upload first, then submit complaint
+    if (this.selectedFile) {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+
+      this.http.post('http://localhost:8080/api/upload', formData, { responseType: 'text' })
+        .subscribe({
+          next: (imageName) => {
+            this.submitWithImage(imageName, headers);
+          },
+          error: () => {
+            this.message = 'Image upload failed. Please try again.';
+            this.isSubmitting = false;
+          }
+        });
+    } else {
+      // ✅ No image — submit directly
+      this.submitWithImage(null, headers);
+    }
+  }
+
+  private submitWithImage(imageUrl: string | null, headers: HttpHeaders) {
     const complaintData = {
       title: this.title,
       description: this.description,
@@ -118,7 +130,7 @@ export class CreateComplaintComponent implements OnInit {
       priority: this.priority,
       latitude: this.latitude,
       longitude: this.longitude,
-      imageUrl: this.selectedFile ? this.selectedFile.name : null
+      imageUrl: imageUrl
     };
 
     this.http.post('http://localhost:8080/api/complaints/create', complaintData, { headers })

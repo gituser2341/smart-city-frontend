@@ -1,20 +1,121 @@
-<h2>Officer Dashboard</h2>
+<div class="dashboard">
 
-<table>
-  <tr>
-    <th>ID</th>
-    <th>Title</th>
-    <th>Status</th>
-    <th>Action</th>
-  </tr>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="role-icon">👮</div>
+      <div>
+        <h1 class="header-title">Officer Dashboard</h1>
+        <p class="header-sub">Welcome, {{ officerName }}</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-notif" routerLink="/notifications">🔔 Notifications</button>
+      <button class="btn-logout" (click)="logout()">⎋ Logout</button>
+    </div>
+  </header>
 
-  <tr *ngFor="let c of complaints">
-    <td>{{c.id}}</td>
-    <td>{{c.title}}</td>
-    <td>{{c.status}}</td>
-    <td>
-      <button (click)="updateStatus(c.id,'IN_PROGRESS')">In Progress</button>
-      <button (click)="updateStatus(c.id,'RESOLVED')">Resolved</button>
-    </td>
-  </tr>
-</table>
+  <!-- Stats -->
+  <section class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">📋</div>
+      <div class="stat-number">{{ total }}</div>
+      <div class="stat-label">Assigned</div>
+    </div>
+    <div class="stat-card stat-progress">
+      <div class="stat-icon">⚙️</div>
+      <div class="stat-number">{{ inProgress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card stat-resolved">
+      <div class="stat-icon">✅</div>
+      <div class="stat-number">{{ resolved }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </section>
+
+  <!-- Complaints -->
+  <section class="complaints-section">
+    <h2 class="section-title">Assigned Complaints</h2>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading complaints...</p>
+    </div>
+
+    <div class="complaints-list" *ngIf="!isLoading">
+
+      <!-- Empty -->
+      <div class="empty-state" *ngIf="complaints.length === 0">
+        <div class="empty-icon">📭</div>
+        <p>No complaints assigned yet</p>
+        <span>You'll see complaints here once admin assigns them to you</span>
+      </div>
+
+      <div *ngFor="let c of complaints" class="complaint-card"
+        [ngClass]="{'card-emergency': c.priority === 'EMERGENCY'}">
+
+        <div class="complaint-header">
+          <h3 class="complaint-title">{{ c.title }}</h3>
+          <div class="badges">
+            <span class="status-badge"
+              [ngClass]="{
+                'status-open':     c.status === 'OPEN',
+                'status-progress': c.status === 'IN_PROGRESS',
+                'status-resolved': c.status === 'RESOLVED'
+              }">
+              {{ c.status }}
+            </span>
+            <span class="priority-badge"
+              [ngClass]="{
+                'p-low':       c.priority === 'LOW',
+                'p-medium':    c.priority === 'MEDIUM',
+                'p-high':      c.priority === 'HIGH',
+                'p-emergency': c.priority === 'EMERGENCY'
+              }">
+              {{ c.priority }}
+            </span>
+          </div>
+        </div>
+
+        <p class="complaint-desc">{{ c.description }}</p>
+
+        <div class="complaint-meta">
+          <span class="meta-item">🏢 {{ c.department }}</span>
+          <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+          <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
+          <span class="meta-item" *ngIf="c.user">👤 {{ c.user?.name }}</span>
+        </div>
+
+        <!-- Image -->
+        <div class="complaint-image" *ngIf="c.imageUrl">
+          <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
+        </div>
+
+        <!-- Status Update -->
+        <div class="status-update" *ngIf="c.status !== 'RESOLVED'">
+          <span class="update-label">Update Status:</span>
+          <div class="status-buttons">
+            <button
+              class="btn-status btn-progress"
+              [ngClass]="{'btn-active': c.status === 'IN_PROGRESS'}"
+              (click)="updateStatus(c.id, 'IN_PROGRESS')">
+              ⚙️ In Progress
+            </button>
+            <button
+              class="btn-status btn-resolve"
+              (click)="updateStatus(c.id, 'RESOLVED')">
+              ✅ Mark Resolved
+            </button>
+          </div>
+        </div>
+
+        <div class="resolved-badge" *ngIf="c.status === 'RESOLVED'">
+          ✅ This complaint has been resolved
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>

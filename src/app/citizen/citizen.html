@@ -9,7 +9,6 @@
         <p class="header-sub">Citizen Dashboard</p>
       </div>
     </div>
-    <!-- ✅ Notification button added here in header -->
     <div class="header-right">
       <button class="btn-raise" (click)="raiseComplaint()">
         <span class="btn-icon">+</span> Raise Complaint
@@ -56,14 +55,26 @@
 
         <div class="complaint-header">
           <h3 class="complaint-title">{{c.title}}</h3>
-          <span class="status-badge"
-            [ngClass]="{
-              'status-open': c.status === 'OPEN',
-              'status-progress': c.status === 'IN_PROGRESS',
-              'status-resolved': c.status === 'RESOLVED'
-            }">
-            {{c.status}}
-          </span>
+
+          <div class="badges">
+            <span class="status-badge"
+              [ngClass]="{
+                'status-open':     c.status === 'OPEN',
+                'status-progress': c.status === 'IN_PROGRESS',
+                'status-resolved': c.status === 'RESOLVED'
+              }">
+              {{c.status}}
+            </span>
+            <span class="priority-badge"
+              [ngClass]="{
+                'p-low':       c.priority === 'LOW',
+                'p-medium':    c.priority === 'MEDIUM',
+                'p-high':      c.priority === 'HIGH',
+                'p-emergency': c.priority === 'EMERGENCY'
+              }">
+              {{c.priority}}
+            </span>
+          </div>
         </div>
 
         <p class="complaint-desc">{{c.description}}</p>
@@ -72,6 +83,11 @@
           <span class="meta-item">🏢 {{c.department}}</span>
           <span class="meta-item">🕐 {{c.createdAt | date: 'dd MMM yyyy, h:mm a'}}</span>
           <span class="meta-item">📍 {{c.latitude}}, {{c.longitude}}</span>
+        </div>
+
+        <!-- ✅ Show uploaded image if exists -->
+        <div class="complaint-image" *ngIf="c.imageUrl">
+          <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
         </div>
 
       </div>

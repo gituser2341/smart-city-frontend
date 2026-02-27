@@ -113,6 +113,23 @@
   color: #fff;
 }
 
+.btn-notif {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 10px 18px;
+  border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-notif:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
 /* ── Stats Grid ── */
 .stats-grid {
   display: grid;
@@ -145,8 +162,8 @@
   height: 4px;
 }
 
-.stat-total::before   { background: #64748b; }
-.stat-open::before    { background: #ef4444; }
+.stat-total::before    { background: #64748b; }
+.stat-open::before     { background: #ef4444; }
 .stat-progress::before { background: #3b82f6; }
 .stat-resolved::before { background: #22c55e; }
 
@@ -229,6 +246,14 @@
   flex: 1;
 }
 
+/* ── Badges ── */
+.badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .status-badge {
   font-size: 0.72rem;
   font-weight: 700;
@@ -242,6 +267,27 @@
 .status-open     { background: #fee2e2; color: #dc2626; }
 .status-progress { background: #dbeafe; color: #1d4ed8; }
 .status-resolved { background: #dcfce7; color: #16a34a; }
+
+/* ── Priority Badges ── */
+.priority-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+.p-low       { background: #f0fdf4; color: #16a34a; }
+.p-medium    { background: #fffbeb; color: #d97706; }
+.p-high      { background: #fff7ed; color: #ea580c; }
+.p-emergency { background: #dc2626; color: #ffffff; animation: pulse-red 1s infinite; }
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
 
 .complaint-desc {
   color: #64748b;
@@ -259,6 +305,27 @@
 .meta-item {
   font-size: 0.8rem;
   color: #94a3b8;
+}
+
+/* ── Complaint Image ── */
+.complaint-image {
+  margin-top: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.complaint-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.complaint-image img:hover {
+  transform: scale(1.02);
 }
 
 /* ── Empty State ── */
@@ -305,21 +372,4 @@
     width: 100%;
     justify-content: center;
   }
-}
-
-.btn-notif {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.85);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 10px 18px;
-  border-radius: 50px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-notif:hover {
-  background: rgba(255,255,255,0.18);
-  color: #fff;
 }
