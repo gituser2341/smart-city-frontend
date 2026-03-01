@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-officer',
@@ -19,7 +20,11 @@ export class OfficerComponent implements OnInit {
   resolved = 0;
   isLoading = true;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit() {
     this.officerName = localStorage.getItem('name') || 'Officer';
@@ -47,6 +52,11 @@ export class OfficerComponent implements OnInit {
           if (err.status === 401) this.router.navigate(['/login']);
         }
       });
+  }
+
+  getSafeMapUrl(lat: number, lng: number): SafeResourceUrl {
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   updateStatus(complaintId: number, status: string) {

@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { RouterModule } from '@angular/router';
-
-
+import { Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-citizen',
@@ -16,19 +14,21 @@ import { RouterModule } from '@angular/router';
 export class CitizenComponent implements OnInit {
 
   complaints: any[] = [];
-
   total = 0;
   open = 0;
   inProgress = 0;
   resolved = 0;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    // ✅ Uses JWT to identify user, no userId needed
     this.http.get<any[]>('http://localhost:8080/api/complaints/my', { headers })
       .subscribe({
         next: (data) => {
@@ -39,17 +39,17 @@ export class CitizenComponent implements OnInit {
           this.resolved = data.filter(c => c.status === 'RESOLVED').length;
         },
         error: (err) => {
-          console.error('Failed to load complaints:', err);
-          if (err.status === 401) {
-            this.router.navigate(['/login']); // ✅ redirect if token expired
-          }
+          if (err.status === 401) this.router.navigate(['/login']);
         }
       });
   }
 
-  raiseComplaint() {
-    this.router.navigate(['/create-complaint']);
+  getSafeMapUrl(lat: number, lng: number): SafeResourceUrl {
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
+
+  raiseComplaint() { this.router.navigate(['/create-complaint']); }
 
   logout() {
     localStorage.clear();

@@ -93,6 +93,19 @@
           <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
         </div>
 
+        <!-- ✅ Map Preview -->
+        <div class="map-section" *ngIf="c.latitude && c.longitude">
+          <p class="map-label">📍 Complaint Location</p>
+          <div class="map-frame">
+            <iframe
+              [src]="getSafeMapUrl(c.latitude, c.longitude)"
+              class="map-iframe"
+              frameborder="0"
+              loading="lazy">
+            </iframe>
+          </div>
+        </div>
+
         <!-- Status Update -->
         <div class="status-update" *ngIf="c.status !== 'RESOLVED'">
           <span class="update-label">Update Status:</span>

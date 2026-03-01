@@ -55,7 +55,6 @@
 
         <div class="complaint-header">
           <h3 class="complaint-title">{{c.title}}</h3>
-
           <div class="badges">
             <span class="status-badge"
               [ngClass]="{
@@ -85,9 +84,22 @@
           <span class="meta-item">📍 {{c.latitude}}, {{c.longitude}}</span>
         </div>
 
-        <!-- ✅ Show uploaded image if exists -->
+        <!-- Image -->
         <div class="complaint-image" *ngIf="c.imageUrl">
           <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
+        </div>
+
+        <!-- ✅ Map Preview — no pipe needed -->
+        <div class="map-section" *ngIf="c.latitude && c.longitude">
+          <p class="map-label">📍 Complaint Location</p>
+          <div class="map-frame">
+            <iframe
+              [src]="getSafeMapUrl(c.latitude, c.longitude)"
+              class="map-iframe"
+              frameborder="0"
+              loading="lazy">
+            </iframe>
+          </div>
         </div>
 
       </div>

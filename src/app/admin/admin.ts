@@ -1,110 +1,114 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, registerables } from 'chart.js';
-import * as L from 'leaflet';
-import { RouterModule } from '@angular/router';
-
-Chart.register(...registerables);
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
-  standalone: true,
   selector: 'app-admin',
-  imports: [CommonModule,RouterModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './admin.html',
-  styleUrl: './admin.css',
+  styleUrls: ['./admin.css']
 })
 export class AdminComponent implements OnInit {
 
-  private http = inject(HttpClient);
+  stats: any = {};
+  complaints: any[] = [];
+  officers: any[] = [];
+  selectedOfficerId: any = {};
+  isLoading = true;
+  activeTab = 'dashboard';
+  errorMessage = '';
 
-  total = 0;
-  statusStats: any;
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
-    this.loadCounts();
-    this.loadStatusChart();
-    this.loadDepartmentChart();
-    this.loadMap();
+    this.loadStats();
+    this.loadComplaints();
+    this.loadOfficers();
   }
 
-  // ✅ Existing count logic
-  loadCounts() {
-    this.http.get<number>('http://localhost:8080/api/admin/count')
-      .subscribe(data => this.total = data);
-
-    this.http.get<any>('http://localhost:8080/api/admin/count-by-status')
-      .subscribe(data => this.statusStats = data);
+  getHeaders() {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
-  // ✅ Pie Chart
-  loadStatusChart() {
-    this.http.get<any>('http://localhost:8080/api/admin/count-by-status')
-      .subscribe(data => {
-
-        new Chart("statusChart", {
-          type: 'pie',
-          data: {
-            labels: ['OPEN', 'IN_PROGRESS', 'RESOLVED'],
-            datasets: [{
-              data: [
-                data.OPEN || 0,
-                data.IN_PROGRESS || 0,
-                data.RESOLVED || 0
-              ],
-              backgroundColor: ['red', 'orange', 'green']
-            }]
-          }
-        });
-      });
-  }
-
-  loadMap() {
-
-  const map = L.map('map').setView([17.3850, 78.4867], 12); // Default center
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-
-  this.http.get<any[]>('http://localhost:8080/api/admin/all')
-    .subscribe(complaints => {
-
-      complaints.forEach(c => {
-
-        if (c.latitude && c.longitude) {
-
-          L.marker([c.latitude, c.longitude])
-            .addTo(map)
-            .bindPopup(`
-              <b>${c.title}</b><br>
-              ${c.department}<br>
-              Status: ${c.status}
-            `);
-
+  loadStats() {
+    this.http.get<any>('http://localhost:8080/api/admin/dashboard-stats',
+      { headers: this.getHeaders() })
+      .subscribe({
+        next: (data) => {
+          this.stats = data;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('❌ Stats error:', err.status, err.message);
+          this.isLoading = false;
+          this.errorMessage = `Error ${err.status}: ${err.status === 403 ? 'Access denied — role issue' : err.message}`;
+          if (err.status === 401) this.router.navigate(['/login']);
         }
-
       });
+  }
 
+  loadComplaints() {
+    this.http.get<any[]>('http://localhost:8080/api/admin/all-complaints',
+      { headers: this.getHeaders() })
+      .subscribe({
+        next: (data) => this.complaints = data,
+        error: (err) => console.error('Complaints error:', err.status)
+      });
+  }
+
+  loadOfficers() {
+    this.http.get<any[]>('http://localhost:8080/api/admin/officers',
+      { headers: this.getHeaders() })
+      .subscribe({
+        next: (data) => this.officers = data,
+        error: (err) => console.error('Officers error:', err.status)
+      });
+  }
+
+  assignOfficer(complaintId: number) {
+    const officerId = this.selectedOfficerId[complaintId];
+    if (!officerId) return;
+
+    this.http.put(
+      `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
+      {},
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        const c = this.complaints.find(x => x.id === complaintId);
+        if (c) {
+          const officer = this.officers.find(o => o.id == officerId);
+          c.assignedOfficer = officer;
+          c.status = 'IN_PROGRESS';
+        }
+      },
+      error: (err) => console.error('Assign error:', err)
     });
-}
+  }
 
-  // ✅ Bar Chart
-  loadDepartmentChart() {
-    this.http.get<any>('http://localhost:8080/api/admin/count-by-department')
-      .subscribe(data => {
+  getBarWidth(value: number, max: number): string {
+    if (!max) return '0%';
+    return `${Math.round((value / max) * 100)}%`;
+  }
 
-        new Chart("deptChart", {
-          type: 'bar',
-          data: {
-            labels: Object.keys(data),
-            datasets: [{
-              label: 'Complaints',
-              data: Object.values(data),
-              backgroundColor: 'blue'
-            }]
-          }
-        });
-      });
+  getMaxDept(): number {
+    if (!this.stats.byDepartment) return 1;
+    return Math.max(...Object.values(this.stats.byDepartment) as number[]);
+  }
+
+  getMaxPriority(): number {
+    if (!this.stats.byPriority) return 1;
+    return Math.max(...Object.values(this.stats.byPriority) as number[]);
+  }
+
+  setTab(tab: string) { this.activeTab = tab; }
+
+  logout() {
+    localStorage.clear();
+    this.router.navigate(['/login']);
   }
 }
