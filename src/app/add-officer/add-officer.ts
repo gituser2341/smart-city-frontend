@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -27,7 +27,11 @@ export class AddOfficerComponent {
     { value: 'ROAD',        label: 'Road',        icon: '🛣️' }
   ];
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cdr: ChangeDetectorRef  // ← ADD
+  ) {}
 
   addOfficer() {
     if (!this.name || !this.email || !this.password || !this.department) {
@@ -56,10 +60,12 @@ export class AddOfficerComponent {
           this.email = '';
           this.password = '';
           this.department = '';
+          this.cdr.detectChanges();  // ← ADD
         },
         error: (err) => {
           this.isSubmitting = false;
           this.message = err.error || 'Failed to add officer.';
+          this.cdr.detectChanges();  // ← ADD
         }
       });
   }

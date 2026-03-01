@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
@@ -22,7 +22,8 @@ export class CitizenComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef  // ← ADD
   ) {}
 
   ngOnInit() {
@@ -37,9 +38,11 @@ export class CitizenComponent implements OnInit {
           this.open = data.filter(c => c.status === 'OPEN').length;
           this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
           this.resolved = data.filter(c => c.status === 'RESOLVED').length;
+          this.cdr.detectChanges();  // ← ADD
         },
         error: (err) => {
           if (err.status === 401) this.router.navigate(['/login']);
+          this.cdr.detectChanges();  // ← ADD
         }
       });
   }

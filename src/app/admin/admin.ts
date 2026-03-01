@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -21,7 +21,11 @@ export class AdminComponent implements OnInit {
   activeTab = 'dashboard';
   errorMessage = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cdr: ChangeDetectorRef  // ← ADD
+  ) {}
 
   ngOnInit() {
     this.loadStats();
@@ -35,27 +39,32 @@ export class AdminComponent implements OnInit {
   }
 
   loadStats() {
-    this.http.get<any>('http://localhost:8080/api/admin/dashboard-stats',
+    this.http.get<any>('http://localhost:8080/api/admin/dashboard-stats',  // ← FIXED
       { headers: this.getHeaders() })
       .subscribe({
         next: (data) => {
           this.stats = data;
           this.isLoading = false;
+          this.cdr.detectChanges();  // ← ADD
         },
         error: (err) => {
           console.error('❌ Stats error:', err.status, err.message);
           this.isLoading = false;
           this.errorMessage = `Error ${err.status}: ${err.status === 403 ? 'Access denied — role issue' : err.message}`;
           if (err.status === 401) this.router.navigate(['/login']);
+          this.cdr.detectChanges();  // ← ADD
         }
       });
   }
 
   loadComplaints() {
-    this.http.get<any[]>('http://localhost:8080/api/admin/all-complaints',
+    this.http.get<any[]>('http://localhost:8080/api/admin/all-complaints',  // ← FIXED
       { headers: this.getHeaders() })
       .subscribe({
-        next: (data) => this.complaints = data,
+        next: (data) => {
+          this.complaints = data;
+          this.cdr.detectChanges();  // ← ADD
+        },
         error: (err) => console.error('Complaints error:', err.status)
       });
   }
@@ -64,7 +73,10 @@ export class AdminComponent implements OnInit {
     this.http.get<any[]>('http://localhost:8080/api/admin/officers',
       { headers: this.getHeaders() })
       .subscribe({
-        next: (data) => this.officers = data,
+        next: (data) => {
+          this.officers = data;
+          this.cdr.detectChanges();  // ← ADD
+        },
         error: (err) => console.error('Officers error:', err.status)
       });
   }
@@ -76,7 +88,7 @@ export class AdminComponent implements OnInit {
     this.http.put(
       `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
       {},
-      { headers: this.getHeaders(), responseType: 'text' }
+      { headers: this.getHeaders(), responseType: 'text' as 'json' }
     ).subscribe({
       next: () => {
         const c = this.complaints.find(x => x.id === complaintId);
@@ -85,6 +97,7 @@ export class AdminComponent implements OnInit {
           c.assignedOfficer = officer;
           c.status = 'IN_PROGRESS';
         }
+        this.cdr.detectChanges();  // ← ADD
       },
       error: (err) => console.error('Assign error:', err)
     });

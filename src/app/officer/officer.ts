@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';  // ← add
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
@@ -23,7 +23,8 @@ export class OfficerComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef  // ← ADD
   ) {}
 
   ngOnInit() {
@@ -46,17 +47,14 @@ export class OfficerComponent implements OnInit {
           this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
           this.resolved = data.filter(c => c.status === 'RESOLVED').length;
           this.isLoading = false;
+          this.cdr.detectChanges();  // ← ADD
         },
         error: (err) => {
           this.isLoading = false;
           if (err.status === 401) this.router.navigate(['/login']);
+          this.cdr.detectChanges();  // ← ADD
         }
       });
-  }
-
-  getSafeMapUrl(lat: number, lng: number): SafeResourceUrl {
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   updateStatus(complaintId: number, status: string) {
@@ -75,9 +73,15 @@ export class OfficerComponent implements OnInit {
           this.inProgress = this.complaints.filter(c => c.status === 'IN_PROGRESS').length;
           this.resolved = this.complaints.filter(c => c.status === 'RESOLVED').length;
         }
+        this.cdr.detectChanges();  // ← ADD
       },
       error: (err) => console.error('Update failed:', err)
     });
+  }
+
+  getSafeMapUrl(lat: number, lng: number): SafeResourceUrl {
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   logout() {
