@@ -1,15 +1,275 @@
-<div class="container">
-  <h1>Smart City Digital Governance Platform</h1>
+<div class="home-page">
+  <div class="grid-bg"></div>
 
-  <p>
-    A centralized platform to manage citizen grievances, public services,
-    and city governance efficiently.
-  </p>
+  <nav>
+    <a routerLink="/" class="logo">
+      <div class="logo-icon">🏙️</div>
+      CivicPulse
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#roles">Roles</a></li>
+      <li><a href="#workflow">Workflow</a></li>
+      <li><a href="#departments">Departments</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a routerLink="/login" class="btn-ghost">Login</a>
+      <a routerLink="/register" class="btn-nav-cta">+ Register</a>
+    </div>
+  </nav>
 
-  <div class="buttons">
-    <a routerLink="/login" class="btn">Login</a>
-    <a routerLink="/register" class="btn btn-outline">Register</a>
-    <button (click)="logout()">Logout</button>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge"><span class="badge-dot"></span>Smart City Initiative · Live System</div>
+    <h1>
+      Your City.<br/>
+      <span class="accent">Heard. Tracked.</span> Resolved.
+      <span class="sub-line">Powered by CivicPulse Governance Platform</span>
+    </h1>
+    <p class="hero-desc">
+      A full-stack governance platform connecting citizens with municipal authorities.
+      Submit complaints with geo-location, image proof, and priority — get real-time resolution updates.
+    </p>
+    <div class="hero-btns">
+      <a routerLink="/register" class="btn-primary">+ Register & Raise a Complaint</a>
+      <a routerLink="/login" class="btn-outline">👮 Officer / Admin Login →</a>
+    </div>
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
+        <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div class="stat-item"><div class="stat-num">3</div><div class="stat-lbl">User Roles</div></div>
+    <div class="stat-item"><div class="stat-num">4</div><div class="stat-lbl">Departments</div></div>
+    <div class="stat-item"><div class="stat-num">4</div><div class="stat-lbl">Priority Levels</div></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Digital &amp; Transparent</div></div>
+    <div class="stat-item"><div class="stat-num">Live</div><div class="stat-lbl">Real-time Tracking</div></div>
   </div>
-</div>
 
+  <!-- PROBLEM -->
+  <section class="problem-section">
+    <div class="section-inner">
+      <div class="section-tag">The Problem</div>
+      <div class="section-title">Why Traditional Systems Fail</div>
+      <div class="section-sub">Millions of civic complaints go unresolved due to outdated, non-transparent systems.</div>
+      <div class="problem-grid">
+        <div class="problem-items">
+          <div class="problem-item"><span class="prob-icon">📄</span>Manual, paper-based complaint processes</div>
+          <div class="problem-item"><span class="prob-icon">⏳</span>Weeks-long resolution cycles with zero updates</div>
+          <div class="problem-item"><span class="prob-icon">🔒</span>No transparency or officer accountability</div>
+          <div class="problem-item"><span class="prob-icon">📡</span>Citizens have no real-time tracking</div>
+          <div class="problem-item"><span class="prob-icon">🚫</span>Poor communication between public and officials</div>
+          <div class="problem-item"><span class="prob-icon">🚨</span>No priority handling — emergencies treated equally</div>
+          <div class="problem-item"><span class="prob-icon">👤</span>No proper officer assignment or department routing</div>
+        </div>
+        <div class="problem-visual">
+          <div class="pv-card">
+            <span class="pv-icon">🗑️</span>
+            <div class="pv-body"><div class="pv-label">Garbage Overflow — Main Road</div><div class="pv-sub">Submitted 14 days ago · No response</div></div>
+            <span class="pv-badge badge-red">OPEN</span>
+          </div>
+          <div class="pv-card">
+            <span class="pv-icon">💧</span>
+            <div class="pv-body"><div class="pv-label">Water Pipe Burst — Sector 4</div><div class="pv-sub">Officer assigned · In review</div></div>
+            <span class="pv-badge badge-blue">IN PROGRESS</span>
+          </div>
+          <div class="pv-card">
+            <span class="pv-icon">⚡</span>
+            <div class="pv-body"><div class="pv-label">Street Light Failure — Park Ave</div><div class="pv-sub">Fixed within 48 hours · Citizen notified</div></div>
+            <span class="pv-badge badge-green">RESOLVED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="features-section">
+    <div class="section-inner">
+      <div class="section-center">
+        <div class="section-tag">Core Features</div>
+        <div class="section-title">Everything a Smart City Needs</div>
+        <div class="section-sub">Full-stack implementation built for transparency, speed, and real accountability.</div>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card"><div class="feat-icon">📍</div><h3>Geo-Location Mapping</h3><p>Auto-captures precise location with OpenStreetMap embed — officers see exactly where to go.</p></div>
+        <div class="feat-card"><div class="feat-icon">🔴</div><h3>Priority Escalation</h3><p>LOW → MEDIUM → HIGH → EMERGENCY. Critical issues surface first, emergency cards pulse red.</p></div>
+        <div class="feat-card"><div class="feat-icon">📸</div><h3>Image Proof Upload</h3><p>Citizens attach photographic evidence. Officers see it on their dashboard with full context.</p></div>
+        <div class="feat-card"><div class="feat-icon">🤖</div><h3>Auto-Assign by Department</h3><p>Complaints auto-route to the right officer — WATER, ELECTRICITY, SANITATION, ROAD.</p></div>
+        <div class="feat-card"><div class="feat-icon">📊</div><h3>Admin Analytics</h3><p>Live bar charts, resolution rate donut, and department statistics for administrators.</p></div>
+        <div class="feat-card"><div class="feat-icon">🗺️</div><h3>Map Preview on Cards</h3><p>Every complaint card shows an embedded map pin — location visible instantly.</p></div>
+        <div class="feat-card"><div class="feat-icon">🔔</div><h3>Notification System</h3><p>Citizens get notified when complaint is assigned and when resolved by the officer.</p></div>
+        <div class="feat-card"><div class="feat-icon">🔐</div><h3>JWT Role-Based Auth</h3><p>Spring Security + JWT with CITIZEN, OFFICER, and ADMIN role-based access control.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPARTMENTS -->
+  <section id="departments" class="dept-section">
+    <div class="section-inner section-center">
+      <div class="section-tag">Departments</div>
+      <div class="section-title">4 Municipal Departments Covered</div>
+      <div class="section-sub">Each department has dedicated officers auto-assigned to incoming complaints.</div>
+      <div class="dept-grid">
+        <div class="dept-card"><span class="dept-emoji">💧</span><div class="dept-name">Water</div><div class="dept-desc">Pipe bursts, leakage, supply issues</div></div>
+        <div class="dept-card"><span class="dept-emoji">⚡</span><div class="dept-name">Electricity</div><div class="dept-desc">Street lights, power failures, wiring</div></div>
+        <div class="dept-card"><span class="dept-emoji">🗑️</span><div class="dept-name">Sanitation</div><div class="dept-desc">Garbage overflow, drainage blockage</div></div>
+        <div class="dept-card"><span class="dept-emoji">🛣️</span><div class="dept-name">Road</div><div class="dept-desc">Potholes, road damage, traffic signals</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROLES -->
+  <section id="roles" class="roles-section">
+    <div class="section-inner">
+      <div class="section-tag">User Roles</div>
+      <div class="section-title">Three Pillars of Governance</div>
+      <div class="section-sub">Purpose-built dashboards for every type of user in the system.</div>
+      <div class="roles-grid">
+        <div class="role-card">
+          <div class="role-top">
+            <div class="role-emoji-wrap">👤</div>
+            <div><h3>Citizen</h3><span class="role-tag-label">Public User</span></div>
+          </div>
+          <div class="role-divider"></div>
+          <ul class="role-list">
+            <li>Register &amp; login securely</li>
+            <li>Raise complaints with geo-location</li>
+            <li>Attach image proof</li>
+            <li>Set priority level</li>
+            <li>Track complaint status live</li>
+            <li>View assigned officer details</li>
+            <li>Receive update notifications</li>
+            <li>View map pin on each complaint</li>
+          </ul>
+          <a routerLink="/register" class="role-btn">Register Now →</a>
+        </div>
+        <div class="role-card">
+          <div class="role-top">
+            <div class="role-emoji-wrap">🧑‍💼</div>
+            <div><h3>Admin</h3><span class="role-tag-label">Municipal Authority</span></div>
+          </div>
+          <div class="role-divider"></div>
+          <ul class="role-list">
+            <li>Monitor all city complaints</li>
+            <li>Manually assign to officers</li>
+            <li>Auto-routing by department</li>
+            <li>Analytics dashboard with charts</li>
+            <li>Add officers with departments</li>
+            <li>Track resolution progress</li>
+          </ul>
+          <a routerLink="/login" class="role-btn">Admin Login →</a>
+        </div>
+        <div class="role-card">
+          <div class="role-top">
+            <div class="role-emoji-wrap">🚓</div>
+            <div><h3>Officer</h3><span class="role-tag-label">Field Personnel</span></div>
+          </div>
+          <div class="role-divider"></div>
+          <ul class="role-list">
+            <li>View assigned complaints</li>
+            <li>Priority-sorted (EMERGENCY first)</li>
+            <li>See image proof and map location</li>
+            <li>Update: In Progress / Resolved</li>
+            <li>Citizen auto-notified on update</li>
+          </ul>
+          <a routerLink="/login" class="role-btn">Officer Login →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIORITY -->
+  <section class="priority-outer">
+    <div class="section-inner section-center">
+      <div class="section-tag">Priority System</div>
+      <div class="section-title">Smart Issue Escalation</div>
+      <div class="section-sub">Every complaint is tagged — emergencies are never delayed or missed.</div>
+      <div class="priority-row">
+        <div class="pri-card p-low"><span class="pri-emoji">🟢</span><div class="pri-label">Low</div><div class="pri-sub">Routine maintenance</div></div>
+        <div class="pri-card p-med"><span class="pri-emoji">🟡</span><div class="pri-label">Medium</div><div class="pri-sub">Moderate civic impact</div></div>
+        <div class="pri-card p-high"><span class="pri-emoji">🟠</span><div class="pri-label">High</div><div class="pri-sub">Urgent attention needed</div></div>
+        <div class="pri-card p-em"><span class="pri-emoji">🔴</span><div class="pri-label">Emergency</div><div class="pri-sub">Immediate action required</div><div class="p-em-tag">AUTO-ESCALATE</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section id="workflow" class="workflow-section">
+    <div class="section-inner section-center">
+      <div class="section-tag">How It Works</div>
+      <div class="section-title">Complaint Resolution in 6 Steps</div>
+      <div class="workflow-steps">
+        <div class="wf-step"><div class="wf-num">1</div><h4>Register</h4><p>Citizen creates account and logs in via JWT auth</p></div>
+        <div class="wf-step"><div class="wf-num">2</div><h4>Submit</h4><p>Raise complaint with photo, location &amp; priority</p></div>
+        <div class="wf-step"><div class="wf-num">3</div><h4>Auto-Route</h4><p>System auto-assigns officer by department</p></div>
+        <div class="wf-step"><div class="wf-num">4</div><h4>Officer Acts</h4><p>Officer views map, image and updates status</p></div>
+        <div class="wf-step"><div class="wf-num">5</div><h4>Resolved</h4><p>Officer marks complaint resolved instantly</p></div>
+        <div class="wf-step"><div class="wf-num">6</div><h4>Notified</h4><p>Citizen receives notification — transparency achieved</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="tech-section">
+    <div class="section-inner">
+      <div class="section-center">
+        <div class="section-tag">Tech Stack</div>
+        <div class="section-title">Built with Production-Grade Tools</div>
+        <div class="section-sub">Real full-stack implementation — no mock data, no prototypes.</div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-card"><span class="tech-icon">🍃</span><div class="tech-name">Spring Boot</div><div class="tech-desc">REST API, JWT Security, JPA/Hibernate, MySQL</div></div>
+        <div class="tech-card"><span class="tech-icon">🔺</span><div class="tech-name">Angular 18</div><div class="tech-desc">Standalone components, reactive HTTP client</div></div>
+        <div class="tech-card"><span class="tech-icon">🐬</span><div class="tech-name">MySQL</div><div class="tech-desc">Relational DB with auto-schema generation</div></div>
+        <div class="tech-card"><span class="tech-icon">🗺️</span><div class="tech-name">OpenStreetMap</div><div class="tech-desc">Free embedded maps — zero API key needed</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <h2>Ready to Build a <span>Smarter City?</span></h2>
+      <p>Join citizens and municipal authorities working toward faster, more transparent civic resolution.</p>
+      <div class="cta-btns">
+        <a routerLink="/register" class="btn-cta-primary">+ Register as Citizen</a>
+        <a routerLink="/login" class="btn-cta-secondary">🧑‍💼 Admin Login</a>
+        <a routerLink="/login" class="btn-cta-officer">🚓 Officer Login</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">
+      <div class="footer-logo-icon">🏙️</div>
+      <span class="footer-logo">CivicPulse</span>
+    </div>
+    <div class="footer-text">© 2025 CivicPulse — Smart City Governance System · Built for transparent urban governance</div>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#roles">Roles</a>
+      <a href="#workflow">Workflow</a>
+      <a routerLink="/login">Login</a>
+    </div>
+  </footer>
+
+</div>

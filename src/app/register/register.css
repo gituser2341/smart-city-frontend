@@ -1,23 +1,316 @@
-form {
-  width: 320px;
-  margin: 70px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #040d1a;
+  font-family: 'DM Sans', sans-serif;
 }
 
-input, select, button {
+/* ── PAGE LAYOUT ── */
+.register-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── GRID BG ── */
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.025;
+  background-image:
+    linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── LEFT PANEL ── */
+.register-left {
+  position: relative; z-index: 1;
+  background: linear-gradient(145deg, #071428 0%, #0a1f3d 50%, #071428 100%);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 3rem;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+}
+
+.register-left::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(37,99,235,0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(59,130,246,0.08) 0%, transparent 55%);
+}
+
+.brand {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.brand-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.5);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 1.3rem; color: #fff;
+}
+
+.brand-sub {
+  font-size: 0.72rem; color: rgba(255,255,255,0.4);
+  letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;
+}
+
+.left-content {
+  position: relative; z-index: 1;
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; padding: 3rem 0;
+}
+
+.left-content h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+  font-weight: 800; line-height: 1.1;
+  color: #fff; margin-bottom: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.left-content h1 span {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.left-content p {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.97rem; line-height: 1.75;
+  max-width: 380px; margin-bottom: 2.5rem;
+}
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; gap: 1.2rem; }
+
+.step {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 1rem 1.2rem;
+  transition: background 0.2s;
+}
+
+.step:hover { background: rgba(37,99,235,0.06); border-color: rgba(59,130,246,0.2); }
+
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #60a5fa;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 2px;
+}
+
+.step-sub { font-size: 0.76rem; color: rgba(255,255,255,0.45); line-height: 1.4; }
+
+.left-footer {
+  position: relative; z-index: 1;
+  font-size: 0.83rem; color: rgba(255,255,255,0.4);
+}
+
+.left-footer a {
+  color: #60a5fa; text-decoration: none;
+  font-weight: 600; margin-left: 0.4rem; transition: color 0.2s;
+}
+
+.left-footer a:hover { color: #93c5fd; }
+
+/* ── RIGHT PANEL ── */
+.register-right {
+  position: relative; z-index: 1;
+  background: #040d1a;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+
+.register-card {
+  width: 100%; max-width: 420px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 2.5rem 2rem;
+}
+
+/* ── CARD HEADER ── */
+.card-header { text-align: center; margin-bottom: 2rem; }
+
+.card-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: rgba(37,99,235,0.12);
+  border: 1px solid rgba(59,130,246,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin: 0 auto 1rem;
+}
+
+.card-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem; font-weight: 800;
+  color: #fff; margin-bottom: 0.3rem;
+}
+
+.card-header p { font-size: 0.85rem; color: rgba(255,255,255,0.45); }
+
+/* ── FORM FIELDS ── */
+.field-group { margin-bottom: 1.2rem; }
+
+.field-label {
+  display: block;
+  font-size: 0.8rem; font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 0.5rem; letter-spacing: 0.03em;
+}
+
+.input-wrap {
+  position: relative;
+  display: flex; align-items: center;
+}
+
+.input-icon {
+  position: absolute; left: 0.85rem;
+  font-size: 0.95rem; pointer-events: none; z-index: 1;
+}
+
+.field-input {
   width: 100%;
-  padding: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem 0.75rem 2.6rem;
+  color: #fff; font-size: 0.92rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; outline: none;
 }
 
-button {
-  background-color: #2e7d32;
-  color: white;
-  border: none;
+.field-input::placeholder { color: rgba(255,255,255,0.25); }
+
+.field-input:focus {
+  border-color: rgba(59,130,246,0.5);
+  background: rgba(37,99,235,0.06);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 
-.error {
-  color: red;
-  text-align: center;
+.toggle-pw {
+  position: absolute; right: 0.85rem;
+  background: none; border: none;
+  cursor: pointer; font-size: 0.95rem;
+  color: rgba(255,255,255,0.4);
+  transition: color 0.2s; padding: 0;
+}
+
+.toggle-pw:hover { color: rgba(255,255,255,0.8); }
+
+/* ── MESSAGES ── */
+.error-msg {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 7px; padding: 0.65rem 1rem;
+  color: #f87171; font-size: 0.83rem;
+  margin-bottom: 1.2rem;
+}
+
+.success-msg {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 7px; padding: 0.65rem 1rem;
+  color: #4ade80; font-size: 0.83rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ── REGISTER BUTTON ── */
+.btn-register {
+  width: 100%;
+  background: #2563eb; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 0.85rem; font-size: 0.97rem;
+  font-weight: 700; font-family: 'Syne', sans-serif;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+  letter-spacing: 0.02em;
+}
+
+.btn-register:hover:not(:disabled) {
+  background: #3b82f6;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(37,99,235,0.5);
+}
+
+.btn-register:disabled {
+  opacity: 0.5; cursor: not-allowed; transform: none;
+}
+
+.spinner { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+/* ── DIVIDER ── */
+.divider {
+  display: flex; align-items: center; gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.divider::before, .divider::after {
+  content: ''; flex: 1;
+  height: 1px; background: rgba(255,255,255,0.07);
+}
+
+.divider span {
+  font-size: 0.75rem; color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
+
+/* ── LOGIN BUTTON ── */
+.btn-login {
+  display: block; width: 100%; text-align: center;
+  background: transparent; color: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; padding: 0.8rem;
+  font-size: 0.92rem; font-weight: 600;
+  font-family: 'Syne', sans-serif;
+  text-decoration: none; transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.btn-login:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff; border-color: rgba(59,130,246,0.3);
+}
+
+/* ── BACK HOME ── */
+.btn-home {
+  display: block; text-align: center;
+  font-size: 0.8rem; color: rgba(255,255,255,0.35);
+  text-decoration: none; transition: color 0.2s;
+}
+
+.btn-home:hover { color: rgba(255,255,255,0.7); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .register-page { grid-template-columns: 1fr; }
+  .register-left { display: none; }
+  .register-right { min-height: 100vh; padding: 1.5rem; }
+  .register-card { padding: 2rem 1.5rem; }
 }

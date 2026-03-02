@@ -1,0 +1,12 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #040d1a;
+  font-family: 'DM Sans', sans-serif;
+  color: rgba(255, 255, 255, 0.85);
+  overflow-x: hidden;
+}

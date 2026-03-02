@@ -17,37 +17,42 @@ export class LoginComponent {
   email = '';
   password = '';
   errorMessage = '';
+  isLoading = false;
+  showPassword = false;
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
   login() {
-  this.http.post<any>('http://localhost:8080/api/auth/login', {
-    email: this.email,
-    password: this.password
-  }).subscribe({
-    next: (res) => {
+    this.isLoading = true;
+    this.errorMessage = '';
 
-      // ✅ STORE TOKEN
-      localStorage.setItem('token', res.token);
+    this.http.post<any>('http://localhost:8080/api/auth/login', {
+      email: this.email,
+      password: this.password
+    }).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('role', res.role);
 
-      // ✅ Store role
-      localStorage.setItem('role', res.role);
-
-      // Navigation
-      if (res.role === 'CITIZEN') {
-        this.router.navigate(['/citizen']);
-      } else if (res.role === 'OFFICER') {
-        this.router.navigate(['/officer']);
-      } else if (res.role === 'ADMIN') {
-        this.router.navigate(['/admin']);
-      } else {
-        this.errorMessage = 'Unknown role';
+        if (res.role === 'CITIZEN') {
+          this.router.navigate(['/citizen']);
+        } else if (res.role === 'OFFICER') {
+          this.router.navigate(['/officer']);
+        } else if (res.role === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.errorMessage = 'Unknown role. Please contact support.';
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.errorMessage = 'Invalid email or password. Please try again.';
       }
-    },
-    error: () => {
-      this.errorMessage = 'Invalid credentials';
-    }
-  });
-}
-
+    });
+  }
 }

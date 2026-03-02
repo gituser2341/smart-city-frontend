@@ -1,45 +1,123 @@
-<div class="login-container">
+<div class="login-page">
+  <div class="grid-bg"></div>
 
-  <h2>Smart City Grievance Portal</h2>
+  <!-- Left Panel -->
+  <div class="login-left">
+    <div class="brand">
+      <div class="brand-icon">🏙️</div>
+      <div>
+        <div class="brand-name">CivicPulse</div>
+        <div class="brand-sub">Smart City Governance Platform</div>
+      </div>
+    </div>
 
-  <form (ngSubmit)="login()" #loginForm="ngForm">
+    <div class="left-content">
+      <h1>Transparent.<br/>Accountable.<br/><span>Efficient.</span></h1>
+      <p>A centralized platform bridging citizens and municipal authorities for faster, smarter complaint resolution.</p>
 
-    <input
-      type="email"
-      placeholder="Enter Email"
-      [(ngModel)]="email"
-      name="email"
-      autocomplete="email"
-      required
-    />
+      <div class="feature-pills">
+        <div class="pill">📍 Geo-location Tracking</div>
+        <div class="pill">🔔 Real-time Notifications</div>
+        <div class="pill">🔐 Secure JWT Auth</div>
+        <div class="pill">📊 Admin Analytics</div>
+      </div>
+    </div>
 
-    <br><br>
-
-    <input
-      type="password"
-      placeholder="Enter Password"
-      [(ngModel)]="password"
-      name="password"
-      autocomplete="current-password"
-      required
-    />
-
-    <br><br>
-
-    <button type="submit" [disabled]="loginForm.invalid">
-      Login
-    </button>
-
-  </form>
-
-  <!-- ✅ Register Redirect (Outside Form) -->
-  <div class="register-link">
-    <p>Don't have an account?</p>
-    <button routerLink="/register" class="register-btn">
-      Register as Citizen
-    </button>
+    <div class="left-stats">
+      <div class="ls-item"><div class="ls-num">3</div><div class="ls-lbl">User Roles</div></div>
+      <div class="ls-divider"></div>
+      <div class="ls-item"><div class="ls-num">4</div><div class="ls-lbl">Departments</div></div>
+      <div class="ls-divider"></div>
+      <div class="ls-item"><div class="ls-num">Live</div><div class="ls-lbl">Tracking</div></div>
+    </div>
   </div>
 
-  <p class="error">{{ errorMessage }}</p>
+  <!-- Right Panel -->
+  <div class="login-right">
+    <div class="login-card">
 
+      <div class="card-header">
+        <div class="card-icon">🔐</div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your CivicPulse account</p>
+      </div>
+
+      <!-- Role Tabs -->
+      <div class="role-tabs">
+        <div class="role-tab active">👤 Citizen</div>
+        <div class="role-tab">🧑‍💼 Admin</div>
+        <div class="role-tab">🚓 Officer</div>
+      </div>
+
+      <form (ngSubmit)="login()" #loginForm="ngForm">
+
+        <!-- Email -->
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              [(ngModel)]="email"
+              name="email"
+              autocomplete="email"
+              required
+              class="field-input"
+            />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label">Password</label>
+          </div>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Enter your password"
+              [(ngModel)]="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              class="field-input"
+            />
+            <button type="button" class="toggle-pw" (click)="togglePassword()">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" *ngIf="errorMessage">
+          <span>⚠️</span> {{ errorMessage }}
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn-login"
+          [disabled]="loginForm.invalid || isLoading"
+        >
+          <span *ngIf="!isLoading">Sign In →</span>
+          <span *ngIf="isLoading" class="spinner">⏳ Signing in...</span>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="divider"><span>New to CivicPulse?</span></div>
+
+      <!-- Register -->
+      <a routerLink="/register" class="btn-register">
+        + Register as Citizen
+      </a>
+
+      <!-- Back to Home -->
+      <a routerLink="/" class="btn-home">← Back to Home</a>
+
+    </div>
+  </div>
 </div>

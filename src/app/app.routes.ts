@@ -7,10 +7,11 @@ import { AddOfficerComponent } from './add-officer/add-officer';
 import { RegisterComponent } from './register/register';
 import { CreateComplaintComponent } from './create-complaint/create-complaint';
 import { NotificationComponent } from './citizen/notification/notification';
+import { HomeComponent } from './home/home';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'citizen', component: CitizenComponent, canActivate: [authGuard] },
@@ -19,5 +20,5 @@ export const routes: Routes = [
   { path: 'add-officer', component: AddOfficerComponent, canActivate: [authGuard] },
   { path: 'create-complaint', component: CreateComplaintComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];

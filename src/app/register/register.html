@@ -1,36 +1,147 @@
-<h2>Citizen Register</h2>
+<div class="register-page">
+  <div class="grid-bg"></div>
 
-<form (ngSubmit)="register()">
+  <!-- Left Panel -->
+  <div class="register-left">
+    <div class="brand">
+      <div class="brand-icon">🏙️</div>
+      <div>
+        <div class="brand-name">CivicPulse</div>
+        <div class="brand-sub">Smart City Governance Platform</div>
+      </div>
+    </div>
 
-  <input 
-    type="text" 
-    [(ngModel)]="name" 
-    name="name" 
-    placeholder="Name" 
-    required />
+    <div class="left-content">
+      <h1>Join Your<br/>City's Digital<br/><span>Revolution.</span></h1>
+      <p>Register as a citizen and gain the power to report, track, and resolve civic issues in your city — transparently and in real time.</p>
 
-  <br><br>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Create Your Account</div>
+            <div class="step-sub">Register with your name, email and password</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Raise a Complaint</div>
+            <div class="step-sub">Submit with photo, location and priority level</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Track in Real Time</div>
+            <div class="step-sub">Get notified as officers resolve your issue</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <input 
-    type="email" 
-    [(ngModel)]="email" 
-    name="email" 
-    placeholder="Email" 
-    required />
+    <div class="left-footer">
+      Already have an account?
+      <a routerLink="/login">Sign in →</a>
+    </div>
+  </div>
 
-  <br><br>
+  <!-- Right Panel -->
+  <div class="register-right">
+    <div class="register-card">
 
-  <input 
-    type="password" 
-    [(ngModel)]="password" 
-    name="password" 
-    placeholder="Password" 
-    required />
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <h2>Create Account</h2>
+        <p>Register as a citizen to get started</p>
+      </div>
 
-  <br><br>
+      <form (ngSubmit)="register()" #registerForm="ngForm">
 
-  <button type="submit">Register</button>
+        <!-- Name -->
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input
+              type="text"
+              placeholder="Enter your full name"
+              [(ngModel)]="name"
+              name="name"
+              required
+              class="field-input"
+            />
+          </div>
+        </div>
 
-</form>
+        <!-- Email -->
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              [(ngModel)]="email"
+              name="email"
+              autocomplete="email"
+              required
+              class="field-input"
+            />
+          </div>
+        </div>
 
-<p class="error">{{ errorMessage }}</p>
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Create a strong password"
+              [(ngModel)]="password"
+              name="password"
+              autocomplete="new-password"
+              required
+              class="field-input"
+            />
+            <button type="button" class="toggle-pw" (click)="togglePassword()">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" *ngIf="errorMessage">
+          <span>⚠️</span> {{ errorMessage }}
+        </div>
+
+        <!-- Success -->
+        <div class="success-msg" *ngIf="successMessage">
+          <span>✅</span> {{ successMessage }}
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn-register"
+          [disabled]="registerForm.invalid || isLoading"
+        >
+          <span *ngIf="!isLoading">Create Account →</span>
+          <span *ngIf="isLoading" class="spinner">⏳ Creating account...</span>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="divider"><span>Already have an account?</span></div>
+
+      <!-- Login -->
+      <a routerLink="/login" class="btn-login">Sign In →</a>
+
+      <!-- Back to Home -->
+      <a routerLink="/" class="btn-home">← Back to Home</a>
+
+    </div>
+  </div>
+</div>

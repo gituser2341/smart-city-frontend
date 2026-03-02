@@ -17,28 +17,38 @@ export class RegisterComponent {
   email = '';
   password = '';
   errorMessage = '';
+  successMessage = '';
+  isLoading = false;
+  showPassword = false;
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
   register() {
     if (!this.name || !this.email || !this.password) {
-      this.errorMessage = 'All fields are required';
+      this.errorMessage = 'All fields are required.';
       return;
     }
+
+    this.isLoading = true;
+    this.errorMessage = '';
 
     this.http.post(
       'http://localhost:8080/api/auth/register',
       { name: this.name, email: this.email, password: this.password },
-      { responseType: 'text' }  // ✅ backend returns plain String, not JSON
+      { responseType: 'text' }
     ).subscribe({
-      next: (res) => {
-        console.log('✅ Response:', res);
-        alert('Registration successful');
-        this.router.navigate(['/login']);
+      next: () => {
+        this.isLoading = false;
+        this.successMessage = 'Account created successfully! Redirecting...';
+        setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
-        console.log('❌ Error:', err);
-        this.errorMessage = err.error?.message || err.error || 'Registration failed';
+        this.isLoading = false;
+        this.errorMessage = err.error?.message || err.error || 'Registration failed. Please try again.';
       }
     });
   }
