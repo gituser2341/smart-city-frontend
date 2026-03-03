@@ -46,6 +46,11 @@
     <button class="tab-btn"
       [class.active]="activeTab === 'add-officer'"
       (click)="setTab('add-officer')">➕ Add Officer</button>
+
+    <!-- ✦ HEATMAP BUTTON -->
+    <button class="tab-btn tab-heatmap" routerLink="/heatmap">
+      🗺️ Heatmap
+    </button>
   </div>
 
   <div class="admin-body">
@@ -74,6 +79,18 @@
           <div class="stat-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
           <div class="stat-lbl">Escalated</div>
         </div>
+      </div>
+
+      <!-- Heatmap Quick Access Card -->
+      <div class="heatmap-banner" routerLink="/heatmap">
+        <div class="heatmap-banner-left">
+          <div class="heatmap-banner-icon">🗺️</div>
+          <div>
+            <div class="heatmap-banner-title">Complaint Heatmap</div>
+            <div class="heatmap-banner-sub">View live geographic density of all complaints across the city</div>
+          </div>
+        </div>
+        <div class="heatmap-banner-arrow">→</div>
       </div>
 
       <div class="section-title">Complaint Status Overview</div>
@@ -267,7 +284,7 @@
       <div class="add-officer-card">
 
         <div class="success-msg" *ngIf="successMessage">✅ {{ successMessage }}</div>
-        <div class="error-msg" *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
+        <div class="error-msg"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
 
         <div class="field-group">
           <label>Full Name</label>

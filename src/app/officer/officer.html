@@ -34,11 +34,122 @@
     </div>
   </section>
 
+  <!-- ══════════════════════════════════
+       ✦  PERFORMANCE SCORE SECTION
+  ══════════════════════════════════ -->
+  <section class="performance-section">
+    <div class="perf-section-header">
+      <h2 class="section-title">📊 My Performance Score</h2>
+      <span class="perf-period">Q4 · FY 2026</span>
+    </div>
+
+    <div class="performance-grid">
+
+      <!-- ① Score Ring -->
+      <div class="perf-card score-ring-card">
+        <p class="perf-card-title">Overall Score</p>
+        <div class="ring-wrapper">
+          <svg class="ring-svg" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50"
+              fill="none" stroke="#e2e8f0" stroke-width="10" />
+            <circle cx="60" cy="60" r="50"
+              fill="none"
+              [attr.stroke]="scoreColor"
+              stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="314"
+              [attr.stroke-dashoffset]="scoreDashOffset"
+              transform="rotate(-90 60 60)"
+              class="ring-progress" />
+          </svg>
+          <div class="ring-center">
+            <span class="ring-number" [style.color]="scoreColor">{{ performanceScore }}</span>
+            <span class="ring-denom">/ 100</span>
+          </div>
+        </div>
+        <div class="score-meta">
+          <span class="score-status-badge" [ngClass]="scoreStatusClass">{{ scoreStatus }}</span>
+          <div class="score-trend" [ngClass]="scoreTrend >= 0 ? 'trend-up' : 'trend-down'">
+            {{ scoreTrend >= 0 ? '▲' : '▼' }}&nbsp;{{ scoreTrend >= 0 ? '+' : '' }}{{ scoreTrend }} pts this period
+          </div>
+        </div>
+      </div>
+
+      <!-- ② Competency Breakdown -->
+      <div class="perf-card metrics-card">
+        <h3 class="perf-card-title">Competency Breakdown</h3>
+        <div class="metric-bars">
+          <div class="metric-row" *ngFor="let m of performanceMetrics">
+            <div class="metric-header-row">
+              <span class="metric-label">{{ m.label }}</span>
+              <span class="metric-value" [style.color]="getMetricColor(m.value)">{{ m.value }}</span>
+            </div>
+            <div class="metric-track">
+              <div class="metric-fill"
+                [style.width.%]="m.value"
+                [style.background]="getMetricColor(m.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ Activity Summary -->
+      <div class="perf-card summary-card">
+        <h3 class="perf-card-title">Activity Summary</h3>
+        <div class="summary-list">
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-blue">📁</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ total }}</span>
+              <span class="summary-lbl">Total Cases</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-green">✅</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ resolved }}</span>
+              <span class="summary-lbl">Resolved</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-orange">⚙️</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ inProgress }}</span>
+              <span class="summary-lbl">In Progress</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-navy">🏅</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ commendations }}</span>
+              <span class="summary-lbl">Commendations</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-red">⚠️</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ incidents }}</span>
+              <span class="summary-lbl">Incidents</span>
+            </div>
+          </div>
+          <div class="summary-row">
+            <div class="summary-icon-wrap summary-purple">📈</div>
+            <div class="summary-info">
+              <span class="summary-val">{{ resolutionRate }}%</span>
+              <span class="summary-lbl">Resolution Rate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Complaints -->
   <section class="complaints-section">
     <h2 class="section-title">Assigned Complaints</h2>
 
-    <!-- Loading -->
     <div class="loading-state" *ngIf="isLoading">
       <div class="spinner"></div>
       <p>Loading complaints...</p>
@@ -46,7 +157,6 @@
 
     <div class="complaints-list" *ngIf="!isLoading">
 
-      <!-- Empty -->
       <div class="empty-state" *ngIf="complaints.length === 0">
         <div class="empty-icon">📭</div>
         <p>No complaints assigned yet</p>
@@ -88,12 +198,10 @@
           <span class="meta-item" *ngIf="c.user">👤 {{ c.user?.name }}</span>
         </div>
 
-        <!-- Image -->
         <div class="complaint-image" *ngIf="c.imageUrl">
           <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
         </div>
 
-        <!-- ✅ Map Preview -->
         <div class="map-section" *ngIf="c.latitude && c.longitude">
           <p class="map-label">📍 Complaint Location</p>
           <div class="map-frame">
@@ -106,7 +214,6 @@
           </div>
         </div>
 
-        <!-- Status Update -->
         <div class="status-update" *ngIf="c.status !== 'RESOLVED'">
           <span class="update-label">Update Status:</span>
           <div class="status-buttons">
@@ -131,4 +238,5 @@
       </div>
     </div>
   </section>
+
 </div>

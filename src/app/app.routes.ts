@@ -9,6 +9,7 @@ import { CreateComplaintComponent } from './create-complaint/create-complaint';
 import { NotificationComponent } from './citizen/notification/notification';
 import { HomeComponent } from './home/home';
 import { authGuard } from './auth.guard';
+import { HeatmapComponent } from './admin/heatmap/heatmap';  // ← fixed
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -20,5 +21,6 @@ export const routes: Routes = [
   { path: 'add-officer', component: AddOfficerComponent, canActivate: [authGuard] },
   { path: 'create-complaint', component: CreateComplaintComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationComponent, canActivate: [authGuard] },
+  { path: 'heatmap', component: HeatmapComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];
