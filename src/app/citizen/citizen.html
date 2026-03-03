@@ -26,22 +26,22 @@
   <section class="stats-grid">
     <div class="stat-card stat-total">
       <div class="stat-icon">📋</div>
-      <div class="stat-number">{{total}}</div>
+      <div class="stat-number">{{ total }}</div>
       <div class="stat-label">Total</div>
     </div>
     <div class="stat-card stat-open">
       <div class="stat-icon">🔴</div>
-      <div class="stat-number">{{open}}</div>
+      <div class="stat-number">{{ open }}</div>
       <div class="stat-label">Open</div>
     </div>
     <div class="stat-card stat-progress">
       <div class="stat-icon">⚙️</div>
-      <div class="stat-number">{{inProgress}}</div>
+      <div class="stat-number">{{ inProgress }}</div>
       <div class="stat-label">In Progress</div>
     </div>
     <div class="stat-card stat-resolved">
       <div class="stat-icon">✅</div>
-      <div class="stat-number">{{resolved}}</div>
+      <div class="stat-number">{{ resolved }}</div>
       <div class="stat-label">Resolved</div>
     </div>
   </section>
@@ -54,15 +54,16 @@
       <div *ngFor="let c of complaints" class="complaint-card">
 
         <div class="complaint-header">
-          <h3 class="complaint-title">{{c.title}}</h3>
+          <h3 class="complaint-title">{{ c.title }}</h3>
           <div class="badges">
             <span class="status-badge"
               [ngClass]="{
-                'status-open':     c.status === 'OPEN',
-                'status-progress': c.status === 'IN_PROGRESS',
-                'status-resolved': c.status === 'RESOLVED'
+                'status-open':      c.status === 'OPEN',
+                'status-progress':  c.status === 'IN_PROGRESS',
+                'status-resolved':  c.status === 'RESOLVED',
+                'status-escalated': c.status === 'ESCALATED'
               }">
-              {{c.status}}
+              {{ c.status }}
             </span>
             <span class="priority-badge"
               [ngClass]="{
@@ -71,17 +72,20 @@
                 'p-high':      c.priority === 'HIGH',
                 'p-emergency': c.priority === 'EMERGENCY'
               }">
-              {{c.priority}}
+              {{ c.priority }}
             </span>
+            <!-- ✅ Escalated badge -->
+            <span class="escalated-badge" *ngIf="c.escalated">🚨 Escalated</span>
           </div>
         </div>
 
-        <p class="complaint-desc">{{c.description}}</p>
+        <p class="complaint-desc">{{ c.description }}</p>
 
         <div class="complaint-meta">
-          <span class="meta-item">🏢 {{c.department}}</span>
-          <span class="meta-item">🕐 {{c.createdAt | date: 'dd MMM yyyy, h:mm a'}}</span>
-          <span class="meta-item">📍 {{c.latitude}}, {{c.longitude}}</span>
+          <span class="meta-item">🏢 {{ c.department }}</span>
+          <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+          <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
+          <span class="meta-item" *ngIf="c.deadline">⏱ Deadline: {{ c.deadline | date: 'dd MMM yyyy, h:mm a' }}</span>
         </div>
 
         <!-- Image -->
@@ -89,7 +93,7 @@
           <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
         </div>
 
-        <!-- ✅ Map Preview — no pipe needed -->
+        <!-- Map Preview -->
         <div class="map-section" *ngIf="c.latitude && c.longitude">
           <p class="map-label">📍 Complaint Location</p>
           <div class="map-frame">
@@ -102,13 +106,59 @@
           </div>
         </div>
 
+        <!-- ✅ Rating Section — only for RESOLVED + not yet rated -->
+        <div class="rating-section" *ngIf="c.status === 'RESOLVED' && !c.rated">
+          <div class="rating-label">⭐ Rate this resolution</div>
+
+          <div class="stars">
+            <span
+              *ngFor="let star of [1,2,3,4,5]"
+              class="star"
+              [class.filled]="(ratingMap[c.id] || 0) >= star"
+              (click)="setRating(c.id, star)">
+              ★
+            </span>
+          </div>
+
+          <input
+            type="text"
+            class="rating-comment"
+            [(ngModel)]="ratingCommentMap[c.id]"
+            placeholder="Optional feedback..." />
+
+          <div class="rating-success" *ngIf="ratingSuccess[c.id]">
+            {{ ratingSuccess[c.id] }}
+          </div>
+          <div class="rating-error" *ngIf="ratingError[c.id]">
+            {{ ratingError[c.id] }}
+          </div>
+
+          <button class="btn-rate" (click)="submitRating(c.id)">
+            Submit Rating
+          </button>
+        </div>
+
+        <!-- ✅ Show submitted rating -->
+        <div class="rating-submitted" *ngIf="c.rated">
+          <span class="stars-display">
+            <span
+              *ngFor="let star of [1,2,3,4,5]"
+              class="star"
+              [class.filled]="c.rating >= star">★</span>
+          </span>
+          <span class="rated-label">You rated this {{ c.rating }}/5</span>
+          <span class="rated-comment" *ngIf="c.ratingComment">"{{ c.ratingComment }}"</span>
+        </div>
+
       </div>
 
       <!-- Empty state -->
       <div *ngIf="complaints.length === 0" class="empty-state">
         <div class="empty-icon">📭</div>
         <p>No complaints raised yet.</p>
-        <button class="btn-raise" (click)="raiseComplaint()">Raise your first complaint</button>
+        <button class="btn-raise" (click)="raiseComplaint()">
+          Raise your first complaint
+        </button>
       </div>
     </div>
   </section>

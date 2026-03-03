@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
@@ -15,113 +15,112 @@ export class AdminComponent implements OnInit {
 
   stats: any = {};
   complaints: any[] = [];
+  escalatedComplaints: any[] = [];
   officers: any[] = [];
-  selectedOfficerId: any = {};
-  isLoading = true;
-  activeTab = 'dashboard';
+  activeTab: string = 'dashboard';
+
+  newOfficer = { name: '', email: '', password: '', department: '' };
+  successMessage = '';
   errorMessage = '';
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private cdr: ChangeDetectorRef  // ← ADD
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadStats();
     this.loadComplaints();
     this.loadOfficers();
+    this.loadEscalated();
   }
 
   getHeaders() {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return new HttpHeaders({
+      Authorization: 'Bearer ' + localStorage.getItem('token')
+    });
   }
 
   loadStats() {
-    this.http.get<any>('http://localhost:8080/api/admin/dashboard-stats',  // ← FIXED
-      { headers: this.getHeaders() })
-      .subscribe({
-        next: (data) => {
-          this.stats = data;
-          this.isLoading = false;
-          this.cdr.detectChanges();  // ← ADD
-        },
-        error: (err) => {
-          console.error('❌ Stats error:', err.status, err.message);
-          this.isLoading = false;
-          this.errorMessage = `Error ${err.status}: ${err.status === 403 ? 'Access denied — role issue' : err.message}`;
-          if (err.status === 401) this.router.navigate(['/login']);
-          this.cdr.detectChanges();  // ← ADD
-        }
-      });
+    this.http.get<any>('http://localhost:8080/api/admin/dashboard-stats',
+      { headers: this.getHeaders() }).subscribe(data => this.stats = data);
   }
 
   loadComplaints() {
-    this.http.get<any[]>('http://localhost:8080/api/admin/all-complaints',  // ← FIXED
-      { headers: this.getHeaders() })
-      .subscribe({
-        next: (data) => {
-          this.complaints = data;
-          this.cdr.detectChanges();  // ← ADD
-        },
-        error: (err) => console.error('Complaints error:', err.status)
-      });
+    this.http.get<any[]>('http://localhost:8080/api/admin/all-complaints',
+      { headers: this.getHeaders() }).subscribe(data => this.complaints = data);
   }
 
   loadOfficers() {
     this.http.get<any[]>('http://localhost:8080/api/admin/officers',
-      { headers: this.getHeaders() })
-      .subscribe({
-        next: (data) => {
-          this.officers = data;
-          this.cdr.detectChanges();  // ← ADD
-        },
-        error: (err) => console.error('Officers error:', err.status)
+      { headers: this.getHeaders() }).subscribe(data => this.officers = data);
+  }
+
+  loadEscalated() {
+    this.http.get<any[]>('http://localhost:8080/api/admin/escalated',
+      { headers: this.getHeaders() }).subscribe(data => this.escalatedComplaints = data);
+  }
+
+  assignOfficer(complaintId: number, officerId: string) {
+    if (!officerId) return;
+    this.http.put(
+      `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
+      {}, { headers: this.getHeaders(), responseType: 'text' })
+      .subscribe(() => {
+        this.loadComplaints();
+        this.loadEscalated();
+        this.loadStats();
       });
   }
 
-  assignOfficer(complaintId: number) {
-    const officerId = this.selectedOfficerId[complaintId];
-    if (!officerId) return;
-
-    this.http.put(
-      `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
-      {},
-      { headers: this.getHeaders(), responseType: 'text' as 'json' }
-    ).subscribe({
-      next: () => {
-        const c = this.complaints.find(x => x.id === complaintId);
-        if (c) {
-          const officer = this.officers.find(o => o.id == officerId);
-          c.assignedOfficer = officer;
-          c.status = 'IN_PROGRESS';
+  addOfficer() {
+    this.http.post(
+      'http://localhost:8080/api/admin/add-officer',
+      this.newOfficer,
+      { headers: this.getHeaders(), responseType: 'text' })
+      .subscribe({
+        next: () => {
+          this.successMessage = 'Officer added successfully!';
+          this.newOfficer = { name: '', email: '', password: '', department: '' };
+          this.loadOfficers();
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err.error || 'Failed to add officer';
+          setTimeout(() => this.errorMessage = '', 3000);
         }
-        this.cdr.detectChanges();  // ← ADD
-      },
-      error: (err) => console.error('Assign error:', err)
-    });
+      });
   }
 
-  getBarWidth(value: number, max: number): string {
-    if (!max) return '0%';
-    return `${Math.round((value / max) * 100)}%`;
+  getDeadlineStatus(deadline: string): string {
+    if (!deadline) return '';
+    const now = new Date();
+    const dl = new Date(deadline);
+    const diff = dl.getTime() - now.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (diff < 0) return 'OVERDUE';
+    if (hours < 4) return 'CRITICAL';
+    if (hours < 24) return 'WARNING';
+    return 'OK';
   }
 
-  getMaxDept(): number {
-    if (!this.stats.byDepartment) return 1;
-    return Math.max(...Object.values(this.stats.byDepartment) as number[]);
+  getTimeRemaining(deadline: string): string {
+    if (!deadline) return '';
+    const now = new Date();
+    const dl = new Date(deadline);
+    const diff = dl.getTime() - now.getTime();
+    if (diff < 0) {
+      const hours = Math.abs(Math.floor(diff / (1000 * 60 * 60)));
+      return `${hours}h overdue`;
+    }
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (days > 0) return `${days}d ${hours}h left`;
+    return `${hours}h left`;
   }
 
-  getMaxPriority(): number {
-    if (!this.stats.byPriority) return 1;
-    return Math.max(...Object.values(this.stats.byPriority) as number[]);
+  setTab(tab: string) {
+    this.activeTab = tab;
   }
-
-  setTab(tab: string) { this.activeTab = tab; }
 
   logout() {
     localStorage.clear();
-    this.router.navigate(['/login']);
   }
 }
