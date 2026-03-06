@@ -1,54 +1,34 @@
-<div class="page-wrapper">
+<div class="field-group">
+  <label class="field-label" for="officer-name">Full Name *</label>
+  <input id="officer-name" name="name" type="text" class="field-input"
+    [(ngModel)]="name" placeholder="e.g. Rajesh Kumar"
+    autocomplete="name" />
+</div>
 
-  <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
+<div class="field-group">
+  <label class="field-label" for="officer-email">Email *</label>
+  <input id="officer-email" name="email" type="email" class="field-input"
+    [(ngModel)]="email" placeholder="officer@smartcity.gov"
+    autocomplete="off" />
+</div>
 
-  <div class="form-card">
+<div class="field-group">
+  <label class="field-label" for="officer-password">Password *</label>
+  <input id="officer-password" name="password" type="password" class="field-input"
+    [(ngModel)]="password" placeholder="Set a strong password"
+    autocomplete="new-password" />
+</div>
 
-    <div class="form-header">
-      <div class="form-icon">👮</div>
-      <h1 class="form-title">Add Officer</h1>
-      <p class="form-sub">Assign officers to departments for auto-routing</p>
-    </div>
-
-    <div class="field-group">
-      <label class="field-label">Full Name *</label>
-      <input type="text" class="field-input" [(ngModel)]="name"
-        placeholder="e.g. Rajesh Kumar" />
-    </div>
-
-    <div class="field-group">
-      <label class="field-label">Email *</label>
-      <input type="email" class="field-input" [(ngModel)]="email"
-        placeholder="officer@smartcity.gov" />
-    </div>
-
-    <div class="field-group">
-      <label class="field-label">Password *</label>
-      <input type="password" class="field-input" [(ngModel)]="password"
-        placeholder="Set a strong password" />
-    </div>
-
-    <!-- ✅ Department Selection -->
-    <div class="field-group">
-      <label class="field-label">Department *</label>
-      <div class="dept-grid">
-        <div *ngFor="let d of departments"
-          class="dept-card"
-          [ngClass]="{'dept-selected': department === d.value}"
-          (click)="department = d.value">
-          <span class="dept-icon">{{ d.icon }}</span>
-          <span class="dept-label">{{ d.label }}</span>
-        </div>
+<div class="field-group">
+  <label class="field-label" for="officer-dept">Department *</label>
+  <div class="dept-grid" id="officer-dept">
+    @for (d of departments; track d.value) {
+      <div class="dept-card"
+        [ngClass]="{'dept-selected': department === d.value}"
+        (click)="department = d.value">
+        <span class="dept-icon">{{ d.icon }}</span>
+        <span class="dept-label">{{ d.label }}</span>
       </div>
-    </div>
-
-    <p class="success-msg" *ngIf="message && message.includes('✅')">{{ message }}</p>
-    <p class="error-msg" *ngIf="message && !message.includes('✅')">{{ message }}</p>
-
-    <button class="btn-submit" (click)="addOfficer()" [disabled]="isSubmitting">
-      <span *ngIf="!isSubmitting">👮 Add Officer</span>
-      <span *ngIf="isSubmitting">Adding...</span>
-    </button>
-
+    }
   </div>
 </div>

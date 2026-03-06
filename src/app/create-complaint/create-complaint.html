@@ -53,8 +53,9 @@
         <p class="step-subtitle">Give us a clear description of the problem</p>
 
         <div class="field-group">
-          <label class="field-label">Complaint Title *</label>
+          <label class="field-label" for="complaint-title" >Complaint Title *</label>
           <input
+            id="complaint-title"
             type="text"
             class="field-input"
             [(ngModel)]="title"
@@ -64,8 +65,9 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Detailed Description *</label>
+          <label class="field-label" for="complaint-desc">Detailed Description *</label>
           <textarea
+            id="complaint-desc"
             class="field-input field-textarea"
             [(ngModel)]="description"
             name="description"
@@ -87,8 +89,8 @@
         <p class="step-subtitle">Help us route your complaint to the right team</p>
 
         <div class="field-group">
-          <label class="field-label">Department *</label>
-          <div class="dept-grid">
+          <label class="field-label" for="dept-grid">Department *</label>
+          <div class="dept-grid" id="dept-grid">
             <div
               *ngFor="let d of departments"
               class="dept-card"
@@ -101,8 +103,8 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Priority Level *</label>
-          <div class="priority-grid">
+          <label class="field-label" for="priority-grid">Priority Level *</label>
+          <div class="priority-grid" id="priority-grid">
             <div
               *ngFor="let p of priorities"
               class="priority-card"
@@ -131,9 +133,9 @@
         <p class="step-subtitle">Add evidence and confirm your location</p>
 
         <div class="field-group">
-          <label class="field-label">Upload Photo (Optional)</label>
+          <label class="field-label" for="photo-upload">Upload Photo (Optional)</label>
           <div class="upload-zone" *ngIf="!imagePreviewUrl" (click)="fileInput.click()">
-            <input #fileInput type="file" accept="image/*" (change)="onFileSelect($event)" style="display:none" />
+            <input #fileInput id="photo-upload" type="file" accept="image/*" (change)="onFileSelect($event)" style="display:none" />
             <div class="upload-icon">📷</div>
             <p class="upload-text">Click to upload photo</p>
             <span class="upload-hint">JPG, PNG up to 10MB</span>
@@ -145,8 +147,8 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Location</label>
-          <div class="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}">
+          <label class="field-label" for="location-box">Location</label>
+          <div class="location-box" id="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}">
             <span>{{ locationStatus }}</span>
           </div>
           <div class="map-preview" *ngIf="locationReady && latitude && longitude">

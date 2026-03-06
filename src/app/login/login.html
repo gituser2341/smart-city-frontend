@@ -42,21 +42,17 @@
         <p>Sign in to your CivicPulse account</p>
       </div>
 
-      <!-- Role Tabs -->
-      <div class="role-tabs">
-        <div class="role-tab active">👤 Citizen</div>
-        <div class="role-tab">🧑‍💼 Admin</div>
-        <div class="role-tab">🚓 Officer</div>
-      </div>
+      
 
       <form (ngSubmit)="login()" #loginForm="ngForm">
 
         <!-- Email -->
         <div class="field-group">
-          <label class="field-label">Email Address</label>
+          <label class="field-label" for="email">Email Address</label>
           <div class="input-wrap">
             <span class="input-icon">✉️</span>
             <input
+              id="email" 
               type="email"
               placeholder="you@example.com"
               [(ngModel)]="email"
@@ -71,11 +67,12 @@
         <!-- Password -->
         <div class="field-group">
           <div class="field-label-row">
-            <label class="field-label">Password</label>
+            <label class="field-label" for="password">Password</label>
           </div>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
             <input
+              id="password"
               [type]="showPassword ? 'text' : 'password'"
               placeholder="Enter your password"
               [(ngModel)]="password"
