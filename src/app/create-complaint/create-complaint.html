@@ -24,7 +24,7 @@
             <div class="step-dot">{{ currentStep > 2 ? '✓' : '2' }}</div>
             <div class="step-info">
               <span class="step-name">Category</span>
-              <span class="step-desc">Department & Priority</span>
+              <span class="step-desc">Department</span>
             </div>
           </div>
           <div class="step-connector"></div>
@@ -32,7 +32,7 @@
             <div class="step-dot">3</div>
             <div class="step-info">
               <span class="step-name">Evidence</span>
-              <span class="step-desc">Photo & Location</span>
+              <span class="step-desc">Photo/Video & Location</span>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@
         <p class="step-subtitle">Give us a clear description of the problem</p>
 
         <div class="field-group">
-          <label class="field-label" for="complaint-title" >Complaint Title *</label>
+          <label class="field-label" for="complaint-title">Complaint Title *</label>
           <input
             id="complaint-title"
             type="text"
@@ -85,7 +85,7 @@
 
       <!-- STEP 2 -->
       <div class="step-panel" *ngIf="currentStep === 2">
-        <h2 class="step-title">Category & Priority</h2>
+        <h2 class="step-title">Category</h2>
         <p class="step-subtitle">Help us route your complaint to the right team</p>
 
         <div class="field-group">
@@ -102,23 +102,6 @@
           </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label" for="priority-grid">Priority Level *</label>
-          <div class="priority-grid" id="priority-grid">
-            <div
-              *ngFor="let p of priorities"
-              class="priority-card"
-              [ngClass]="{'priority-selected': priority === p.value}"
-              [style.--p-color]="p.color"
-              [style.--p-bg]="p.bg"
-              [style.--p-border]="p.border"
-              (click)="setPriority(p.value)">
-              <span class="priority-icon">{{ p.icon }}</span>
-              <span class="priority-label">{{ p.label }}</span>
-            </div>
-          </div>
-        </div>
-
         <div class="step-actions">
           <button class="btn-back-step" (click)="prevStep()">← Back</button>
           <button class="btn-next" (click)="nextStep()" [disabled]="!department">
@@ -129,21 +112,85 @@
 
       <!-- STEP 3 -->
       <div class="step-panel" *ngIf="currentStep === 3">
-        <h2 class="step-title">Photo & Location</h2>
+        <h2 class="step-title">Photo / Video & Location</h2>
         <p class="step-subtitle">Add evidence and confirm your location</p>
 
         <div class="field-group">
-          <label class="field-label" for="photo-upload">Upload Photo (Optional)</label>
-          <div class="upload-zone" *ngIf="!imagePreviewUrl" (click)="fileInput.click()">
-            <input #fileInput id="photo-upload" type="file" accept="image/*" (change)="onFileSelect($event)" style="display:none" />
-            <div class="upload-icon">📷</div>
-            <p class="upload-text">Click to upload photo</p>
-            <span class="upload-hint">JPG, PNG up to 10MB</span>
+
+          <!-- Label + Counter -->
+          <div class="upload-label-row">
+            <label class="field-label">Upload Evidence (Optional)</label>
+            <span class="slot-counter" [ngClass]="{'slot-full': !canAddMore}">
+              {{ mediaFiles.length }} / {{ MAX_FILES }} files
+            </span>
           </div>
-          <div class="image-preview" *ngIf="imagePreviewUrl">
-            <img [src]="imagePreviewUrl" alt="Preview" class="preview-img" />
-            <button class="remove-img-btn" (click)="removeImage()">✕ Remove</button>
+
+          <!-- Requirements Info Box -->
+          <div class="requirements-box">
+            <div class="req-col">
+              <span class="req-title">🖼️ Image</span>
+              <span class="req-row">Format: JPG, PNG</span>
+              <span class="req-row">Max size: 10 MB</span>
+              <span class="req-row">Min: 640 × 480 px</span>
+            </div>
+            <div class="req-divider"></div>
+            <div class="req-col">
+              <span class="req-title">🎥 Video</span>
+              <span class="req-row">Format: MP4, MOV, 3GP</span>
+              <span class="req-row">Max size: 200 MB</span>
+              <span class="req-row">Max duration: 30 sec</span>
+              <span class="req-row">640×480 → 1920×1080</span>
+            </div>
           </div>
+
+          <!-- Uploaded Media Grid -->
+          <div class="media-grid" *ngIf="mediaFiles.length > 0">
+            <div class="media-thumb" *ngFor="let m of mediaFiles; let i = index">
+              <img *ngIf="!m.isVideo" [src]="m.previewUrl" alt="preview" class="thumb-img" />
+              <video *ngIf="m.isVideo" [src]="m.previewUrl" class="thumb-video" muted playsinline></video>
+              <div class="thumb-overlay">
+                <span class="thumb-name">{{ m.name }}</span>
+                <span class="thumb-size">{{ m.sizeMB }} MB</span>
+              </div>
+              <button class="thumb-remove" (click)="removeMedia(i)" title="Remove">✕</button>
+              <span class="thumb-type-badge">{{ m.isVideo ? '🎥' : '🖼️' }}</span>
+            </div>
+
+            <!-- Add More Slot -->
+            <div class="media-add-slot" *ngIf="canAddMore" (click)="addMoreInput.click()">
+              <input
+                #addMoreInput
+                type="file"
+                accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+                multiple
+                (change)="onFileSelect($event)"
+                style="display:none"
+              />
+              <span class="add-slot-icon">＋</span>
+              <span class="add-slot-text">Add more<br/>({{ remainingSlots }} left)</span>
+            </div>
+          </div>
+
+          <!-- Initial Upload Zone -->
+          <div class="upload-zone" *ngIf="mediaFiles.length === 0" (click)="fileInput.click()">
+            <input
+              #fileInput
+              type="file"
+              accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+              multiple
+              (change)="onFileSelect($event)"
+              style="display:none"
+            />
+            <div class="upload-icon">📎</div>
+            <p class="upload-text">Click to upload photos or videos</p>
+            <span class="upload-hint">Up to {{ MAX_FILES }} files · Images or Videos</span>
+          </div>
+
+          <!-- Upload Error -->
+          <div class="upload-error" *ngIf="uploadError">
+            ⚠️ {{ uploadError }}
+          </div>
+
         </div>
 
         <div class="field-group">
