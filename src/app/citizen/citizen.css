@@ -469,6 +469,26 @@
   font-size: 1rem;
 }
 
+.live-banner {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: #1d1d1f;
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 999;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .header {

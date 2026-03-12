@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { WebSocketService } from '../services/websocket.service';
 
 @Component({
   selector: 'app-citizen',
@@ -19,6 +20,7 @@ export class CitizenComponent implements OnInit {
   open = 0;
   inProgress = 0;
   resolved = 0;
+  liveNotification = ''
 
   // ✅ Rating maps
   ratingMap: { [key: number]: number } = {};
@@ -30,10 +32,30 @@ export class CitizenComponent implements OnInit {
     private http: HttpClient,
     private router: Router,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private wsService: WebSocketService
   ) {}
 
   ngOnInit() {
+    const email = localStorage.getItem('email') || '';
+  const token = localStorage.getItem('token') || '';
+    
+
+  // ⚡ Connect WebSocket
+  this.wsService.connect(email, token);
+
+  // 🔔 Listen for live notifications
+  this.wsService.notification$.subscribe(message => {
+    this.liveNotification = message;  // ← show banner instantly
+    this.loadMyComplaints();          // ← refresh complaint list
+    this.cdr.detectChanges();
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      this.liveNotification = '';
+      this.cdr.detectChanges();
+    }, 5000);
+  });
     this.loadMyComplaints();
   }
 
@@ -107,4 +129,7 @@ export class CitizenComponent implements OnInit {
     localStorage.clear();
     this.router.navigate(['/login']);
   }
+  ngOnDestroy() {
+  this.wsService.disconnect();
+}
 }

@@ -1,5 +1,9 @@
 <div class="dashboard">
-
+  @if (liveNotification) {
+    <div class="live-banner">
+      🔔 {{ liveNotification }}
+    </div>
+  }
   <!-- Header -->
   <header class="header">
     <div class="header-left">
@@ -162,5 +166,5 @@
       </div>
     </div>
   </section>
-
+  
 </div>
