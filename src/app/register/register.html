@@ -1,8 +1,10 @@
 <div class="register-page">
-  <div class="grid-bg"></div>
 
   <!-- Left Panel -->
   <div class="register-left">
+    <div class="left-orb left-orb-1"></div>
+    <div class="left-orb left-orb-2"></div>
+
     <div class="brand">
       <div class="brand-icon">🏙️</div>
       <div>
@@ -12,26 +14,27 @@
     </div>
 
     <div class="left-content">
-      <h1>Join Your<br/>City's Digital<br/><span>Revolution.</span></h1>
-      <p>Register as a citizen and gain the power to report, track, and resolve civic issues in your city — transparently and in real time.</p>
+      <div class="left-eyebrow">Get Started Free</div>
+      <h1>Join Your City's<br/><span class="h1-accent">Digital Revolution.</span></h1>
+      <p>Register as a citizen and gain the power to report, track, and resolve civic issues — transparently and in real time.</p>
 
       <div class="steps">
         <div class="step">
-          <div class="step-num">1</div>
+          <div class="step-num">01</div>
           <div class="step-body">
             <div class="step-title">Create Your Account</div>
             <div class="step-sub">Register with your name, email and password</div>
           </div>
         </div>
         <div class="step">
-          <div class="step-num">2</div>
+          <div class="step-num">02</div>
           <div class="step-body">
             <div class="step-title">Raise a Complaint</div>
             <div class="step-sub">Submit with photo, location and priority level</div>
           </div>
         </div>
         <div class="step">
-          <div class="step-num">3</div>
+          <div class="step-num">03</div>
           <div class="step-body">
             <div class="step-title">Track in Real Time</div>
             <div class="step-sub">Get notified as officers resolve your issue</div>
@@ -58,28 +61,29 @@
 
       <form (ngSubmit)="register()" #registerForm="ngForm">
 
-        <!-- Name -->
         <div class="field-group">
-          <label class="field-label">Full Name</label>
+          <label class="field-label" for="reg-name">Full Name</label>
           <div class="input-wrap">
             <span class="input-icon">👤</span>
             <input
+              id="reg-name"
               type="text"
               placeholder="Enter your full name"
               [(ngModel)]="name"
               name="name"
+              autocomplete="name"
               required
               class="field-input"
             />
           </div>
         </div>
 
-        <!-- Email -->
         <div class="field-group">
-          <label class="field-label">Email Address</label>
+          <label class="field-label" for="reg-email">Email Address</label>
           <div class="input-wrap">
             <span class="input-icon">✉️</span>
             <input
+              id="reg-email"
               type="email"
               placeholder="you@example.com"
               [(ngModel)]="email"
@@ -91,12 +95,12 @@
           </div>
         </div>
 
-        <!-- Password -->
         <div class="field-group">
-          <label class="field-label">Password</label>
+          <label class="field-label" for="reg-password">Password</label>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
             <input
+              id="reg-password"
               [type]="showPassword ? 'text' : 'password'"
               placeholder="Create a strong password"
               [(ngModel)]="password"
@@ -105,23 +109,20 @@
               required
               class="field-input"
             />
-            <button type="button" class="toggle-pw" (click)="togglePassword()">
+            <button type="button" class="toggle-pw" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
               {{ showPassword ? '🙈' : '👁️' }}
             </button>
           </div>
         </div>
 
-        <!-- Error -->
-        <div class="error-msg" *ngIf="errorMessage">
-          <span>⚠️</span> {{ errorMessage }}
+        <div class="error-msg" *ngIf="errorMessage" role="alert">
+          <span class="msg-icon">⚠️</span> {{ errorMessage }}
         </div>
 
-        <!-- Success -->
-        <div class="success-msg" *ngIf="successMessage">
-          <span>✅</span> {{ successMessage }}
-        </div>
+        <output class="success-msg" aria-live="polite">
+          <span class="msg-icon">✅</span> {{ successMessage }}
+        </output>
 
-        <!-- Submit -->
         <button
           type="submit"
           class="btn-register"
@@ -133,15 +134,12 @@
 
       </form>
 
-      <!-- Divider -->
       <div class="divider"><span>Already have an account?</span></div>
 
-      <!-- Login -->
       <a routerLink="/login" class="btn-login">Sign In →</a>
-
-      <!-- Back to Home -->
       <a routerLink="/" class="btn-home">← Back to Home</a>
 
     </div>
   </div>
+
 </div>

@@ -1,6 +1,8 @@
+<!-- home.html -->
 <div class="home-page">
-  <div class="grid-bg"></div>
+  <div class="noise-overlay"></div>
 
+  <!-- NAV -->
   <nav>
     <a routerLink="/" class="logo">
       <div class="logo-icon">🏙️</div>
@@ -14,85 +16,153 @@
     </ul>
     <div class="nav-actions">
       <a routerLink="/login" class="btn-ghost">Login</a>
-      <a routerLink="/register" class="btn-nav-cta">+ Register</a>
+      <a routerLink="/register" class="btn-nav-cta">Register</a>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge"><span class="badge-dot"></span>Smart City Initiative · Live System</div>
-    <h1>
-      Your City.<br/>
-      <span class="accent">Heard. Tracked.</span> Resolved.
-      <span class="sub-line">Powered by CivicPulse Governance Platform</span>
-    </h1>
-    <p class="hero-desc">
-      A full-stack governance platform connecting citizens with municipal authorities.
-      Submit complaints with geo-location, image proof, and priority — get real-time resolution updates.
-    </p>
-    <div class="hero-btns">
-      <a routerLink="/register" class="btn-primary">+ Register & Raise a Complaint</a>
-      <a routerLink="/login" class="btn-outline">👮 Officer / Admin Login →</a>
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Smart City Initiative · Live System
+      </div>
+      <h1>
+        Your City.<br/>
+        <span class="accent">Heard. Tracked.</span><br/>
+        Resolved.
+      </h1>
+      <p class="hero-sub">Powered by CivicPulse Governance Platform</p>
+      <p class="hero-desc">
+        A full-stack governance platform connecting citizens with municipal authorities.
+        Submit complaints with geo-location, image proof, and priority — get real-time resolution updates.
+      </p>
+      <div class="hero-btns">
+        <a routerLink="/register" class="btn-primary">
+          <span class="btn-icon">+</span>
+          Register &amp; Raise a Complaint
+        </a>
+        <a routerLink="/login" class="btn-outline">
+          👮 Officer / Admin Login
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
     </div>
+
+    <!-- Ticker -->
     <div class="ticker-wrap">
-      <div class="ticker">
-        <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
-        <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
+      <div class="ticker-label">LIVE</div>
+      <div class="ticker-track">
+        <div class="ticker">
+          <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">💧 Water Leakage Reported — Tiruppur North <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🛣️ Road Damage — IN PROGRESS ⚙️ <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">⚡ Street Light Failure — RESOLVED ✅ <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🔴 EMERGENCY: Drainage Blockage Auto-Assigned <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">🗑️ Garbage Overflow — Officer Dispatched <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">📍 Geo-location Pinned — Complaint #47 <span class="ticker-sep">·</span></span>
+          <span class="ticker-item">✅ 5 Complaints Resolved Today <span class="ticker-sep">·</span></span>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- STATS -->
   <div class="stats-strip">
-    <div class="stat-item"><div class="stat-num">3</div><div class="stat-lbl">User Roles</div></div>
-    <div class="stat-item"><div class="stat-num">4</div><div class="stat-lbl">Departments</div></div>
-    <div class="stat-item"><div class="stat-num">4</div><div class="stat-lbl">Priority Levels</div></div>
-    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Digital &amp; Transparent</div></div>
-    <div class="stat-item"><div class="stat-num">Live</div><div class="stat-lbl">Real-time Tracking</div></div>
+    <div class="stat-item">
+      <div class="stat-num">3</div>
+      <div class="stat-lbl">User Roles</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num">4</div>
+      <div class="stat-lbl">Departments</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num">4</div>
+      <div class="stat-lbl">Priority Levels</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-lbl">Digital &amp; Transparent</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <div class="stat-num">Live</div>
+      <div class="stat-lbl">Real-time Tracking</div>
+    </div>
   </div>
 
   <!-- PROBLEM -->
   <section class="problem-section">
     <div class="section-inner">
-      <div class="section-tag">The Problem</div>
-      <div class="section-title">Why Traditional Systems Fail</div>
-      <div class="section-sub">Millions of civic complaints go unresolved due to outdated, non-transparent systems.</div>
+      <div class="section-eyebrow">The Problem</div>
+      <h2 class="section-title">Why Traditional Systems Fail</h2>
+      <p class="section-sub">Millions of civic complaints go unresolved due to outdated, non-transparent systems.</p>
       <div class="problem-grid">
         <div class="problem-items">
-          <div class="problem-item"><span class="prob-icon">📄</span>Manual, paper-based complaint processes</div>
-          <div class="problem-item"><span class="prob-icon">⏳</span>Weeks-long resolution cycles with zero updates</div>
-          <div class="problem-item"><span class="prob-icon">🔒</span>No transparency or officer accountability</div>
-          <div class="problem-item"><span class="prob-icon">📡</span>Citizens have no real-time tracking</div>
-          <div class="problem-item"><span class="prob-icon">🚫</span>Poor communication between public and officials</div>
-          <div class="problem-item"><span class="prob-icon">🚨</span>No priority handling — emergencies treated equally</div>
-          <div class="problem-item"><span class="prob-icon">👤</span>No proper officer assignment or department routing</div>
+          <div class="problem-item">
+            <span class="prob-icon">📄</span>
+            <span>Manual, paper-based complaint processes</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">⏳</span>
+            <span>Weeks-long resolution cycles with zero updates</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">🔒</span>
+            <span>No transparency or officer accountability</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">📡</span>
+            <span>Citizens have no real-time tracking</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">🚫</span>
+            <span>Poor communication between public and officials</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">🚨</span>
+            <span>No priority handling — emergencies treated equally</span>
+          </div>
+          <div class="problem-item">
+            <span class="prob-icon">👤</span>
+            <span>No proper officer assignment or department routing</span>
+          </div>
         </div>
         <div class="problem-visual">
           <div class="pv-card">
             <span class="pv-icon">🗑️</span>
-            <div class="pv-body"><div class="pv-label">Garbage Overflow — Main Road</div><div class="pv-sub">Submitted 14 days ago · No response</div></div>
+            <div class="pv-body">
+              <div class="pv-label">Garbage Overflow — Main Road</div>
+              <div class="pv-sub">Submitted 14 days ago · No response</div>
+            </div>
             <span class="pv-badge badge-red">OPEN</span>
           </div>
           <div class="pv-card">
             <span class="pv-icon">💧</span>
-            <div class="pv-body"><div class="pv-label">Water Pipe Burst — Sector 4</div><div class="pv-sub">Officer assigned · In review</div></div>
-            <span class="pv-badge badge-blue">IN PROGRESS</span>
+            <div class="pv-body">
+              <div class="pv-label">Water Pipe Burst — Sector 4</div>
+              <div class="pv-sub">Officer assigned · In review</div>
+            </div>
+            <span class="pv-badge badge-amber">IN PROGRESS</span>
           </div>
           <div class="pv-card">
             <span class="pv-icon">⚡</span>
-            <div class="pv-body"><div class="pv-label">Street Light Failure — Park Ave</div><div class="pv-sub">Fixed within 48 hours · Citizen notified</div></div>
+            <div class="pv-body">
+              <div class="pv-label">Street Light Failure — Park Ave</div>
+              <div class="pv-sub">Fixed within 48 hours · Citizen notified</div>
+            </div>
             <span class="pv-badge badge-green">RESOLVED</span>
           </div>
         </div>
@@ -103,35 +173,83 @@
   <!-- FEATURES -->
   <section id="features" class="features-section">
     <div class="section-inner">
-      <div class="section-center">
-        <div class="section-tag">Core Features</div>
-        <div class="section-title">Everything a Smart City Needs</div>
-        <div class="section-sub">Full-stack implementation built for transparency, speed, and real accountability.</div>
+      <div class="section-header-center">
+        <div class="section-eyebrow">Core Features</div>
+        <h2 class="section-title">Everything a Smart City Needs</h2>
+        <p class="section-sub">Full-stack implementation built for transparency, speed, and real accountability.</p>
       </div>
       <div class="features-grid">
-        <div class="feat-card"><div class="feat-icon">📍</div><h3>Geo-Location Mapping</h3><p>Auto-captures precise location with OpenStreetMap embed — officers see exactly where to go.</p></div>
-        <div class="feat-card"><div class="feat-icon">🔴</div><h3>Priority Escalation</h3><p>LOW → MEDIUM → HIGH → EMERGENCY. Critical issues surface first, emergency cards pulse red.</p></div>
-        <div class="feat-card"><div class="feat-icon">📸</div><h3>Image Proof Upload</h3><p>Citizens attach photographic evidence. Officers see it on their dashboard with full context.</p></div>
-        <div class="feat-card"><div class="feat-icon">🤖</div><h3>Auto-Assign by Department</h3><p>Complaints auto-route to the right officer — WATER, ELECTRICITY, SANITATION, ROAD.</p></div>
-        <div class="feat-card"><div class="feat-icon">📊</div><h3>Admin Analytics</h3><p>Live bar charts, resolution rate donut, and department statistics for administrators.</p></div>
-        <div class="feat-card"><div class="feat-icon">🗺️</div><h3>Map Preview on Cards</h3><p>Every complaint card shows an embedded map pin — location visible instantly.</p></div>
-        <div class="feat-card"><div class="feat-icon">🔔</div><h3>Notification System</h3><p>Citizens get notified when complaint is assigned and when resolved by the officer.</p></div>
-        <div class="feat-card"><div class="feat-icon">🔐</div><h3>JWT Role-Based Auth</h3><p>Spring Security + JWT with CITIZEN, OFFICER, and ADMIN role-based access control.</p></div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">📍</div>
+          <h3>Geo-Location Mapping</h3>
+          <p>Auto-captures precise location with OpenStreetMap embed — officers see exactly where to go.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">🔴</div>
+          <h3>Priority Escalation</h3>
+          <p>LOW → MEDIUM → HIGH → EMERGENCY. Critical issues surface first, emergency cards pulse red.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">📸</div>
+          <h3>Image Proof Upload</h3>
+          <p>Citizens attach photographic evidence. Officers see it on their dashboard with full context.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">🤖</div>
+          <h3>Auto-Assign by Department</h3>
+          <p>Complaints auto-route to the right officer — WATER, ELECTRICITY, SANITATION, ROAD.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">📊</div>
+          <h3>Admin Analytics</h3>
+          <p>Live bar charts, resolution rate donut, and department statistics for administrators.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">🗺️</div>
+          <h3>Map Preview on Cards</h3>
+          <p>Every complaint card shows an embedded map pin — location visible instantly.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">🔔</div>
+          <h3>Notification System</h3>
+          <p>Citizens get notified when complaint is assigned and when resolved by the officer.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon-wrap">🔐</div>
+          <h3>JWT Role-Based Auth</h3>
+          <p>Spring Security + JWT with CITIZEN, OFFICER, and ADMIN role-based access control.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- DEPARTMENTS -->
   <section id="departments" class="dept-section">
-    <div class="section-inner section-center">
-      <div class="section-tag">Departments</div>
-      <div class="section-title">4 Municipal Departments Covered</div>
-      <div class="section-sub">Each department has dedicated officers auto-assigned to incoming complaints.</div>
+    <div class="section-inner section-header-center">
+      <div class="section-eyebrow">Departments</div>
+      <h2 class="section-title">4 Municipal Departments Covered</h2>
+      <p class="section-sub">Each department has dedicated officers auto-assigned to incoming complaints.</p>
       <div class="dept-grid">
-        <div class="dept-card"><span class="dept-emoji">💧</span><div class="dept-name">Water</div><div class="dept-desc">Pipe bursts, leakage, supply issues</div></div>
-        <div class="dept-card"><span class="dept-emoji">⚡</span><div class="dept-name">Electricity</div><div class="dept-desc">Street lights, power failures, wiring</div></div>
-        <div class="dept-card"><span class="dept-emoji">🗑️</span><div class="dept-name">Sanitation</div><div class="dept-desc">Garbage overflow, drainage blockage</div></div>
-        <div class="dept-card"><span class="dept-emoji">🛣️</span><div class="dept-name">Road</div><div class="dept-desc">Potholes, road damage, traffic signals</div></div>
+        <div class="dept-card">
+          <div class="dept-emoji-wrap">💧</div>
+          <div class="dept-name">Water</div>
+          <div class="dept-desc">Pipe bursts, leakage, supply issues</div>
+        </div>
+        <div class="dept-card">
+          <div class="dept-emoji-wrap">⚡</div>
+          <div class="dept-name">Electricity</div>
+          <div class="dept-desc">Street lights, power failures, wiring</div>
+        </div>
+        <div class="dept-card">
+          <div class="dept-emoji-wrap">🗑️</div>
+          <div class="dept-name">Sanitation</div>
+          <div class="dept-desc">Garbage overflow, drainage blockage</div>
+        </div>
+        <div class="dept-card">
+          <div class="dept-emoji-wrap">🛣️</div>
+          <div class="dept-name">Road</div>
+          <div class="dept-desc">Potholes, road damage, traffic signals</div>
+        </div>
       </div>
     </div>
   </section>
@@ -139,16 +257,20 @@
   <!-- ROLES -->
   <section id="roles" class="roles-section">
     <div class="section-inner">
-      <div class="section-tag">User Roles</div>
-      <div class="section-title">Three Pillars of Governance</div>
-      <div class="section-sub">Purpose-built dashboards for every type of user in the system.</div>
+      <div class="section-header-center">
+        <div class="section-eyebrow">User Roles</div>
+        <h2 class="section-title">Three Pillars of Governance</h2>
+        <p class="section-sub">Purpose-built dashboards for every type of user in the system.</p>
+      </div>
       <div class="roles-grid">
         <div class="role-card">
           <div class="role-top">
             <div class="role-emoji-wrap">👤</div>
-            <div><h3>Citizen</h3><span class="role-tag-label">Public User</span></div>
+            <div>
+              <h3>Citizen</h3>
+              <span class="role-tag-label">Public User</span>
+            </div>
           </div>
-          <div class="role-divider"></div>
           <ul class="role-list">
             <li>Register &amp; login securely</li>
             <li>Raise complaints with geo-location</li>
@@ -161,12 +283,15 @@
           </ul>
           <a routerLink="/register" class="role-btn">Register Now →</a>
         </div>
-        <div class="role-card">
+        <div class="role-card role-card-featured">
+          <div class="role-featured-tag">Most Used</div>
           <div class="role-top">
             <div class="role-emoji-wrap">🧑‍💼</div>
-            <div><h3>Admin</h3><span class="role-tag-label">Municipal Authority</span></div>
+            <div>
+              <h3>Admin</h3>
+              <span class="role-tag-label">Municipal Authority</span>
+            </div>
           </div>
-          <div class="role-divider"></div>
           <ul class="role-list">
             <li>Monitor all city complaints</li>
             <li>Manually assign to officers</li>
@@ -180,9 +305,11 @@
         <div class="role-card">
           <div class="role-top">
             <div class="role-emoji-wrap">🚓</div>
-            <div><h3>Officer</h3><span class="role-tag-label">Field Personnel</span></div>
+            <div>
+              <h3>Officer</h3>
+              <span class="role-tag-label">Field Personnel</span>
+            </div>
           </div>
-          <div class="role-divider"></div>
           <ul class="role-list">
             <li>View assigned complaints</li>
             <li>Priority-sorted (EMERGENCY first)</li>
@@ -197,32 +324,78 @@
   </section>
 
   <!-- PRIORITY -->
-  <section class="priority-outer">
-    <div class="section-inner section-center">
-      <div class="section-tag">Priority System</div>
-      <div class="section-title">Smart Issue Escalation</div>
-      <div class="section-sub">Every complaint is tagged — emergencies are never delayed or missed.</div>
+  <section class="priority-section">
+    <div class="section-inner section-header-center">
+      <div class="section-eyebrow">Priority System</div>
+      <h2 class="section-title">Smart Issue Escalation</h2>
+      <p class="section-sub">Every complaint is tagged — emergencies are never delayed or missed.</p>
       <div class="priority-row">
-        <div class="pri-card p-low"><span class="pri-emoji">🟢</span><div class="pri-label">Low</div><div class="pri-sub">Routine maintenance</div></div>
-        <div class="pri-card p-med"><span class="pri-emoji">🟡</span><div class="pri-label">Medium</div><div class="pri-sub">Moderate civic impact</div></div>
-        <div class="pri-card p-high"><span class="pri-emoji">🟠</span><div class="pri-label">High</div><div class="pri-sub">Urgent attention needed</div></div>
-        <div class="pri-card p-em"><span class="pri-emoji">🔴</span><div class="pri-label">Emergency</div><div class="pri-sub">Immediate action required</div><div class="p-em-tag">AUTO-ESCALATE</div></div>
+        <div class="pri-card p-low">
+          <span class="pri-dot dot-green"></span>
+          <div class="pri-label">Low</div>
+          <div class="pri-sub">Routine maintenance</div>
+        </div>
+        <div class="pri-card p-med">
+          <span class="pri-dot dot-amber"></span>
+          <div class="pri-label">Medium</div>
+          <div class="pri-sub">Moderate civic impact</div>
+        </div>
+        <div class="pri-card p-high">
+          <span class="pri-dot dot-orange"></span>
+          <div class="pri-label">High</div>
+          <div class="pri-sub">Urgent attention needed</div>
+        </div>
+        <div class="pri-card p-em">
+          <span class="pri-dot dot-red"></span>
+          <div class="pri-label">Emergency</div>
+          <div class="pri-sub">Immediate action required</div>
+          <div class="p-em-tag">AUTO-ESCALATE</div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- WORKFLOW -->
   <section id="workflow" class="workflow-section">
-    <div class="section-inner section-center">
-      <div class="section-tag">How It Works</div>
-      <div class="section-title">Complaint Resolution in 6 Steps</div>
+    <div class="section-inner section-header-center">
+      <div class="section-eyebrow">How It Works</div>
+      <h2 class="section-title">Complaint Resolution in 6 Steps</h2>
       <div class="workflow-steps">
-        <div class="wf-step"><div class="wf-num">1</div><h4>Register</h4><p>Citizen creates account and logs in via JWT auth</p></div>
-        <div class="wf-step"><div class="wf-num">2</div><h4>Submit</h4><p>Raise complaint with photo, location &amp; priority</p></div>
-        <div class="wf-step"><div class="wf-num">3</div><h4>Auto-Route</h4><p>System auto-assigns officer by department</p></div>
-        <div class="wf-step"><div class="wf-num">4</div><h4>Officer Acts</h4><p>Officer views map, image and updates status</p></div>
-        <div class="wf-step"><div class="wf-num">5</div><h4>Resolved</h4><p>Officer marks complaint resolved instantly</p></div>
-        <div class="wf-step"><div class="wf-num">6</div><h4>Notified</h4><p>Citizen receives notification — transparency achieved</p></div>
+        <div class="wf-step">
+          <div class="wf-num">1</div>
+          <div class="wf-connector"></div>
+          <h4>Register</h4>
+          <p>Citizen creates account and logs in via JWT auth</p>
+        </div>
+        <div class="wf-step">
+          <div class="wf-num">2</div>
+          <div class="wf-connector"></div>
+          <h4>Submit</h4>
+          <p>Raise complaint with photo, location &amp; priority</p>
+        </div>
+        <div class="wf-step">
+          <div class="wf-num">3</div>
+          <div class="wf-connector"></div>
+          <h4>Auto-Route</h4>
+          <p>System auto-assigns officer by department</p>
+        </div>
+        <div class="wf-step">
+          <div class="wf-num">4</div>
+          <div class="wf-connector"></div>
+          <h4>Officer Acts</h4>
+          <p>Officer views map, image and updates status</p>
+        </div>
+        <div class="wf-step">
+          <div class="wf-num">5</div>
+          <div class="wf-connector"></div>
+          <h4>Resolved</h4>
+          <p>Officer marks complaint resolved instantly</p>
+        </div>
+        <div class="wf-step">
+          <div class="wf-num">6</div>
+          <h4>Notified</h4>
+          <p>Citizen receives notification — transparency achieved</p>
+        </div>
       </div>
     </div>
   </section>
@@ -230,24 +403,42 @@
   <!-- TECH STACK -->
   <section class="tech-section">
     <div class="section-inner">
-      <div class="section-center">
-        <div class="section-tag">Tech Stack</div>
-        <div class="section-title">Built with Production-Grade Tools</div>
-        <div class="section-sub">Real full-stack implementation — no mock data, no prototypes.</div>
+      <div class="section-header-center">
+        <div class="section-eyebrow">Tech Stack</div>
+        <h2 class="section-title">Built with Production-Grade Tools</h2>
+        <p class="section-sub">Real full-stack implementation — no mock data, no prototypes.</p>
       </div>
       <div class="tech-grid">
-        <div class="tech-card"><span class="tech-icon">🍃</span><div class="tech-name">Spring Boot</div><div class="tech-desc">REST API, JWT Security, JPA/Hibernate, MySQL</div></div>
-        <div class="tech-card"><span class="tech-icon">🔺</span><div class="tech-name">Angular 18</div><div class="tech-desc">Standalone components, reactive HTTP client</div></div>
-        <div class="tech-card"><span class="tech-icon">🐬</span><div class="tech-name">MySQL</div><div class="tech-desc">Relational DB with auto-schema generation</div></div>
-        <div class="tech-card"><span class="tech-icon">🗺️</span><div class="tech-name">OpenStreetMap</div><div class="tech-desc">Free embedded maps — zero API key needed</div></div>
+        <div class="tech-card">
+          <span class="tech-icon">🍃</span>
+          <div class="tech-name">Spring Boot</div>
+          <div class="tech-desc">REST API, JWT Security, JPA/Hibernate, MySQL</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon">🔺</span>
+          <div class="tech-name">Angular 18</div>
+          <div class="tech-desc">Standalone components, reactive HTTP client</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon">🐬</span>
+          <div class="tech-name">MySQL</div>
+          <div class="tech-desc">Relational DB with auto-schema generation</div>
+        </div>
+        <div class="tech-card">
+          <span class="tech-icon">🗺️</span>
+          <div class="tech-name">OpenStreetMap</div>
+          <div class="tech-desc">Free embedded maps — zero API key needed</div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- CTA -->
   <section class="cta-section">
+    <div class="cta-glow"></div>
     <div class="cta-inner">
-      <h2>Ready to Build a <span>Smarter City?</span></h2>
+      <div class="section-eyebrow" style="color:#6366f1">Get Started Today</div>
+      <h2>Ready to Build a <span class="cta-accent">Smarter City?</span></h2>
       <p>Join citizens and municipal authorities working toward faster, more transparent civic resolution.</p>
       <div class="cta-btns">
         <a routerLink="/register" class="btn-cta-primary">+ Register as Citizen</a>
@@ -259,16 +450,21 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-brand">
-      <div class="footer-logo-icon">🏙️</div>
-      <span class="footer-logo">CivicPulse</span>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo-icon">🏙️</div>
+        <span class="footer-logo">CivicPulse</span>
+      </div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#roles">Roles</a>
+        <a href="#workflow">Workflow</a>
+        <a routerLink="/login">Login</a>
+      </div>
     </div>
-    <div class="footer-text">© 2025 CivicPulse — Smart City Governance System · Built for transparent urban governance</div>
-    <div class="footer-links">
-      <a href="#features">Features</a>
-      <a href="#roles">Roles</a>
-      <a href="#workflow">Workflow</a>
-      <a routerLink="/login">Login</a>
+    <div class="footer-bottom">
+      <span>© 2025 CivicPulse — Smart City Governance System</span>
+      <span>Built for transparent urban governance</span>
     </div>
   </footer>
 
