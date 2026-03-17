@@ -1,8 +1,44 @@
+/* styles.css — CivicPulse Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #040d1a;
+html {
   min-height: 100vh;
 }
+
+/*
+  Default body — dark theme for any routes not listed in LIGHT_ROUTES.
+  app.component.ts adds .theme-light or .theme-dark on every navigation.
+*/
+body {
+  margin: 0; padding: 0;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+
+  /* Dark default — applies to any future dark-themed pages */
+  background: #040d1a;
+  color: rgba(255, 255, 255, 0.85);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Light theme — applied by AppComponent on navigation */
+body.theme-light {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Dark theme — explicit class for clarity */
+body.theme-dark {
+  background: #040d1a !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+body.theme-light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
+body.theme-dark  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }

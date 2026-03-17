@@ -10,45 +10,51 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="live-dot"></div>
+      <div class="live-dot" role="status" aria-label="Live data"></div>
       <span class="live-label">Live</span>
-      <span class="record-count">{{ filteredComplaints.length }} complaints</span>
+      <span class="record-count" aria-live="polite">{{ filteredComplaints.length }} complaints</span>
     </div>
   </header>
 
   <!-- Filter Bar -->
-  <div class="filter-bar">
+  <nav class="filter-bar" aria-label="Complaint filters">
     <div class="filter-group">
-      <label class="filter-label">Priority</label>
-      <div class="filter-pills">
-        <button class="pill"
-          *ngFor="let p of priorities"
-          [ngClass]="['pill-' + p.toLowerCase(), selectedPriority === p ? 'pill-active' : '']"
-          (click)="setPriority(p)">
-          {{ p }}
-        </button>
+      <span class="filter-label" id="priority-label">Priority</span>
+      <div class="filter-pills" role="group" aria-labelledby="priority-label">
+        @for (p of priorities; track p) {
+          <button class="pill"
+            [ngClass]="['pill-' + p.toLowerCase(), selectedPriority === p ? 'pill-active' : '']"
+            [attr.aria-pressed]="selectedPriority === p"
+            (click)="setPriority(p)">
+            {{ p }}
+          </button>
+        }
       </div>
     </div>
     <div class="filter-group">
-      <label class="filter-label">Status</label>
-      <div class="filter-pills">
-        <button class="pill"
-          *ngFor="let s of statuses"
-          [ngClass]="selectedStatus === s ? 'pill-active pill-status' : 'pill-status'"
-          (click)="setStatus(s)">
-          {{ s }}
-        </button>
+      <span class="filter-label" id="status-label">Status</span>
+      <div class="filter-pills" role="group" aria-labelledby="status-label">
+        @for (s of statuses; track s) {
+          <button class="pill"
+            [ngClass]="selectedStatus === s ? 'pill-active pill-status' : 'pill-status'"
+            [attr.aria-pressed]="selectedStatus === s"
+            (click)="setStatus(s)">
+            {{ s }}
+          </button>
+        }
       </div>
     </div>
     <div class="filter-group">
-      <label class="filter-label">Department</label>
-      <select class="dept-select" [(ngModel)]="selectedDept" (change)="applyFilters()">
+      <label class="filter-label" for="dept-select">Department</label>
+      <select id="dept-select" class="dept-select" [(ngModel)]="selectedDept" (change)="applyFilters()">
         <option value="ALL">All Departments</option>
-        <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+        @for (d of departments; track d) {
+          <option [value]="d">{{ d }}</option>
+        }
       </select>
     </div>
     <button class="reset-btn" (click)="resetFilters()">↺ Reset</button>
-  </div>
+  </nav>
 
   <!-- Main Layout -->
   <div class="main-layout">
@@ -57,169 +63,191 @@
     <div class="map-panel">
       <div class="map-container" #mapContainer>
 
-        <!-- Loading -->
-        <div class="map-loading" *ngIf="isLoading">
-          <div class="map-spinner"></div>
-          <p>Loading map data...</p>
-        </div>
+        @if (isLoading) {
+          <div class="map-loading" role="status" aria-live="polite">
+            <div class="map-spinner" aria-hidden="true"></div>
+            <p>Loading map data...</p>
+          </div>
+        }
 
-        <!-- OpenStreetMap base -->
-        <iframe
-          *ngIf="!isLoading"
-          [src]="mapUrl"
-          class="map-iframe"
-          frameborder="0">
-        </iframe>
+        @if (!isLoading) {
+          <iframe
+            [src]="mapUrl"
+            class="map-iframe"
+            title="OpenStreetMap base layer for complaint heatmap"
+            frameborder="0"
+            loading="lazy">
+          </iframe>
 
-        <!-- SVG heatmap overlay -->
-        <svg class="heat-overlay" *ngIf="!isLoading"
-          [attr.viewBox]="'0 0 ' + mapWidth + ' ' + mapHeight"
-          [attr.width]="mapWidth"
-          [attr.height]="mapHeight">
+          <!-- SVG heatmap overlay -->
+          <svg class="heat-overlay"
+            [attr.viewBox]="'0 0 ' + mapWidth + ' ' + mapHeight"
+            [attr.width]="mapWidth"
+            [attr.height]="mapHeight"
+            aria-hidden="true">
 
-          <defs>
-            <radialGradient id="grad-emergency" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stop-color="#ef4444" stop-opacity="0.85"/>
-              <stop offset="60%"  stop-color="#ef4444" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="grad-high" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stop-color="#f97316" stop-opacity="0.8"/>
-              <stop offset="60%"  stop-color="#f97316" stop-opacity="0.3"/>
-              <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="grad-medium" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stop-color="#eab308" stop-opacity="0.75"/>
-              <stop offset="60%"  stop-color="#eab308" stop-opacity="0.28"/>
-              <stop offset="100%" stop-color="#eab308" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="grad-low" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"   stop-color="#22c55e" stop-opacity="0.7"/>
-              <stop offset="60%"  stop-color="#22c55e" stop-opacity="0.25"/>
-              <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
-            </radialGradient>
-            <filter id="blur-heat">
-              <feGaussianBlur stdDeviation="18"/>
-            </filter>
-          </defs>
+            <defs>
+              <radialGradient id="grad-emergency" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#ef4444" stop-opacity="0.85"/>
+                <stop offset="60%"  stop-color="#ef4444" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="grad-high" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#f97316" stop-opacity="0.8"/>
+                <stop offset="60%"  stop-color="#f97316" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="grad-medium" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#eab308" stop-opacity="0.75"/>
+                <stop offset="60%"  stop-color="#eab308" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#eab308" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="grad-low" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#22c55e" stop-opacity="0.7"/>
+                <stop offset="60%"  stop-color="#22c55e" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="blur-heat">
+                <feGaussianBlur stdDeviation="18"/>
+              </filter>
+            </defs>
 
-          <!-- Heat blobs -->
-          <g filter="url(#blur-heat)" opacity="0.9">
-            <circle
-              *ngFor="let c of heatPoints"
-              [attr.cx]="c.x"
-              [attr.cy]="c.y"
-              [attr.r]="c.radius"
-              [attr.fill]="'url(#grad-' + c.priority.toLowerCase() + ')'">
-            </circle>
-          </g>
-
-          <!-- Dot markers -->
-          <g>
-            <g *ngFor="let c of heatPoints" class="heat-point-group"
-              (click)="selectComplaint(c)"
-              [class.selected]="selectedPoint?.id === c.id">
-
-              <circle *ngIf="c.priority === 'EMERGENCY'"
-                [attr.cx]="c.x" [attr.cy]="c.y"
-                r="14"
-                fill="none"
-                stroke="#ef4444"
-                stroke-width="2"
-                opacity="0.6"
-                class="pulse-ring">
-              </circle>
-
-              <circle
-                [attr.cx]="c.x" [attr.cy]="c.y"
-                [attr.r]="c.dotSize"
-                [attr.fill]="c.color"
-                stroke="rgba(255,255,255,0.9)"
-                stroke-width="1.5"
-                class="heat-dot">
-              </circle>
+            <!-- Heat blobs -->
+            <g filter="url(#blur-heat)" opacity="0.9">
+              @for (c of heatPoints; track c.id) {
+                <circle
+                  [attr.cx]="c.x" [attr.cy]="c.y"
+                  [attr.r]="c.radius"
+                  [attr.fill]="'url(#grad-' + c.priority.toLowerCase() + ')'">
+                </circle>
+              }
             </g>
-          </g>
-        </svg>
 
-        <!-- Tooltip -->
-        <div class="map-tooltip"
-          *ngIf="selectedPoint"
-          [style.left.px]="tooltipX"
-          [style.top.px]="tooltipY">
-          <button class="tooltip-close" (click)="selectedPoint = null">×</button>
-          <div class="tooltip-priority" [ngClass]="'tp-' + selectedPoint.priority.toLowerCase()">
-            {{ selectedPoint.priority }}
-          </div>
-          <div class="tooltip-title">{{ selectedPoint.title }}</div>
-          <div class="tooltip-meta">🏢 {{ selectedPoint.department }}</div>
-          <div class="tooltip-meta">📍 {{ selectedPoint.lat | number:'1.4-4' }}, {{ selectedPoint.lng | number:'1.4-4' }}</div>
-          <div class="tooltip-meta">🕐 {{ selectedPoint.createdAt | date:'dd MMM, h:mm a' }}</div>
-          <div class="tooltip-status" [ngClass]="'ts-' + selectedPoint.status.toLowerCase().replace('_','-')">
-            {{ selectedPoint.status }}
-          </div>
-        </div>
+            <!-- Dot markers -->
+            <g>
+              @for (c of heatPoints; track c.id) {
+                <g class="heat-point-group"
+                  (click)="selectComplaint(c)"
+                  [class.selected]="selectedPoint?.id === c.id"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="c.priority + ' priority complaint: ' + c.title"
+                  (keydown.enter)="selectComplaint(c)">
 
-        <!-- Legend -->
-        <div class="map-legend">
-          <div class="legend-title">Heat Intensity</div>
-          <div class="legend-row" *ngFor="let l of legend">
-            <span class="legend-dot" [style.background]="l.color"></span>
-            <span class="legend-label">{{ l.label }}</span>
-            <span class="legend-count">{{ l.count }}</span>
+                  @if (c.priority === 'EMERGENCY') {
+                    <circle
+                      [attr.cx]="c.x" [attr.cy]="c.y"
+                      r="14" fill="none"
+                      stroke="#ef4444" stroke-width="2"
+                      opacity="0.6"
+                      class="pulse-ring">
+                    </circle>
+                  }
+
+                  <circle
+                    [attr.cx]="c.x" [attr.cy]="c.y"
+                    [attr.r]="c.dotSize"
+                    [attr.fill]="c.color"
+                    stroke="rgba(255,255,255,0.9)"
+                    stroke-width="1.5"
+                    class="heat-dot">
+                  </circle>
+                </g>
+              }
+            </g>
+          </svg>
+
+          <!-- Tooltip -->
+          @if (selectedPoint) {
+            <div class="map-tooltip"
+              role="dialog"
+              aria-modal="false"
+              [attr.aria-label]="'Details for ' + selectedPoint.title"
+              [style.left.px]="tooltipX"
+              [style.top.px]="tooltipY">
+              <button class="tooltip-close" (click)="selectedPoint = null" aria-label="Close tooltip">×</button>
+              <div class="tooltip-priority" [ngClass]="'tp-' + selectedPoint.priority.toLowerCase()">
+                {{ selectedPoint.priority }}
+              </div>
+              <div class="tooltip-title">{{ selectedPoint.title }}</div>
+              <div class="tooltip-meta">🏢 {{ selectedPoint.department }}</div>
+              <div class="tooltip-meta">📍 {{ selectedPoint.lat | number:'1.4-4' }}, {{ selectedPoint.lng | number:'1.4-4' }}</div>
+              <div class="tooltip-meta">🕐 {{ selectedPoint.createdAt | date:'dd MMM, h:mm a' }}</div>
+              <div class="tooltip-status" [ngClass]="'ts-' + selectedPoint.status.toLowerCase().replace('_','-')">
+                {{ selectedPoint.status }}
+              </div>
+            </div>
+          }
+
+          <!-- Legend -->
+          <div class="map-legend" role="note" aria-label="Map legend">
+            <div class="legend-title">Heat Intensity</div>
+            @for (l of legend; track l.label) {
+              <div class="legend-row">
+                <span class="legend-dot" [style.background]="l.color"></span>
+                <span class="legend-label">{{ l.label }}</span>
+                <span class="legend-count">{{ l.count }}</span>
+              </div>
+            }
           </div>
-        </div>
+        }
 
       </div>
     </div>
 
     <!-- Stats Sidebar -->
-    <aside class="stats-sidebar">
+    <aside class="stats-sidebar" aria-label="Statistics sidebar">
 
       <div class="sidebar-card">
-        <h3 class="sidebar-card-title">🔥 Hotspot Areas</h3>
+        <h2 class="sidebar-card-title">🔥 Hotspot Areas</h2>
         <div class="hotspot-list">
-          <div class="hotspot-row" *ngFor="let h of hotspots; let i = index">
-            <div class="hotspot-rank">{{ i + 1 }}</div>
-            <div class="hotspot-info">
-              <span class="hotspot-name">{{ h.area }}</span>
-              <div class="hotspot-bar-track">
-                <div class="hotspot-bar-fill"
-                  [style.width]="h.pct + '%'"
-                  [style.background]="h.color">
+          @for (h of hotspots; track h.area; let i = $index) {
+            <div class="hotspot-row">
+              <div class="hotspot-rank" aria-hidden="true">{{ i + 1 }}</div>
+              <div class="hotspot-info">
+                <span class="hotspot-name">{{ h.area }}</span>
+                <div class="hotspot-bar-track" role="progressbar" [attr.aria-valuenow]="h.pct" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="h.area + ' hotspot intensity'">
+                  <div class="hotspot-bar-fill"
+                    [style.width]="h.pct + '%'"
+                    [style.background]="h.color">
+                  </div>
                 </div>
               </div>
+              <span class="hotspot-val">{{ h.count }}</span>
             </div>
-            <span class="hotspot-val">{{ h.count }}</span>
-          </div>
+          }
         </div>
       </div>
 
       <div class="sidebar-card">
-        <h3 class="sidebar-card-title">📊 Priority Breakdown</h3>
+        <h2 class="sidebar-card-title">📊 Priority Breakdown</h2>
         <div class="priority-breakdown">
-          <div class="pb-row" *ngFor="let p of priorityBreakdown">
-            <div class="pb-left">
-              <span class="pb-dot" [style.background]="p.color"></span>
-              <span class="pb-label">{{ p.label }}</span>
+          @for (p of priorityBreakdown; track p.label) {
+            <div class="pb-row">
+              <div class="pb-left">
+                <span class="pb-dot" [style.background]="p.color" aria-hidden="true"></span>
+                <span class="pb-label">{{ p.label }}</span>
+              </div>
+              <div class="pb-right">
+                <span class="pb-count">{{ p.count }}</span>
+                <span class="pb-pct">{{ p.pct }}%</span>
+              </div>
             </div>
-            <div class="pb-right">
-              <span class="pb-count">{{ p.count }}</span>
-              <span class="pb-pct">{{ p.pct }}%</span>
-            </div>
-          </div>
-          <div class="stacked-bar">
-            <div *ngFor="let p of priorityBreakdown"
-              [style.width]="p.pct + '%'"
-              [style.background]="p.color"
-              [title]="p.label + ': ' + p.count">
-            </div>
+          }
+          <div class="stacked-bar" role="img" aria-label="Priority distribution bar">
+            @for (p of priorityBreakdown; track p.label) {
+              <div
+                [style.width]="p.pct + '%'"
+                [style.background]="p.color"
+                [attr.title]="p.label + ': ' + p.count">
+              </div>
+            }
           </div>
         </div>
       </div>
 
       <div class="sidebar-card">
-        <h3 class="sidebar-card-title">📋 Status Summary</h3>
+        <h2 class="sidebar-card-title">📋 Status Summary</h2>
         <div class="status-summary">
           <div class="ss-item ss-open">
             <span class="ss-num">{{ statusCounts.open }}</span>
@@ -237,21 +265,26 @@
       </div>
 
       <div class="sidebar-card recent-card">
-        <h3 class="sidebar-card-title">🕐 Recent Complaints</h3>
+        <h2 class="sidebar-card-title">🕐 Recent Complaints</h2>
         <div class="recent-list">
-          <div class="recent-row"
-            *ngFor="let c of recentComplaints"
-            (click)="focusComplaint(c)"
-            [class.recent-active]="selectedPoint?.id === c.id">
-            <div class="recent-dot" [style.background]="getPriorityColor(c.priority)"></div>
-            <div class="recent-info">
-              <span class="recent-title">{{ c.title }}</span>
-              <span class="recent-meta">{{ c.department }} · {{ c.createdAt | date:'dd MMM' }}</span>
+          @for (c of recentComplaints; track c.id) {
+            <div class="recent-row"
+              (click)="focusComplaint(c)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="focusComplaint(c)"
+              [class.recent-active]="selectedPoint?.id === c.id"
+              [attr.aria-label]="'Focus on ' + c.title">
+              <div class="recent-dot" [style.background]="getPriorityColor(c.priority)" aria-hidden="true"></div>
+              <div class="recent-info">
+                <span class="recent-title">{{ c.title }}</span>
+                <span class="recent-meta">{{ c.department }} · {{ c.createdAt | date:'dd MMM' }}</span>
+              </div>
+              <span class="recent-badge" [ngClass]="'rb-' + c.priority.toLowerCase()">
+                {{ c.priority }}
+              </span>
             </div>
-            <span class="recent-badge" [ngClass]="'rb-' + c.priority.toLowerCase()">
-              {{ c.priority }}
-            </span>
-          </div>
+          }
         </div>
       </div>
 

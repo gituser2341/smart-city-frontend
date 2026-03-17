@@ -1,7 +1,13 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
+interface Notification {
+  id: number;
+  message: string;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-notification',
@@ -12,21 +18,23 @@ import { CommonModule } from '@angular/common';
 })
 export class NotificationComponent implements OnInit {
 
-  private http = inject(HttpClient);
-  private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);  // ← ADD
-
-  notifications: any[] = [];
-  isLoading = true;
+  notifications: Notification[] = [];
+  isLoading    = true;
   errorMessage = '';
 
-  ngOnInit(): void {
-    this.isLoading = true;
-    this.notifications = [];
-    this.errorMessage = '';
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
-    let role = localStorage.getItem('role') || '';
-    const token = localStorage.getItem('token');
+  ngOnInit(): void {
+    this.isLoading    = true;
+    this.notifications = [];
+    this.errorMessage  = '';
+
+    let role        = localStorage.getItem('role') ?? '';
+    const token     = localStorage.getItem('token');
 
     if (!token || !role) {
       this.router.navigate(['/login']);
@@ -37,37 +45,40 @@ export class NotificationComponent implements OnInit {
       role = role.replace('ROLE_', '');
     }
 
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    this.http.get<any[]>(`http://localhost:8080/api/notifications/${role}`, { headers })
-      .subscribe({
-        next: (data) => {
-          this.notifications = data.sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          this.isLoading = false;
-          this.cdr.detectChanges();  // ← ADD
-        },
-        error: (err) => {
-          this.errorMessage = 'Failed to load notifications.';
-          this.isLoading = false;
-          if (err.status === 401) this.router.navigate(['/login']);
-          this.cdr.detectChanges();  // ← ADD
-        }
-      });
+    this.http.get<Notification[]>(
+      `http://localhost:8080/api/notifications/${role}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.notifications = [...data].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = 'Failed to load notifications.';
+        this.isLoading    = false;
+        if (err.status === 401) { this.router.navigate(['/login']); }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  goBack() {
+  goBack(): void {
     const role = localStorage.getItem('role');
-    if (role === 'CITIZEN') this.router.navigate(['/citizen']);
-    else if (role === 'OFFICER') this.router.navigate(['/officer']);
-    else this.router.navigate(['/admin']);
+    if (role === 'CITIZEN')      { this.router.navigate(['/citizen']); }
+    else if (role === 'OFFICER') { this.router.navigate(['/officer']); }
+    else                         { this.router.navigate(['/admin']);   }
   }
 
   getIcon(message: string): string {
-    if (message?.toLowerCase().includes('resolved')) return '✅';
-    if (message?.toLowerCase().includes('progress')) return '⚙️';
-    if (message?.toLowerCase().includes('assigned')) return '👮';
+    const lower = message?.toLowerCase() ?? '';
+    if (lower.includes('resolved')) { return '✅'; }
+    if (lower.includes('progress')) { return '⚙️'; }
+    if (lower.includes('assigned')) { return '👮'; }
     return '🔔';
   }
 }

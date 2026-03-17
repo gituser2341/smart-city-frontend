@@ -1,10 +1,28 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../services/websocket.service';
+
+interface Complaint {
+  id: number;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'ESCALATED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
+  department: string;
+  createdAt: string;
+  latitude: number;
+  longitude: number;
+  deadline?: string;
+  imageUrl?: string;
+  escalated?: boolean;
+  rated?: boolean;
+  rating?: number;
+  ratingComment?: string;
+}
 
 @Component({
   selector: 'app-citizen',
@@ -13,90 +31,89 @@ import { WebSocketService } from '../services/websocket.service';
   templateUrl: './citizen.html',
   styleUrls: ['./citizen.css']
 })
-export class CitizenComponent implements OnInit {
+export class CitizenComponent implements OnInit, OnDestroy {
 
-  complaints: any[] = [];
+  complaints: Complaint[] = [];
   total = 0;
   open = 0;
   inProgress = 0;
   resolved = 0;
-  liveNotification = ''
+  liveNotification = '';
 
-  // ✅ Rating maps
-  ratingMap: { [key: number]: number } = {};
-  ratingCommentMap: { [key: number]: string } = {};
-  ratingSuccess: { [key: number]: string } = {};
-  ratingError: { [key: number]: string } = {};
+  ratingMap: Record<number, number> = {};
+  ratingCommentMap: Record<number, string> = {};
+  ratingSuccess: Record<number, string> = {};
+  ratingError: Record<number, string> = {};
 
   constructor(
-    private http: HttpClient,
-    private router: Router,
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef,
-    private wsService: WebSocketService
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly wsService: WebSocketService
   ) {}
 
-  ngOnInit() {
-    const email = localStorage.getItem('email') || '';
-  const token = localStorage.getItem('token') || '';
-    
+  ngOnInit(): void {
+    const email = localStorage.getItem('email') ?? '';
+    const token = localStorage.getItem('token') ?? '';
 
-  // ⚡ Connect WebSocket
-  this.wsService.connect(email, token);
+    this.wsService.connect(email, token);
 
-  // 🔔 Listen for live notifications
-  this.wsService.notification$.subscribe(message => {
-    this.liveNotification = message;  // ← show banner instantly
-    this.loadMyComplaints();          // ← refresh complaint list
-    this.cdr.detectChanges();
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      this.liveNotification = '';
+    this.wsService.notification$.subscribe((message: string) => {
+      this.liveNotification = message;
+      this.loadMyComplaints();
       this.cdr.detectChanges();
-    }, 5000);
-  });
+
+      setTimeout(() => {
+        this.liveNotification = '';
+        this.cdr.detectChanges();
+      }, 5000);
+    });
+
     this.loadMyComplaints();
   }
 
-  getHeaders() {
+  ngOnDestroy(): void {
+    this.wsService.disconnect();
+  }
+
+  private getHeaders(): HttpHeaders {
     return new HttpHeaders({
-      Authorization: 'Bearer ' + localStorage.getItem('token')
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
     });
   }
 
-  loadMyComplaints() {
-    this.http.get<any[]>('http://localhost:8080/api/complaints/my',
-      { headers: this.getHeaders() })
-      .subscribe({
-        next: (data) => {
-          this.complaints = data;
-          this.total      = data.length;
-          this.open       = data.filter(c => c.status === 'OPEN').length;
-          this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
-          this.resolved   = data.filter(c => c.status === 'RESOLVED').length;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          if (err.status === 401) this.router.navigate(['/login']);
-          this.cdr.detectChanges();
-        }
-      });
+  loadMyComplaints(): void {
+    this.http.get<Complaint[]>(
+      'http://localhost:8080/api/complaints/my',
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (data) => {
+        this.complaints  = data;
+        this.total       = data.length;
+        this.open        = data.filter(c => c.status === 'OPEN').length;
+        this.inProgress  = data.filter(c => c.status === 'IN_PROGRESS').length;
+        this.resolved    = data.filter(c => c.status === 'RESOLVED').length;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        if (err.status === 401) { this.router.navigate(['/login']); }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  // ✅ Set star rating
-  setRating(complaintId: number, star: number) {
+  setRating(complaintId: number, star: number): void {
     this.ratingMap[complaintId] = star;
   }
 
-  // ✅ Submit rating
-  submitRating(complaintId: number) {
+  submitRating(complaintId: number): void {
     const rating = this.ratingMap[complaintId];
-    const ratingComment = this.ratingCommentMap[complaintId] || '';
+    const ratingComment = this.ratingCommentMap[complaintId] ?? '';
 
     if (!rating) {
       this.ratingError[complaintId] = 'Please select a star rating.';
-      setTimeout(() => this.ratingError[complaintId] = '', 3000);
+      setTimeout(() => { this.ratingError[complaintId] = ''; }, 3000);
       return;
     }
 
@@ -109,11 +126,11 @@ export class CitizenComponent implements OnInit {
         this.ratingSuccess[complaintId] = '⭐ Rating submitted successfully!';
         this.ratingError[complaintId] = '';
         this.loadMyComplaints();
-        setTimeout(() => this.ratingSuccess[complaintId] = '', 3000);
+        setTimeout(() => { this.ratingSuccess[complaintId] = ''; }, 3000);
       },
       error: (err) => {
-        this.ratingError[complaintId] = err.error || 'Failed to submit rating.';
-        setTimeout(() => this.ratingError[complaintId] = '', 3000);
+        this.ratingError[complaintId] = (err.error as string) || 'Failed to submit rating.';
+        setTimeout(() => { this.ratingError[complaintId] = ''; }, 3000);
       }
     });
   }
@@ -123,13 +140,12 @@ export class CitizenComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  raiseComplaint() { this.router.navigate(['/create-complaint']); }
+  raiseComplaint(): void {
+    this.router.navigate(['/create-complaint']);
+  }
 
-  logout() {
+  logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);
   }
-  ngOnDestroy() {
-  this.wsService.disconnect();
-}
 }

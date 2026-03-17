@@ -48,6 +48,18 @@ interface PriorityBreakdown {
   color: string;
 }
 
+interface LegendItem {
+  label: string;
+  color: string;
+  count: number;
+}
+
+interface StatusCounts {
+  open: number;
+  inProgress: number;
+  resolved: number;
+}
+
 @Component({
   selector: 'app-heatmap',
   standalone: true,
@@ -57,13 +69,13 @@ interface PriorityBreakdown {
 })
 export class HeatmapComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('mapContainer') mapContainerRef!: ElementRef;
+  @ViewChild('mapContainer') mapContainerRef!: ElementRef<HTMLElement>;
 
   allComplaints: Complaint[]      = [];
   filteredComplaints: Complaint[] = [];
 
-  priorities  = ['ALL', 'EMERGENCY', 'HIGH', 'MEDIUM', 'LOW'];
-  statuses    = ['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'];
+  readonly priorities = ['ALL', 'EMERGENCY', 'HIGH', 'MEDIUM', 'LOW'];
+  readonly statuses   = ['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'];
   departments: string[] = [];
 
   selectedPriority = 'ALL';
@@ -86,13 +98,10 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
   tooltipX = 0;
   tooltipY = 0;
 
-  legend: { label: string; color: string; count: number }[] = [];
+  legend: LegendItem[] = [];
   hotspots: Hotspot[] = [];
   priorityBreakdown: PriorityBreakdown[] = [];
-
-  // ✦ pre-initialized so HTML never sees undefined
-  statusCounts = { open: 0, inProgress: 0, resolved: 0 };
-
+  statusCounts: StatusCounts = { open: 0, inProgress: 0, resolved: 0 };
   recentComplaints: Complaint[] = [];
 
   private readonly PRIORITY_COLORS: Record<string, string> = {
@@ -102,21 +111,23 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
     LOW:       '#22c55e',
   };
 
+  private readonly HOT_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b5bdb'];
+
   constructor(
-    private http: HttpClient,
-    private router: Router,
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.buildMapUrl();
     this.loadComplaints();
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     if (this.mapContainerRef) {
-      const el = this.mapContainerRef.nativeElement as HTMLElement;
+      const el = this.mapContainerRef.nativeElement;
       this.mapWidth  = el.offsetWidth  || 800;
       this.mapHeight = el.offsetHeight || 600;
       this.rebuildHeatPoints();
@@ -124,53 +135,57 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  buildMapUrl() {
+  private buildMapUrl(): void {
     const bbox = `${this.mapBboxLngMin},${this.mapBboxLatMin},${this.mapBboxLngMax},${this.mapBboxLatMax}`;
-    const raw  = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
-    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(raw);
+    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`
+    );
   }
 
-  loadComplaints() {
-    const token   = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  loadComplaints(): void {
+    const headers = new HttpHeaders({
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
+    });
 
-    // ✦ FIXED: was /api/admin/complaints (403), now /api/admin/all-complaints
-    this.http.get<Complaint[]>('http://localhost:8080/api/admin/all-complaints', { headers })
-      .subscribe({
-        next: (data) => {
-          this.allComplaints = data ?? [];
-          this.departments   = [...new Set(data.map(c => c.department))].sort();
+    this.http.get<Complaint[]>(
+      'http://localhost:8080/api/admin/all-complaints',
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.allComplaints = data ?? [];
+        this.departments   = [...new Set(data.map(c => c.department))].sort();
 
-          // Auto-fit map bbox to complaint coordinates
-          const lats = data.map(c => c.latitude).filter(Boolean);
-          const lngs = data.map(c => c.longitude).filter(Boolean);
-          if (lats.length) {
-            const pad = 0.02;
-            this.mapBboxLatMin = Math.min(...lats) - pad;
-            this.mapBboxLatMax = Math.max(...lats) + pad;
-            this.mapBboxLngMin = Math.min(...lngs) - pad;
-            this.mapBboxLngMax = Math.max(...lngs) + pad;
-            this.buildMapUrl();
-          }
+        const lats = data.map(c => c.latitude).filter(Boolean);
+        const lngs = data.map(c => c.longitude).filter(Boolean);
 
-          this.applyFilters();
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Heatmap load error:', err);
-          this.isLoading = false;
-          if (err.status === 401 || err.status === 403)
-            this.router.navigate(['/login']);
-          this.cdr.detectChanges();
+        if (lats.length) {
+          const pad = 0.02;
+          this.mapBboxLatMin = Math.min(...lats) - pad;
+          this.mapBboxLatMax = Math.max(...lats) + pad;
+          this.mapBboxLngMin = Math.min(...lngs) - pad;
+          this.mapBboxLngMax = Math.max(...lngs) + pad;
+          this.buildMapUrl();
         }
-      });
+
+        this.applyFilters();
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Heatmap load error:', err);
+        this.isLoading = false;
+        if (err.status === 401 || err.status === 403) {
+          this.router.navigate(['/login']);
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  setPriority(p: string) { this.selectedPriority = p; this.applyFilters(); }
-  setStatus(s: string)   { this.selectedStatus   = s; this.applyFilters(); }
+  setPriority(p: string): void { this.selectedPriority = p; this.applyFilters(); }
+  setStatus(s: string): void   { this.selectedStatus   = s; this.applyFilters(); }
 
-  applyFilters() {
+  applyFilters(): void {
     this.filteredComplaints = this.allComplaints.filter(c => {
       const okP = this.selectedPriority === 'ALL' || c.priority   === this.selectedPriority;
       const okS = this.selectedStatus   === 'ALL' || c.status     === this.selectedStatus;
@@ -183,7 +198,7 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  resetFilters() {
+  resetFilters(): void {
     this.selectedPriority = 'ALL';
     this.selectedStatus   = 'ALL';
     this.selectedDept     = 'ALL';
@@ -196,7 +211,7 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
     return { x: Math.round(x), y: Math.round(y) };
   }
 
-  rebuildHeatPoints() {
+  rebuildHeatPoints(): void {
     this.heatPoints = this.filteredComplaints
       .filter(c => c.latitude && c.longitude)
       .map(c => {
@@ -217,11 +232,10 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
       });
   }
 
-  buildSidebarData() {
+  buildSidebarData(): void {
     const data  = this.filteredComplaints;
     const total = data.length || 1;
 
-    // Legend
     this.legend = [
       { label: 'Emergency', color: '#ef4444', count: data.filter(c => c.priority === 'EMERGENCY').length },
       { label: 'High',      color: '#f97316', count: data.filter(c => c.priority === 'HIGH').length      },
@@ -229,14 +243,12 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
       { label: 'Low',       color: '#22c55e', count: data.filter(c => c.priority === 'LOW').length       },
     ];
 
-    // ✦ Status counts — handles both OPEN and missing status gracefully
     this.statusCounts = {
       open:       data.filter(c => c.status === 'OPEN').length,
       inProgress: data.filter(c => c.status === 'IN_PROGRESS').length,
       resolved:   data.filter(c => c.status === 'RESOLVED').length,
     };
 
-    // Priority breakdown %
     this.priorityBreakdown = [
       { label: 'Emergency', color: '#ef4444', count: data.filter(c => c.priority === 'EMERGENCY').length, pct: 0 },
       { label: 'High',      color: '#f97316', count: data.filter(c => c.priority === 'HIGH').length,      pct: 0 },
@@ -244,11 +256,9 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
       { label: 'Low',       color: '#22c55e', count: data.filter(c => c.priority === 'LOW').length,       pct: 0 },
     ].map(p => ({ ...p, pct: Math.round((p.count / total) * 100) }));
 
-    // Hotspot areas by department
     const deptMap: Record<string, number> = {};
-    data.forEach(c => { deptMap[c.department] = (deptMap[c.department] || 0) + 1; });
-    const maxCount  = Math.max(...Object.values(deptMap), 1);
-    const hotColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
+    data.forEach(c => { deptMap[c.department] = (deptMap[c.department] ?? 0) + 1; });
+    const maxCount = Math.max(...Object.values(deptMap), 1);
 
     this.hotspots = Object.entries(deptMap)
       .sort((a, b) => b[1] - a[1])
@@ -256,29 +266,28 @@ export class HeatmapComponent implements OnInit, AfterViewInit {
       .map(([area, count], i) => ({
         area, count,
         pct:   Math.round((count / maxCount) * 100),
-        color: hotColors[i] ?? '#64748b',
+        color: this.HOT_COLORS[i] ?? '#64748b',
       }));
 
-    // Recent complaints sorted by date
     this.recentComplaints = [...data]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 8);
   }
 
-  selectComplaint(point: HeatPoint) {
+  selectComplaint(point: HeatPoint): void {
     this.selectedPoint = point;
-    const mapEl = this.mapContainerRef?.nativeElement as HTMLElement;
-    const rect  = mapEl?.getBoundingClientRect();
-    const rawX  = (point.x / this.mapWidth)  * (rect?.width  ?? this.mapWidth);
-    const rawY  = (point.y / this.mapHeight) * (rect?.height ?? this.mapHeight);
+    const el   = this.mapContainerRef?.nativeElement;
+    const rect = el?.getBoundingClientRect();
+    const rawX = (point.x / this.mapWidth)  * (rect?.width  ?? this.mapWidth);
+    const rawY = (point.y / this.mapHeight) * (rect?.height ?? this.mapHeight);
     this.tooltipX = Math.min(rawX + 14, (rect?.width  ?? this.mapWidth)  - 250);
     this.tooltipY = Math.max(rawY - 160, 8);
     this.cdr.detectChanges();
   }
 
-  focusComplaint(c: Complaint) {
+  focusComplaint(c: Complaint): void {
     const point = this.heatPoints.find(p => p.id === c.id);
-    if (point) this.selectComplaint(point);
+    if (point) { this.selectComplaint(point); }
   }
 
   getPriorityColor(priority: string): string {

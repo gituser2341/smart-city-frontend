@@ -4,6 +4,33 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
+interface ComplaintUser {
+  name: string;
+}
+
+interface Complaint {
+  id: number;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
+  department: string;
+  createdAt: string;
+  latitude: number;
+  longitude: number;
+  imageUrl?: string;
+  user?: ComplaintUser;
+}
+
+interface PerformanceMetric {
+  label: string;
+  value: number;
+}
+
+const PRIORITY_ORDER: Record<string, number> = {
+  EMERGENCY: 0, HIGH: 1, MEDIUM: 2, LOW: 3
+};
+
 @Component({
   selector: 'app-officer',
   standalone: true,
@@ -13,18 +40,16 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 })
 export class OfficerComponent implements OnInit {
 
-  // ── Complaints ──────────────────────────────────
-  complaints: any[] = [];
+  complaints: Complaint[] = [];
   officerName = '';
   total       = 0;
   inProgress  = 0;
   resolved    = 0;
   isLoading   = true;
 
-  // ── Performance Score ───────────────────────────
   performanceScore  = 0;
   scoreDashOffset   = 314;
-  scoreColor        = '#1565c0';
+  scoreColor        = '#3b5bdb';
   scoreStatus       = '';
   scoreStatusClass  = '';
   scoreTrend        = 0;
@@ -32,57 +57,58 @@ export class OfficerComponent implements OnInit {
   incidents         = 0;
   resolutionRate    = 0;
 
-  performanceMetrics: { label: string; value: number }[] = [];
+  performanceMetrics: PerformanceMetric[] = [];
 
-  private previousPeriodScore = 78; // replace with real API value for accurate trend
+  private readonly previousPeriodScore = 78;
 
   constructor(
-    private http: HttpClient,
-    private router: Router,
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
-    this.officerName = localStorage.getItem('name') || 'Officer';
+  ngOnInit(): void {
+    this.officerName = localStorage.getItem('name') ?? 'Officer';
     this.loadComplaints();
   }
 
-  loadComplaints() {
-    const token   = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-    this.http.get<any[]>('http://localhost:8080/api/officer/complaints', { headers })
-      .subscribe({
-        next: (data) => {
-          this.complaints = data.sort((a, b) => {
-            const order: any = { EMERGENCY: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-            return order[a.priority] - order[b.priority];
-          });
-
-          this.total      = data.length;
-          this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
-          this.resolved   = data.filter(c => c.status === 'RESOLVED').length;
-
-          // Replace with real API fields when backend exposes them:
-          // this.commendations = data.commendations ?? 0;
-          // this.incidents     = data.incidents ?? 0;
-          this.commendations = 0;
-          this.incidents     = 0;
-
-          this.computePerformance();
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.isLoading = false;
-          if (err.status === 401) this.router.navigate(['/login']);
-          this.cdr.detectChanges();
-        }
-      });
+  private getHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
+    });
   }
 
-  computePerformance() {
+  loadComplaints(): void {
+    this.http.get<Complaint[]>(
+      'http://localhost:8080/api/officer/complaints',
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (data) => {
+        this.complaints = [...data].sort(
+          (a, b) => (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
+        );
+
+        this.total      = data.length;
+        this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
+        this.resolved   = data.filter(c => c.status === 'RESOLVED').length;
+
+        this.commendations = 0;
+        this.incidents     = 0;
+
+        this.computePerformance();
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        if (err.status === 401) { this.router.navigate(['/login']); }
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  computePerformance(): void {
     const resolutionScore = this.total > 0
       ? Math.round((this.resolved / this.total) * 100)
       : 0;
@@ -103,7 +129,6 @@ export class OfficerComponent implements OnInit {
       communityScore  * 0.05
     );
 
-    // SVG ring: dasharray=314, offset drives how much arc is visible
     this.scoreDashOffset = Math.round(314 * (1 - this.performanceScore / 100));
 
     if (this.performanceScore >= 90) {
@@ -111,11 +136,11 @@ export class OfficerComponent implements OnInit {
       this.scoreStatus      = 'Exemplary';
       this.scoreStatusClass = 'badge-exemplary';
     } else if (this.performanceScore >= 75) {
-      this.scoreColor       = '#1565c0';
+      this.scoreColor       = '#3b5bdb';
       this.scoreStatus      = 'Proficient';
       this.scoreStatusClass = 'badge-proficient';
     } else if (this.performanceScore >= 60) {
-      this.scoreColor       = '#d97706';
+      this.scoreColor       = '#b45309';
       this.scoreStatus      = 'Developing';
       this.scoreStatusClass = 'badge-developing';
     } else {
@@ -138,31 +163,28 @@ export class OfficerComponent implements OnInit {
 
   getMetricColor(value: number): string {
     if (value >= 90) return '#16a34a';
-    if (value >= 75) return '#1565c0';
-    if (value >= 60) return '#d97706';
+    if (value >= 75) return '#3b5bdb';
+    if (value >= 60) return '#b45309';
     return '#dc2626';
   }
 
-  updateStatus(complaintId: number, status: string) {
-    const token   = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
+  updateStatus(complaintId: number, status: string): void {
     this.http.put(
       `http://localhost:8080/api/officer/update-status/${complaintId}?status=${status}`,
       {},
-      { headers, responseType: 'text' }
+      { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe({
       next: () => {
         const complaint = this.complaints.find(c => c.id === complaintId);
         if (complaint) {
-          complaint.status = status;
+          complaint.status = status as Complaint['status'];
           this.inProgress  = this.complaints.filter(c => c.status === 'IN_PROGRESS').length;
           this.resolved    = this.complaints.filter(c => c.status === 'RESOLVED').length;
-          this.computePerformance(); // live re-score on every status change
+          this.computePerformance();
         }
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Update failed:', err)
+      error: (err) => { console.error('Update failed:', err); }
     });
   }
 
@@ -171,7 +193,7 @@ export class OfficerComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  logout() {
+  logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);
   }

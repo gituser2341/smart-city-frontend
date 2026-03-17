@@ -1,319 +1,347 @@
 <div class="admin-page">
-  <div class="grid-bg"></div>
 
   <!-- HEADER -->
   <header class="admin-header">
     <div class="header-left">
-      <div class="brand-icon">🏙️</div>
+      <div class="brand-icon" aria-hidden="true">🏙️</div>
       <div>
         <div class="brand-name">CivicPulse</div>
         <div class="brand-sub">Admin Control Panel</div>
       </div>
     </div>
     <div class="header-right">
-      <div class="escalated-badge"
-        *ngIf="escalatedComplaints.length > 0"
-        (click)="setTab('escalated')">
-        🚨 {{ escalatedComplaints.length }} Escalated
-      </div>
-      <a routerLink="/" class="btn-logout">Logout</a>
+      @if (escalatedComplaints.length > 0) {
+        <button class="escalated-badge" (click)="setTab('escalated')">
+          🚨 {{ escalatedComplaints.length }} Escalated
+        </button>
+      }
+      <button class="btn-logout" (click)="logout()">⎋ Logout</button>
     </div>
   </header>
 
   <!-- TABS -->
-  <div class="tab-bar">
-    <button class="tab-btn"
-      [class.active]="activeTab === 'dashboard'"
-      (click)="setTab('dashboard')">📊 Dashboard</button>
-
-    <button class="tab-btn"
-      [class.active]="activeTab === 'complaints'"
-      (click)="setTab('complaints')">📋 Complaints</button>
-
-    <button class="tab-btn escalated-tab"
-      [class.active]="activeTab === 'escalated'"
-      (click)="setTab('escalated')">
+  <nav class="tab-bar" aria-label="Admin sections">
+    <button class="tab-btn" [class.active]="activeTab === 'dashboard'"   (click)="setTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" [class.active]="activeTab === 'complaints'"  (click)="setTab('complaints')">📋 Complaints</button>
+    <button class="tab-btn escalated-tab" [class.active]="activeTab === 'escalated'" (click)="setTab('escalated')">
       🚨 Escalated
-      <span class="tab-count" *ngIf="escalatedComplaints.length > 0">
-        {{ escalatedComplaints.length }}
-      </span>
+      @if (escalatedComplaints.length > 0) {
+        <span class="tab-count" aria-label="{{ escalatedComplaints.length }} escalated">{{ escalatedComplaints.length }}</span>
+      }
     </button>
-
-    <button class="tab-btn"
-      [class.active]="activeTab === 'officers'"
-      (click)="setTab('officers')">👮 Officers</button>
-
-    <button class="tab-btn"
-      [class.active]="activeTab === 'add-officer'"
-      (click)="setTab('add-officer')">➕ Add Officer</button>
-
-    <!-- ✦ HEATMAP BUTTON -->
-    <button class="tab-btn tab-heatmap" routerLink="/heatmap">
-      🗺️ Heatmap
-    </button>
-  </div>
+    <button class="tab-btn" [class.active]="activeTab === 'officers'"    (click)="setTab('officers')">👮 Officers</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add Officer</button>
+    <button class="tab-btn tab-heatmap" routerLink="/heatmap">🗺️ Heatmap</button>
+  </nav>
 
   <div class="admin-body">
 
     <!-- ── DASHBOARD TAB ── -->
-    <div *ngIf="activeTab === 'dashboard'">
+    @if (activeTab === 'dashboard') {
+      <div>
+        <section class="stats-grid" aria-label="Key statistics">
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">📋</div>
+            <div class="stat-num">{{ stats.totalComplaints || 0 }}</div>
+            <div class="stat-lbl">Total Complaints</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">👮</div>
+            <div class="stat-num">{{ stats.totalOfficers || 0 }}</div>
+            <div class="stat-lbl">Total Officers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">👤</div>
+            <div class="stat-num">{{ stats.totalCitizens || 0 }}</div>
+            <div class="stat-lbl">Total Citizens</div>
+          </div>
+          <div class="stat-card stat-escalated" role="button" tabindex="0"
+            (click)="setTab('escalated')" (keydown.enter)="setTab('escalated')">
+            <div class="stat-icon" aria-hidden="true">🚨</div>
+            <div class="stat-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
+            <div class="stat-lbl">Escalated</div>
+          </div>
+        </section>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">📋</div>
-          <div class="stat-num">{{ stats.totalComplaints || 0 }}</div>
-          <div class="stat-lbl">Total Complaints</div>
+        <!-- Heatmap Banner -->
+        <div class="heatmap-banner" routerLink="/heatmap" role="button" tabindex="0">
+          <div class="heatmap-banner-left">
+            <div class="heatmap-banner-icon" aria-hidden="true">🗺️</div>
+            <div>
+              <div class="heatmap-banner-title">Complaint Heatmap</div>
+              <div class="heatmap-banner-sub">View live geographic density of all complaints across the city</div>
+            </div>
+          </div>
+          <div class="heatmap-banner-arrow" aria-hidden="true">→</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">👮</div>
-          <div class="stat-num">{{ stats.totalOfficers || 0 }}</div>
-          <div class="stat-lbl">Total Officers</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">👤</div>
-          <div class="stat-num">{{ stats.totalCitizens || 0 }}</div>
-          <div class="stat-lbl">Total Citizens</div>
-        </div>
-        <div class="stat-card stat-escalated" (click)="setTab('escalated')">
-          <div class="stat-icon">🚨</div>
-          <div class="stat-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
-          <div class="stat-lbl">Escalated</div>
-        </div>
-      </div>
 
-      <!-- Heatmap Quick Access Card -->
-      <div class="heatmap-banner" routerLink="/heatmap">
-        <div class="heatmap-banner-left">
-          <div class="heatmap-banner-icon">🗺️</div>
-          <div>
-            <div class="heatmap-banner-title">Complaint Heatmap</div>
-            <div class="heatmap-banner-sub">View live geographic density of all complaints across the city</div>
+        <h2 class="section-title">Complaint Status Overview</h2>
+        <div class="status-grid">
+          <div class="status-card s-open">
+            <div class="s-num">{{ stats.byStatus?.OPEN || 0 }}</div>
+            <div class="s-lbl">Open</div>
+          </div>
+          <div class="status-card s-progress">
+            <div class="s-num">{{ stats.byStatus?.IN_PROGRESS || 0 }}</div>
+            <div class="s-lbl">In Progress</div>
+          </div>
+          <div class="status-card s-resolved">
+            <div class="s-num">{{ stats.byStatus?.RESOLVED || 0 }}</div>
+            <div class="s-lbl">Resolved</div>
+          </div>
+          <div class="status-card s-escalated">
+            <div class="s-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
+            <div class="s-lbl">Escalated</div>
           </div>
         </div>
-        <div class="heatmap-banner-arrow">→</div>
-      </div>
 
-      <div class="section-title">Complaint Status Overview</div>
-      <div class="status-grid">
-        <div class="status-card s-open">
-          <div class="s-num">{{ stats.byStatus?.OPEN || 0 }}</div>
-          <div class="s-lbl">Open</div>
+        <h2 class="section-title">By Department</h2>
+        <div class="dept-grid">
+          <div class="dept-card">
+            <span aria-hidden="true">💧</span>
+            <div class="dept-num">{{ stats.byDepartment?.WATER || 0 }}</div>
+            <div class="dept-lbl">Water</div>
+          </div>
+          <div class="dept-card">
+            <span aria-hidden="true">⚡</span>
+            <div class="dept-num">{{ stats.byDepartment?.ELECTRICITY || 0 }}</div>
+            <div class="dept-lbl">Electricity</div>
+          </div>
+          <div class="dept-card">
+            <span aria-hidden="true">🗑️</span>
+            <div class="dept-num">{{ stats.byDepartment?.SANITATION || 0 }}</div>
+            <div class="dept-lbl">Sanitation</div>
+          </div>
+          <div class="dept-card">
+            <span aria-hidden="true">🛣️</span>
+            <div class="dept-num">{{ stats.byDepartment?.ROAD || 0 }}</div>
+            <div class="dept-lbl">Road</div>
+          </div>
         </div>
-        <div class="status-card s-progress">
-          <div class="s-num">{{ stats.byStatus?.IN_PROGRESS || 0 }}</div>
-          <div class="s-lbl">In Progress</div>
-        </div>
-        <div class="status-card s-resolved">
-          <div class="s-num">{{ stats.byStatus?.RESOLVED || 0 }}</div>
-          <div class="s-lbl">Resolved</div>
-        </div>
-        <div class="status-card s-escalated">
-          <div class="s-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
-          <div class="s-lbl">Escalated</div>
-        </div>
-      </div>
 
-      <div class="section-title">By Department</div>
-      <div class="dept-grid">
-        <div class="dept-card">
-          <span>💧</span>
-          <div class="dept-num">{{ stats.byDepartment?.WATER || 0 }}</div>
-          <div class="dept-lbl">Water</div>
-        </div>
-        <div class="dept-card">
-          <span>⚡</span>
-          <div class="dept-num">{{ stats.byDepartment?.ELECTRICITY || 0 }}</div>
-          <div class="dept-lbl">Electricity</div>
-        </div>
-        <div class="dept-card">
-          <span>🗑️</span>
-          <div class="dept-num">{{ stats.byDepartment?.SANITATION || 0 }}</div>
-          <div class="dept-lbl">Sanitation</div>
-        </div>
-        <div class="dept-card">
-          <span>🛣️</span>
-          <div class="dept-num">{{ stats.byDepartment?.ROAD || 0 }}</div>
-          <div class="dept-lbl">Road</div>
+        <h2 class="section-title">By Priority</h2>
+        <div class="priority-grid">
+          <div class="pri-card p-low">
+            <div class="pri-num">{{ stats.byPriority?.LOW || 0 }}</div>
+            <div class="pri-lbl">🟢 Low</div>
+          </div>
+          <div class="pri-card p-med">
+            <div class="pri-num">{{ stats.byPriority?.MEDIUM || 0 }}</div>
+            <div class="pri-lbl">🟡 Medium</div>
+          </div>
+          <div class="pri-card p-high">
+            <div class="pri-num">{{ stats.byPriority?.HIGH || 0 }}</div>
+            <div class="pri-lbl">🟠 High</div>
+          </div>
+          <div class="pri-card p-em">
+            <div class="pri-num">{{ stats.byPriority?.EMERGENCY || 0 }}</div>
+            <div class="pri-lbl">🔴 Emergency</div>
+          </div>
         </div>
       </div>
-
-      <div class="section-title">By Priority</div>
-      <div class="priority-grid">
-        <div class="pri-card p-low">
-          <div class="pri-num">{{ stats.byPriority?.LOW || 0 }}</div>
-          <div class="pri-lbl">🟢 Low</div>
-        </div>
-        <div class="pri-card p-med">
-          <div class="pri-num">{{ stats.byPriority?.MEDIUM || 0 }}</div>
-          <div class="pri-lbl">🟡 Medium</div>
-        </div>
-        <div class="pri-card p-high">
-          <div class="pri-num">{{ stats.byPriority?.HIGH || 0 }}</div>
-          <div class="pri-lbl">🟠 High</div>
-        </div>
-        <div class="pri-card p-em">
-          <div class="pri-num">{{ stats.byPriority?.EMERGENCY || 0 }}</div>
-          <div class="pri-lbl">🔴 Emergency</div>
-        </div>
-      </div>
-    </div>
+    }
 
     <!-- ── COMPLAINTS TAB ── -->
-    <div *ngIf="activeTab === 'complaints'">
-      <div class="section-title">All Complaints</div>
-      <div class="complaints-list">
+    @if (activeTab === 'complaints') {
+      <div>
+        <h2 class="section-title">All Complaints</h2>
+        <div class="complaints-list">
 
-        <div class="complaint-card" *ngFor="let c of complaints">
-          <div class="cc-header">
-            <div class="cc-title">{{ c.title }}</div>
-            <div class="cc-badges">
-              <span class="badge" [ngClass]="{
-                'b-open':      c.status === 'OPEN',
-                'b-progress':  c.status === 'IN_PROGRESS',
-                'b-resolved':  c.status === 'RESOLVED',
-                'b-escalated': c.status === 'ESCALATED'
-              }">{{ c.status }}</span>
-              <span class="badge" [ngClass]="{
-                'p-low':       c.priority === 'LOW',
-                'p-medium':    c.priority === 'MEDIUM',
-                'p-high':      c.priority === 'HIGH',
-                'p-emergency': c.priority === 'EMERGENCY'
-              }">{{ c.priority }}</span>
-            </div>
-          </div>
-          <div class="cc-desc">{{ c.description }}</div>
-          <div class="cc-meta">
-            <span>📍 {{ c.location }}</span>
-            <span>🏢 {{ c.department }}</span>
-            <span *ngIf="c.deadline">⏱ {{ getTimeRemaining(c.deadline) }}</span>
-          </div>
-          <div class="cc-assign">
-            <select class="assign-select" #officerSelect>
-              <option value="">-- Assign Officer --</option>
-              <option *ngFor="let o of officers" [value]="o.id">
-                {{ o.name }} ({{ o.department }})
-              </option>
-            </select>
-            <button class="btn-assign"
-              (click)="assignOfficer(c.id, officerSelect.value)">
-              Assign
-            </button>
-          </div>
-        </div>
-
-        <div class="empty-state" *ngIf="complaints.length === 0">
-          <div class="empty-icon">📭</div>
-          <p>No complaints found</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── ESCALATED TAB ── -->
-    <div *ngIf="activeTab === 'escalated'">
-      <div class="escalated-header">
-        <div class="section-title">🚨 Escalated Complaints</div>
-        <div class="escalated-sub">
-          These complaints exceeded their SLA deadline and require immediate attention.
-        </div>
-      </div>
-
-      <div class="escalated-list" *ngIf="escalatedComplaints.length > 0">
-        <div class="escalated-card" *ngFor="let c of escalatedComplaints">
-          <div class="esc-alert-bar">🚨 SLA BREACHED — IMMEDIATE ACTION REQUIRED</div>
-          <div class="esc-body">
-            <div class="esc-header">
-              <div class="esc-title">{{ c.title }}</div>
-              <div class="esc-badges">
-                <span class="badge b-escalated">ESCALATED</span>
-                <span class="badge" [ngClass]="{
-                  'p-low':       c.priority === 'LOW',
-                  'p-medium':    c.priority === 'MEDIUM',
-                  'p-high':      c.priority === 'HIGH',
-                  'p-emergency': c.priority === 'EMERGENCY'
-                }">{{ c.priority }}</span>
+          @for (c of complaints; track c.id) {
+            <div class="complaint-card">
+              <div class="cc-header">
+                <h3 class="cc-title">{{ c.title }}</h3>
+                <div class="cc-badges">
+                  <span class="badge" [ngClass]="{
+                    'b-open':      c.status === 'OPEN',
+                    'b-progress':  c.status === 'IN_PROGRESS',
+                    'b-resolved':  c.status === 'RESOLVED',
+                    'b-escalated': c.status === 'ESCALATED'
+                  }">{{ c.status }}</span>
+                  <span class="badge" [ngClass]="{
+                    'p-low':       c.priority === 'LOW',
+                    'p-medium':    c.priority === 'MEDIUM',
+                    'p-high':      c.priority === 'HIGH',
+                    'p-emergency': c.priority === 'EMERGENCY'
+                  }">{{ c.priority }}</span>
+                </div>
+              </div>
+              <p class="cc-desc">{{ c.description }}</p>
+              <div class="cc-meta">
+                <span>📍 {{ c.location }}</span>
+                <span>🏢 {{ c.department }}</span>
+                @if (c.deadline) {
+                  <span>⏱ {{ getTimeRemaining(c.deadline) }}</span>
+                }
+              </div>
+              <div class="cc-assign">
+                <label [for]="'officer-select-' + c.id" class="visually-hidden">Assign officer to complaint {{ c.id }}</label>
+                <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelect>
+                  <option value="">-- Assign Officer --</option>
+                  @for (o of officers; track o.id) {
+                    <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+                  }
+                </select>
+                <button class="btn-assign" (click)="assignOfficer(c.id, officerSelect.value)">
+                  Assign
+                </button>
               </div>
             </div>
-            <div class="esc-desc">{{ c.description }}</div>
-            <div class="esc-meta">
-              <span>📍 {{ c.location }}</span>
-              <span>🏢 {{ c.department }}</span>
-              <span class="overdue-time">⏰ {{ getTimeRemaining(c.deadline) }}</span>
+          }
+
+          @if (complaints.length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon" aria-hidden="true">📭</div>
+              <p>No complaints found</p>
             </div>
-            <div class="esc-assign">
-              <select class="assign-select" #escOfficerSelect>
-                <option value="">-- Reassign Officer --</option>
-                <option *ngFor="let o of officers" [value]="o.id">
-                  {{ o.name }} ({{ o.department }})
-                </option>
-              </select>
-              <button class="btn-assign btn-reassign"
-                (click)="assignOfficer(c.id, escOfficerSelect.value)">
-                🚨 Reassign Now
-              </button>
-            </div>
-          </div>
+          }
         </div>
       </div>
+    }
 
-      <div class="empty-state" *ngIf="escalatedComplaints.length === 0">
-        <div class="empty-icon">✅</div>
-        <p>No escalated complaints — all SLAs are within deadline!</p>
+    <!-- ── ESCALATED TAB ── -->
+    @if (activeTab === 'escalated') {
+      <div>
+        <div class="escalated-header">
+          <h2 class="section-title">🚨 Escalated Complaints</h2>
+          <p class="escalated-sub">These complaints exceeded their SLA deadline and require immediate attention.</p>
+        </div>
+
+        @if (escalatedComplaints.length > 0) {
+          <div class="escalated-list">
+            @for (c of escalatedComplaints; track c.id) {
+              <div class="escalated-card">
+                <div class="esc-alert-bar" role="alert">🚨 SLA BREACHED — IMMEDIATE ACTION REQUIRED</div>
+                <div class="esc-body">
+                  <div class="esc-header">
+                    <h3 class="esc-title">{{ c.title }}</h3>
+                    <div class="esc-badges">
+                      <span class="badge b-escalated">ESCALATED</span>
+                      <span class="badge" [ngClass]="{
+                        'p-low':       c.priority === 'LOW',
+                        'p-medium':    c.priority === 'MEDIUM',
+                        'p-high':      c.priority === 'HIGH',
+                        'p-emergency': c.priority === 'EMERGENCY'
+                      }">{{ c.priority }}</span>
+                    </div>
+                  </div>
+                  <p class="esc-desc">{{ c.description }}</p>
+                  <div class="esc-meta">
+                    <span>📍 {{ c.location }}</span>
+                    <span>🏢 {{ c.department }}</span>
+                    <span class="overdue-time">⏰ {{ getTimeRemaining(c.deadline) }}</span>
+                  </div>
+                  <div class="esc-assign">
+                    <label [for]="'esc-officer-' + c.id" class="visually-hidden">Reassign officer for escalated complaint {{ c.id }}</label>
+                    <select [id]="'esc-officer-' + c.id" class="assign-select" #escOfficerSelect>
+                      <option value="">-- Reassign Officer --</option>
+                      @for (o of officers; track o.id) {
+                        <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+                      }
+                    </select>
+                    <button class="btn-assign btn-reassign"
+                      (click)="assignOfficer(c.id, escOfficerSelect.value)">
+                      🚨 Reassign Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">✅</div>
+            <p>No escalated complaints — all SLAs are within deadline!</p>
+          </div>
+        }
       </div>
-    </div>
+    }
 
     <!-- ── OFFICERS TAB ── -->
-    <div *ngIf="activeTab === 'officers'">
-      <div class="section-title">All Officers</div>
-      <div class="officers-grid">
-        <div class="officer-card" *ngFor="let o of officers">
-          <div class="officer-avatar">👮</div>
-          <div class="officer-name">{{ o.name }}</div>
-          <div class="officer-email">{{ o.email }}</div>
-          <div class="officer-dept">{{ o.department }}</div>
-        </div>
+    @if (activeTab === 'officers') {
+      <div>
+        <h2 class="section-title">All Officers</h2>
+        @if (officers.length > 0) {
+          <div class="officers-grid">
+            @for (o of officers; track o.id) {
+              <div class="officer-card">
+                <div class="officer-avatar" aria-hidden="true">👮</div>
+                <div class="officer-name">{{ o.name }}</div>
+                <div class="officer-email">{{ o.email }}</div>
+                <div class="officer-dept">{{ o.department }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">👮</div>
+            <p>No officers added yet</p>
+          </div>
+        }
       </div>
-      <div class="empty-state" *ngIf="officers.length === 0">
-        <div class="empty-icon">👮</div>
-        <p>No officers added yet</p>
-      </div>
-    </div>
+    }
 
     <!-- ── ADD OFFICER TAB ── -->
-    <div *ngIf="activeTab === 'add-officer'">
-      <div class="section-title">Add New Officer</div>
-      <div class="add-officer-card">
+    @if (activeTab === 'add-officer') {
+      <div>
+        <h2 class="section-title">Add New Officer</h2>
+        <div class="add-officer-card">
 
-        <div class="success-msg" *ngIf="successMessage">✅ {{ successMessage }}</div>
-        <div class="error-msg"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
+          @if (successMessage) {
+            <output class="success-msg" aria-live="polite">✅ {{ successMessage }}</output>
+          }
+          @if (errorMessage) {
+            <div class="error-msg" role="alert">⚠️ {{ errorMessage }}</div>
+          }
 
-        <div class="field-group">
-          <label>Full Name</label>
-          <input type="text" [(ngModel)]="newOfficer.name"
-            placeholder="Officer full name" class="field-input" />
+          <div class="field-group">
+            <label class="field-label" for="officer-name">Full Name</label>
+            <input id="officer-name" type="text"
+              [(ngModel)]="newOfficer.name"
+              name="officerName"
+              autocomplete="name"
+              placeholder="Officer full name"
+              class="field-input" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="officer-email">Email Address</label>
+            <input id="officer-email" type="email"
+              [(ngModel)]="newOfficer.email"
+              name="officerEmail"
+              autocomplete="email"
+              placeholder="officer@city.gov"
+              class="field-input" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="officer-password">Password</label>
+            <input id="officer-password" type="password"
+              [(ngModel)]="newOfficer.password"
+              name="officerPassword"
+              autocomplete="new-password"
+              placeholder="Set password"
+              class="field-input" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="officer-dept">Department</label>
+            <select id="officer-dept"
+              [(ngModel)]="newOfficer.department"
+              name="officerDept"
+              class="field-input">
+              <option value="">-- Select Department --</option>
+              <option value="WATER">💧 Water</option>
+              <option value="ELECTRICITY">⚡ Electricity</option>
+              <option value="SANITATION">🗑️ Sanitation</option>
+              <option value="ROAD">🛣️ Road</option>
+            </select>
+          </div>
+
+          <button class="btn-add-officer" (click)="addOfficer()">+ Add Officer</button>
         </div>
-        <div class="field-group">
-          <label>Email Address</label>
-          <input type="email" [(ngModel)]="newOfficer.email"
-            placeholder="officer@city.gov" class="field-input" />
-        </div>
-        <div class="field-group">
-          <label>Password</label>
-          <input type="password" [(ngModel)]="newOfficer.password"
-            placeholder="Set password" class="field-input" />
-        </div>
-        <div class="field-group">
-          <label>Department</label>
-          <select [(ngModel)]="newOfficer.department" class="field-input">
-            <option value="">-- Select Department --</option>
-            <option value="WATER">💧 Water</option>
-            <option value="ELECTRICITY">⚡ Electricity</option>
-            <option value="SANITATION">🗑️ Sanitation</option>
-            <option value="ROAD">🛣️ Road</option>
-          </select>
-        </div>
-        <button class="btn-add-officer" (click)="addOfficer()">+ Add Officer</button>
       </div>
-    </div>
+    }
 
   </div>
 </div>

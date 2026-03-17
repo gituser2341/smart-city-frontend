@@ -1,8 +1,8 @@
 <div class="login-page">
-  <div class="grid-bg"></div>
 
   <!-- Left Panel -->
   <div class="login-left">
+
     <div class="brand">
       <div class="brand-icon">🏙️</div>
       <div>
@@ -12,8 +12,9 @@
     </div>
 
     <div class="left-content">
-      <h1>Transparent.<br/>Accountable.<br/><span>Efficient.</span></h1>
-      <p>A centralized platform bridging citizens and municipal authorities for faster, smarter complaint resolution.</p>
+      <div class="left-eyebrow">Civic Governance</div>
+      <h1>Transparent.<br/>Accountable.<br/><span class="h1-accent">Efficient.</span></h1>
+      <p>A centralised platform bridging citizens and municipal authorities for faster, smarter complaint resolution.</p>
 
       <div class="feature-pills">
         <div class="pill">📍 Geo-location Tracking</div>
@@ -24,12 +25,22 @@
     </div>
 
     <div class="left-stats">
-      <div class="ls-item"><div class="ls-num">3</div><div class="ls-lbl">User Roles</div></div>
+      <div class="ls-item">
+        <div class="ls-num">3</div>
+        <div class="ls-lbl">User Roles</div>
+      </div>
       <div class="ls-divider"></div>
-      <div class="ls-item"><div class="ls-num">4</div><div class="ls-lbl">Departments</div></div>
+      <div class="ls-item">
+        <div class="ls-num">4</div>
+        <div class="ls-lbl">Departments</div>
+      </div>
       <div class="ls-divider"></div>
-      <div class="ls-item"><div class="ls-num">Live</div><div class="ls-lbl">Tracking</div></div>
+      <div class="ls-item">
+        <div class="ls-num">Live</div>
+        <div class="ls-lbl">Tracking</div>
+      </div>
     </div>
+
   </div>
 
   <!-- Right Panel -->
@@ -42,17 +53,15 @@
         <p>Sign in to your CivicPulse account</p>
       </div>
 
-      
-
       <form (ngSubmit)="login()" #loginForm="ngForm">
 
         <!-- Email -->
         <div class="field-group">
-          <label class="field-label" for="email">Email Address</label>
+          <label class="field-label" for="login-email">Email Address</label>
           <div class="input-wrap">
             <span class="input-icon">✉️</span>
             <input
-              id="email" 
+              id="login-email"
               type="email"
               placeholder="you@example.com"
               [(ngModel)]="email"
@@ -66,31 +75,51 @@
 
         <!-- Password -->
         <div class="field-group">
-          <div class="field-label-row">
-            <label class="field-label" for="password">Password</label>
-          </div>
+          <label class="field-label" [for]="showPassword ? 'login-password-text' : 'login-password'">
+            Password
+          </label>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
-            <input
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="Enter your password"
-              [(ngModel)]="password"
-              name="password"
-              autocomplete="current-password"
-              required
-              class="field-input"
-            />
-            <button type="button" class="toggle-pw" (click)="togglePassword()">
+            @if (showPassword) {
+              <input
+                id="login-password-text"
+                type="text"
+                placeholder="Enter your password"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="current-password"
+                required
+                class="field-input"
+              />
+            } @else {
+              <input
+                id="login-password"
+                type="password"
+                placeholder="Enter your password"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="current-password"
+                required
+                class="field-input"
+              />
+            }
+            <button
+              type="button"
+              class="toggle-pw"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
               {{ showPassword ? '🙈' : '👁️' }}
             </button>
           </div>
         </div>
 
         <!-- Error -->
-        <div class="error-msg" *ngIf="errorMessage">
-          <span>⚠️</span> {{ errorMessage }}
-        </div>
+        @if (errorMessage) {
+          <div class="error-msg" role="alert">
+            <span class="msg-icon">⚠️</span> {{ errorMessage }}
+          </div>
+        }
 
         <!-- Submit -->
         <button
@@ -98,23 +127,21 @@
           class="btn-login"
           [disabled]="loginForm.invalid || isLoading"
         >
-          <span *ngIf="!isLoading">Sign In →</span>
-          <span *ngIf="isLoading" class="spinner">⏳ Signing in...</span>
+          @if (!isLoading) {
+            <span>Sign In →</span>
+          } @else {
+            <span class="spinner">⏳ Signing in...</span>
+          }
         </button>
 
       </form>
 
-      <!-- Divider -->
       <div class="divider"><span>New to CivicPulse?</span></div>
 
-      <!-- Register -->
-      <a routerLink="/register" class="btn-register">
-        + Register as Citizen
-      </a>
-
-      <!-- Back to Home -->
+      <a routerLink="/register" class="btn-register">+ Register as Citizen</a>
       <a routerLink="/" class="btn-home">← Back to Home</a>
 
     </div>
   </div>
+
 </div>

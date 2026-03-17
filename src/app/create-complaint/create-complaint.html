@@ -7,37 +7,37 @@
     <!-- Left Panel -->
     <div class="left-panel">
       <div class="left-content">
-        <div class="brand-icon">📝</div>
+        <div class="brand-icon" aria-hidden="true">📝</div>
         <h1 class="brand-title">Raise a<br/>Complaint</h1>
         <p class="brand-sub">Help us make your city better by reporting issues directly to the right department.</p>
 
-        <div class="steps-list">
+        <div class="steps-list" aria-label="Form progress">
           <div class="step-item" [ngClass]="{'step-active': currentStep >= 1, 'step-done': currentStep > 1}">
-            <div class="step-dot">{{ currentStep > 1 ? '✓' : '1' }}</div>
+            <div class="step-dot" aria-hidden="true">{{ currentStep > 1 ? '✓' : '1' }}</div>
             <div class="step-info">
               <span class="step-name">Basic Info</span>
-              <span class="step-desc">Title & Description</span>
+              <span class="step-desc">Title &amp; Description</span>
             </div>
           </div>
-          <div class="step-connector"></div>
+          <div class="step-connector" aria-hidden="true"></div>
           <div class="step-item" [ngClass]="{'step-active': currentStep >= 2, 'step-done': currentStep > 2}">
-            <div class="step-dot">{{ currentStep > 2 ? '✓' : '2' }}</div>
+            <div class="step-dot" aria-hidden="true">{{ currentStep > 2 ? '✓' : '2' }}</div>
             <div class="step-info">
               <span class="step-name">Category</span>
               <span class="step-desc">Department</span>
             </div>
           </div>
-          <div class="step-connector"></div>
+          <div class="step-connector" aria-hidden="true"></div>
           <div class="step-item" [ngClass]="{'step-active': currentStep >= 3}">
-            <div class="step-dot">3</div>
+            <div class="step-dot" aria-hidden="true">3</div>
             <div class="step-info">
               <span class="step-name">Evidence</span>
-              <span class="step-desc">Photo/Video & Location</span>
+              <span class="step-desc">Photo/Video &amp; Location</span>
             </div>
           </div>
         </div>
 
-        <div class="progress-track">
+        <div class="progress-track" role="progressbar" [attr.aria-valuenow]="currentStep" aria-valuemin="1" aria-valuemax="3" [attr.aria-label]="'Step ' + currentStep + ' of 3'">
           <div class="progress-fill" [style.width]="progressWidth"></div>
         </div>
         <p class="progress-label">Step {{ currentStep }} of 3</p>
@@ -48,175 +48,214 @@
     <div class="right-panel">
 
       <!-- STEP 1 -->
-      <div class="step-panel" *ngIf="currentStep === 1">
-        <h2 class="step-title">What's the issue?</h2>
-        <p class="step-subtitle">Give us a clear description of the problem</p>
+      @if (currentStep === 1) {
+        <div class="step-panel">
+          <h2 class="step-title">What's the issue?</h2>
+          <p class="step-subtitle">Give us a clear description of the problem</p>
 
-        <div class="field-group">
-          <label class="field-label" for="complaint-title">Complaint Title *</label>
-          <input
-            id="complaint-title"
-            type="text"
-            class="field-input"
-            [(ngModel)]="title"
-            name="title"
-            placeholder="e.g. Broken streetlight on MG Road"
-          />
-        </div>
+          <div class="field-group">
+            <label class="field-label" for="complaint-title">Complaint Title *</label>
+            <input
+              id="complaint-title"
+              type="text"
+              class="field-input"
+              [(ngModel)]="title"
+              name="title"
+              autocomplete="off"
+              placeholder="e.g. Broken streetlight on MG Road"
+            />
+          </div>
 
-        <div class="field-group">
-          <label class="field-label" for="complaint-desc">Detailed Description *</label>
-          <textarea
-            id="complaint-desc"
-            class="field-input field-textarea"
-            [(ngModel)]="description"
-            name="description"
-            placeholder="Describe the issue in detail — where exactly, how severe, how long it's been happening...">
-          </textarea>
-        </div>
+          <div class="field-group">
+            <label class="field-label" for="complaint-desc">Detailed Description *</label>
+            <textarea
+              id="complaint-desc"
+              class="field-input field-textarea"
+              [(ngModel)]="description"
+              name="description"
+              autocomplete="off"
+              placeholder="Describe the issue in detail — where exactly, how severe, how long it's been happening...">
+            </textarea>
+          </div>
 
-        <div class="step-actions">
-          <div></div>
-          <button class="btn-next" (click)="nextStep()" [disabled]="!title || !description">
-            Next → Category
-          </button>
+          <div class="step-actions">
+            <div></div>
+            <button class="btn-next" (click)="nextStep()" [disabled]="!title || !description">
+              Next → Category
+            </button>
+          </div>
         </div>
-      </div>
+      }
 
       <!-- STEP 2 -->
-      <div class="step-panel" *ngIf="currentStep === 2">
-        <h2 class="step-title">Category</h2>
-        <p class="step-subtitle">Help us route your complaint to the right team</p>
+      @if (currentStep === 2) {
+        <div class="step-panel">
+          <h2 class="step-title">Category</h2>
+          <p class="step-subtitle">Help us route your complaint to the right team</p>
 
-        <div class="field-group">
-          <label class="field-label" for="dept-grid">Department *</label>
-          <div class="dept-grid" id="dept-grid">
-            <div
-              *ngFor="let d of departments"
-              class="dept-card"
-              [ngClass]="{'dept-selected': department === d.value}"
-              (click)="setDepartment(d.value)">
-              <span class="dept-icon">{{ d.icon }}</span>
-              <span class="dept-label">{{ d.label }}</span>
+          <div class="field-group">
+            <p class="field-label" id="dept-group-label">Department *</p>
+            <div class="dept-grid" role="group" aria-labelledby="dept-group-label">
+              @for (d of departments; track d.value) {
+                <div
+                  class="dept-card"
+                  [ngClass]="{'dept-selected': department === d.value}"
+                  (click)="setDepartment(d.value)"
+                  role="radio"
+                  [attr.aria-checked]="department === d.value"
+                  tabindex="0"
+                  (keydown.enter)="setDepartment(d.value)"
+                  (keydown.space)="setDepartment(d.value)">
+                  <span class="dept-icon" aria-hidden="true">{{ d.icon }}</span>
+                  <span class="dept-label">{{ d.label }}</span>
+                </div>
+              }
             </div>
           </div>
-        </div>
 
-        <div class="step-actions">
-          <button class="btn-back-step" (click)="prevStep()">← Back</button>
-          <button class="btn-next" (click)="nextStep()" [disabled]="!department">
-            Next → Evidence
-          </button>
+          <div class="step-actions">
+            <button class="btn-back-step" (click)="prevStep()">← Back</button>
+            <button class="btn-next" (click)="nextStep()" [disabled]="!department">
+              Next → Evidence
+            </button>
+          </div>
         </div>
-      </div>
+      }
 
       <!-- STEP 3 -->
-      <div class="step-panel" *ngIf="currentStep === 3">
-        <h2 class="step-title">Photo / Video & Location</h2>
-        <p class="step-subtitle">Add evidence and confirm your location</p>
+      @if (currentStep === 3) {
+        <div class="step-panel">
+          <h2 class="step-title">Photo / Video &amp; Location</h2>
+          <p class="step-subtitle">Add evidence and confirm your location</p>
 
-        <div class="field-group">
+          <div class="field-group">
 
-          <!-- Label + Counter -->
-          <div class="upload-label-row">
-            <label class="field-label">Upload Evidence (Optional)</label>
-            <span class="slot-counter" [ngClass]="{'slot-full': !canAddMore}">
-              {{ mediaFiles.length }} / {{ MAX_FILES }} files
-            </span>
-          </div>
-
-          <!-- Requirements Info Box -->
-          <div class="requirements-box">
-            <div class="req-col">
-              <span class="req-title">🖼️ Image</span>
-              <span class="req-row">Format: JPG, PNG</span>
-              <span class="req-row">Max size: 10 MB</span>
-              <span class="req-row">Min: 640 × 480 px</span>
+            <div class="upload-label-row">
+              <p class="field-label" id="upload-label">Upload Evidence (Optional)</p>
+              <span class="slot-counter" [ngClass]="{'slot-full': !canAddMore}" aria-live="polite">
+                {{ mediaFiles.length }} / {{ MAX_FILES }} files
+              </span>
             </div>
-            <div class="req-divider"></div>
-            <div class="req-col">
-              <span class="req-title">🎥 Video</span>
-              <span class="req-row">Format: MP4, MOV, 3GP</span>
-              <span class="req-row">Max size: 200 MB</span>
-              <span class="req-row">Max duration: 30 sec</span>
-              <span class="req-row">640×480 → 1920×1080</span>
-            </div>
-          </div>
 
-          <!-- Uploaded Media Grid -->
-          <div class="media-grid" *ngIf="mediaFiles.length > 0">
-            <div class="media-thumb" *ngFor="let m of mediaFiles; let i = index">
-              <img *ngIf="!m.isVideo" [src]="m.previewUrl" alt="preview" class="thumb-img" />
-              <video *ngIf="m.isVideo" [src]="m.previewUrl" class="thumb-video" muted playsinline></video>
-              <div class="thumb-overlay">
-                <span class="thumb-name">{{ m.name }}</span>
-                <span class="thumb-size">{{ m.sizeMB }} MB</span>
+            <div class="requirements-box" role="note" aria-label="Upload requirements">
+              <div class="req-col">
+                <span class="req-title">🖼️ Image</span>
+                <span class="req-row">Format: JPG, PNG</span>
+                <span class="req-row">Max size: 10 MB</span>
+                <span class="req-row">Min: 640 × 480 px</span>
               </div>
-              <button class="thumb-remove" (click)="removeMedia(i)" title="Remove">✕</button>
-              <span class="thumb-type-badge">{{ m.isVideo ? '🎥' : '🖼️' }}</span>
+              <div class="req-divider" aria-hidden="true"></div>
+              <div class="req-col">
+                <span class="req-title">🎥 Video</span>
+                <span class="req-row">Format: MP4, MOV, 3GP</span>
+                <span class="req-row">Max size: 200 MB</span>
+                <span class="req-row">Max duration: 30 sec</span>
+                <span class="req-row">640×480 → 1920×1080</span>
+              </div>
             </div>
 
-            <!-- Add More Slot -->
-            <div class="media-add-slot" *ngIf="canAddMore" (click)="addMoreInput.click()">
-              <input
-                #addMoreInput
-                type="file"
-                accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
-                multiple
-                (change)="onFileSelect($event)"
-                style="display:none"
-              />
-              <span class="add-slot-icon">＋</span>
-              <span class="add-slot-text">Add more<br/>({{ remainingSlots }} left)</span>
+            <!-- Uploaded Media Grid -->
+            @if (mediaFiles.length > 0) {
+              <div class="media-grid" aria-label="Uploaded files">
+                @for (m of mediaFiles; track m.name; let i = $index) {
+                  <div class="media-thumb">
+                    @if (!m.isVideo) {
+                      <img [src]="m.previewUrl" [alt]="'Preview of ' + m.name" class="thumb-img" />
+                    } @else {
+                      <video [src]="m.previewUrl" class="thumb-video" muted playsinline [attr.aria-label]="'Video preview: ' + m.name"></video>
+                    }
+                    <div class="thumb-overlay" aria-hidden="true">
+                      <span class="thumb-name">{{ m.name }}</span>
+                      <span class="thumb-size">{{ m.sizeMB }} MB</span>
+                    </div>
+                    <button class="thumb-remove" (click)="removeMedia(i)" [attr.aria-label]="'Remove ' + m.name">✕</button>
+                    <span class="thumb-type-badge" aria-hidden="true">{{ m.isVideo ? '🎥' : '🖼️' }}</span>
+                  </div>
+                }
+
+                @if (canAddMore) {
+                  <div class="media-add-slot" role="button" tabindex="0"
+                    (click)="addMoreInput.click()"
+                    (keydown.enter)="addMoreInput.click()"
+                    [attr.aria-label]="'Add more files, ' + remainingSlots + ' slots remaining'">
+                    <input
+                      #addMoreInput
+                      type="file"
+                      accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+                      multiple
+                      (change)="onFileSelect($event)"
+                      style="display:none"
+                      aria-hidden="true"
+                    />
+                    <span class="add-slot-icon" aria-hidden="true">＋</span>
+                    <span class="add-slot-text">Add more<br/>({{ remainingSlots }} left)</span>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Initial Upload Zone -->
+            @if (mediaFiles.length === 0) {
+              <div class="upload-zone" role="button" tabindex="0"
+                (click)="fileInput.click()"
+                (keydown.enter)="fileInput.click()"
+                aria-labelledby="upload-label"
+                aria-describedby="upload-hint">
+                <input
+                  #fileInput
+                  type="file"
+                  accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+                  multiple
+                  (change)="onFileSelect($event)"
+                  style="display:none"
+                  aria-hidden="true"
+                />
+                <div class="upload-icon" aria-hidden="true">📎</div>
+                <p class="upload-text">Click to upload photos or videos</p>
+                <span id="upload-hint" class="upload-hint">Up to {{ MAX_FILES }} files · Images or Videos</span>
+              </div>
+            }
+
+            @if (uploadError) {
+              <div class="upload-error" role="alert">⚠️ {{ uploadError }}</div>
+            }
+
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Location</label>
+            <div class="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}" aria-live="polite">
+              <span>{{ locationStatus }}</span>
             </div>
+            @if (locationReady && latitude && longitude) {
+              <div class="map-preview">
+                <iframe
+                  [src]="getMapUrl(latitude, longitude)"
+                  class="map-iframe"
+                  title="Map showing your complaint location"
+                  frameborder="0"
+                  loading="lazy">
+                </iframe>
+              </div>
+            }
           </div>
 
-          <!-- Initial Upload Zone -->
-          <div class="upload-zone" *ngIf="mediaFiles.length === 0" (click)="fileInput.click()">
-            <input
-              #fileInput
-              type="file"
-              accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
-              multiple
-              (change)="onFileSelect($event)"
-              style="display:none"
-            />
-            <div class="upload-icon">📎</div>
-            <p class="upload-text">Click to upload photos or videos</p>
-            <span class="upload-hint">Up to {{ MAX_FILES }} files · Images or Videos</span>
-          </div>
+          @if (message) {
+            <div class="error-msg" role="alert">⚠️ {{ message }}</div>
+          }
 
-          <!-- Upload Error -->
-          <div class="upload-error" *ngIf="uploadError">
-            ⚠️ {{ uploadError }}
-          </div>
-
-        </div>
-
-        <div class="field-group">
-          <label class="field-label" for="location-box">Location</label>
-          <div class="location-box" id="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}">
-            <span>{{ locationStatus }}</span>
-          </div>
-          <div class="map-preview" *ngIf="locationReady && latitude && longitude">
-            <iframe
-              [src]="'https://www.openstreetmap.org/export/embed.html?bbox=' + (longitude!-0.005) + ',' + (latitude!-0.005) + ',' + (longitude!+0.005) + ',' + (latitude!+0.005) + '&layer=mapnik&marker=' + latitude + ',' + longitude | safeUrl"
-              class="map-iframe"
-              frameborder="0">
-            </iframe>
+          <div class="step-actions">
+            <button class="btn-back-step" (click)="prevStep()">← Back</button>
+            <button class="btn-submit" (click)="submitComplaint()" [disabled]="isSubmitting">
+              @if (!isSubmitting) {
+                <span>🚀 Submit Complaint</span>
+              } @else {
+                <span>Submitting...</span>
+              }
+            </button>
           </div>
         </div>
-
-        <p class="error-msg" *ngIf="message">⚠️ {{ message }}</p>
-
-        <div class="step-actions">
-          <button class="btn-back-step" (click)="prevStep()">← Back</button>
-          <button class="btn-submit" (click)="submitComplaint()" [disabled]="isSubmitting">
-            <span *ngIf="!isSubmitting">🚀 Submit Complaint</span>
-            <span *ngIf="isSubmitting">Submitting...</span>
-          </button>
-        </div>
-      </div>
+      }
 
     </div>
   </div>

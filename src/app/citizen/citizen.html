@@ -1,13 +1,15 @@
 <div class="dashboard">
+
   @if (liveNotification) {
-    <div class="live-banner">
+    <div class="live-banner" role="status" aria-live="polite">
       🔔 {{ liveNotification }}
     </div>
   }
+
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <div class="city-icon">🏙️</div>
+      <div class="city-icon" aria-hidden="true">🏙️</div>
       <div>
         <h1 class="header-title">Smart City Portal</h1>
         <p class="header-sub">Citizen Dashboard</p>
@@ -15,7 +17,7 @@
     </div>
     <div class="header-right">
       <button class="btn-raise" (click)="raiseComplaint()">
-        <span class="btn-icon">+</span> Raise Complaint
+        <span class="btn-icon" aria-hidden="true">+</span> Raise Complaint
       </button>
       <button class="btn-notif" routerLink="/notifications">
         🔔 Notifications
@@ -27,24 +29,24 @@
   </header>
 
   <!-- Stats -->
-  <section class="stats-grid">
+  <section class="stats-grid" aria-label="Complaint Statistics">
     <div class="stat-card stat-total">
-      <div class="stat-icon">📋</div>
+      <div class="stat-icon" aria-hidden="true">📋</div>
       <div class="stat-number">{{ total }}</div>
       <div class="stat-label">Total</div>
     </div>
     <div class="stat-card stat-open">
-      <div class="stat-icon">🔴</div>
+      <div class="stat-icon" aria-hidden="true">🔴</div>
       <div class="stat-number">{{ open }}</div>
       <div class="stat-label">Open</div>
     </div>
     <div class="stat-card stat-progress">
-      <div class="stat-icon">⚙️</div>
+      <div class="stat-icon" aria-hidden="true">⚙️</div>
       <div class="stat-number">{{ inProgress }}</div>
       <div class="stat-label">In Progress</div>
     </div>
     <div class="stat-card stat-resolved">
-      <div class="stat-icon">✅</div>
+      <div class="stat-icon" aria-hidden="true">✅</div>
       <div class="stat-number">{{ resolved }}</div>
       <div class="stat-label">Resolved</div>
     </div>
@@ -55,116 +57,152 @@
     <h2 class="section-title">My Complaints</h2>
 
     <div class="complaints-list">
-      <div *ngFor="let c of complaints" class="complaint-card">
 
-        <div class="complaint-header">
-          <h3 class="complaint-title">{{ c.title }}</h3>
-          <div class="badges">
-            <span class="status-badge"
-              [ngClass]="{
-                'status-open':      c.status === 'OPEN',
-                'status-progress':  c.status === 'IN_PROGRESS',
-                'status-resolved':  c.status === 'RESOLVED',
-                'status-escalated': c.status === 'ESCALATED'
-              }">
-              {{ c.status }}
-            </span>
-            <span class="priority-badge"
-              [ngClass]="{
-                'p-low':       c.priority === 'LOW',
-                'p-medium':    c.priority === 'MEDIUM',
-                'p-high':      c.priority === 'HIGH',
-                'p-emergency': c.priority === 'EMERGENCY'
-              }">
-              {{ c.priority }}
-            </span>
-            <!-- ✅ Escalated badge -->
-            <span class="escalated-badge" *ngIf="c.escalated">🚨 Escalated</span>
-          </div>
-        </div>
+      @for (c of complaints; track c.id) {
+        <div class="complaint-card">
 
-        <p class="complaint-desc">{{ c.description }}</p>
-
-        <div class="complaint-meta">
-          <span class="meta-item">🏢 {{ c.department }}</span>
-          <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
-          <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
-          <span class="meta-item" *ngIf="c.deadline">⏱ Deadline: {{ c.deadline | date: 'dd MMM yyyy, h:mm a' }}</span>
-        </div>
-
-        <!-- Image -->
-        <div class="complaint-image" *ngIf="c.imageUrl">
-          <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Complaint Photo" />
-        </div>
-
-        <!-- Map Preview -->
-        <div class="map-section" *ngIf="c.latitude && c.longitude">
-          <p class="map-label">📍 Complaint Location</p>
-          <div class="map-frame">
-            <iframe
-              [src]="getSafeMapUrl(c.latitude, c.longitude)"
-              class="map-iframe"
-              frameborder="0"
-              loading="lazy">
-            </iframe>
-          </div>
-        </div>
-
-        <!-- ✅ Rating Section — only for RESOLVED + not yet rated -->
-        <div class="rating-section" *ngIf="c.status === 'RESOLVED' && !c.rated">
-          <div class="rating-label">⭐ Rate this resolution</div>
-
-          <div class="stars">
-            <span
-              *ngFor="let star of [1,2,3,4,5]"
-              class="star"
-              [class.filled]="(ratingMap[c.id] || 0) >= star"
-              (click)="setRating(c.id, star)">
-              ★
-            </span>
+          <div class="complaint-header">
+            <h3 class="complaint-title">{{ c.title }}</h3>
+            <div class="badges">
+              <span class="status-badge"
+                [ngClass]="{
+                  'status-open':      c.status === 'OPEN',
+                  'status-progress':  c.status === 'IN_PROGRESS',
+                  'status-resolved':  c.status === 'RESOLVED',
+                  'status-escalated': c.status === 'ESCALATED'
+                }">
+                {{ c.status }}
+              </span>
+              <span class="priority-badge"
+                [ngClass]="{
+                  'p-low':       c.priority === 'LOW',
+                  'p-medium':    c.priority === 'MEDIUM',
+                  'p-high':      c.priority === 'HIGH',
+                  'p-emergency': c.priority === 'EMERGENCY'
+                }">
+                {{ c.priority }}
+              </span>
+              @if (c.escalated) {
+                <span class="escalated-badge">🚨 Escalated</span>
+              }
+            </div>
           </div>
 
-          <input
-            type="text"
-            class="rating-comment"
-            [(ngModel)]="ratingCommentMap[c.id]"
-            placeholder="Optional feedback..." />
+          <p class="complaint-desc">{{ c.description }}</p>
 
-          <div class="rating-success" *ngIf="ratingSuccess[c.id]">
-            {{ ratingSuccess[c.id] }}
-          </div>
-          <div class="rating-error" *ngIf="ratingError[c.id]">
-            {{ ratingError[c.id] }}
+          <div class="complaint-meta">
+            <span class="meta-item">🏢 {{ c.department }}</span>
+            <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+            <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
+            @if (c.deadline) {
+              <span class="meta-item">⏱ Deadline: {{ c.deadline | date: 'dd MMM yyyy, h:mm a' }}</span>
+            }
           </div>
 
-          <button class="btn-rate" (click)="submitRating(c.id)">
-            Submit Rating
-          </button>
-        </div>
+          <!-- Image -->
+          @if (c.imageUrl) {
+            <div class="complaint-image">
+              <img
+                [src]="'http://localhost:8080/' + c.imageUrl"
+                alt="Photo evidence for complaint: {{ c.title }}"
+              />
+            </div>
+          }
 
-        <!-- ✅ Show submitted rating -->
-        <div class="rating-submitted" *ngIf="c.rated">
-          <span class="stars-display">
-            <span
-              *ngFor="let star of [1,2,3,4,5]"
-              class="star"
-              [class.filled]="c.rating >= star">★</span>
-          </span>
-          <span class="rated-label">You rated this {{ c.rating }}/5</span>
-          <span class="rated-comment" *ngIf="c.ratingComment">"{{ c.ratingComment }}"</span>
-        </div>
+          <!-- Map Preview -->
+          @if (c.latitude && c.longitude) {
+            <div class="map-section">
+              <p class="map-label">📍 Complaint Location</p>
+              <div class="map-frame">
+                <iframe
+                  [src]="getSafeMapUrl(c.latitude, c.longitude)"
+                  class="map-iframe"
+                  title="Map showing location of complaint: {{ c.title }}"
+                  frameborder="0"
+                  loading="lazy">
+                </iframe>
+              </div>
+            </div>
+          }
 
-      </div>
+          <!-- Rating Section — only for RESOLVED + not yet rated -->
+          @if (c.status === 'RESOLVED' && !c.rated) {
+            <div class="rating-section">
+              <div class="rating-label">⭐ Rate this resolution</div>
+
+              <div class="stars" role="group" aria-label="Star rating">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span
+                    class="star"
+                    [class.filled]="(ratingMap[c.id] || 0) >= star"
+                    (click)="setRating(c.id, star)"
+                    role="button"
+                    [attr.aria-label]="star + ' star'"
+                    tabindex="0"
+                    (keydown.enter)="setRating(c.id, star)"
+                    (keydown.space)="setRating(c.id, star)">
+                    ★
+                  </span>
+                }
+              </div>
+
+              <input
+                type="text"
+                class="rating-comment"
+                [(ngModel)]="ratingCommentMap[c.id]"
+                [name]="'comment-' + c.id"
+                autocomplete="off"
+                placeholder="Optional feedback..."
+                [attr.aria-label]="'Feedback for complaint ' + c.id"
+              />
+
+              @if (ratingSuccess[c.id]) {
+                <output class="rating-success" aria-live="polite">
+                  {{ ratingSuccess[c.id] }}
+                </output>
+              }
+              @if (ratingError[c.id]) {
+                <div class="rating-error" role="alert">
+                  {{ ratingError[c.id] }}
+                </div>
+              }
+
+              <button class="btn-rate" (click)="submitRating(c.id)">
+                Submit Rating
+              </button>
+            </div>
+          }
+
+          <!-- Show submitted rating -->
+          @if (c.rated) {
+            <div class="rating-submitted">
+              <span class="stars-display" aria-label="Rated {{ c.rating ?? 0 }} out of 5 stars">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span class="star" [class.filled]="(c.rating ?? 0) >= star" aria-hidden="true">★</span>
+                }
+              </span>
+              <span class="rated-label">You rated this {{ c.rating }}/5</span>
+              @if (c.ratingComment) {
+                <span class="rated-comment">"{{ c.ratingComment }}"</span>
+              }
+            </div>
+          }
+
+        </div>
+      }
 
       <!-- Empty state -->
-      <div *ngIf="complaints.length === 0" class="empty-state">
-        <div class="empty-icon">📭</div>
-        <p>No complaints raised yet.</p>
-        <button class="btn-raise" (click)="raiseComplaint()">
-          Raise your first complaint
-        </button>
-      </div>
+      @if (complaints.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">📭</div>
+          <p>No complaints raised yet.</p>
+          <button class="btn-raise" (click)="raiseComplaint()">
+            Raise your first complaint
+          </button>
+        </div>
+      }
+
     </div>
   </section>
-  
+
 </div>

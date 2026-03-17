@@ -96,40 +96,60 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label" for="reg-password">Password</label>
+          <label class="field-label" [for]="showPassword ? 'reg-password-text' : 'reg-password'">Password</label>
           <div class="input-wrap">
             <span class="input-icon">🔒</span>
-            <input
-              id="reg-password"
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="Create a strong password"
-              [(ngModel)]="password"
-              name="password"
-              autocomplete="new-password"
-              required
-              class="field-input"
-            />
+            @if (showPassword) {
+              <input
+                id="reg-password-text"
+                type="text"
+                placeholder="Create a strong password"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="new-password"
+                required
+                class="field-input"
+              />
+            } @else {
+              <input
+                id="reg-password"
+                type="password"
+                placeholder="Create a strong password"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="new-password"
+                required
+                class="field-input"
+              />
+            }
             <button type="button" class="toggle-pw" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
               {{ showPassword ? '🙈' : '👁️' }}
             </button>
           </div>
         </div>
 
-        <div class="error-msg" *ngIf="errorMessage" role="alert">
-          <span class="msg-icon">⚠️</span> {{ errorMessage }}
-        </div>
+        @if (errorMessage) {
+          <div class="error-msg" role="alert">
+            <span class="msg-icon">⚠️</span> {{ errorMessage }}
+          </div>
+        }
 
-        <output class="success-msg" aria-live="polite">
-          <span class="msg-icon">✅</span> {{ successMessage }}
-        </output>
+        @if (successMessage) {
+          <output class="success-msg" aria-live="polite">
+            <span class="msg-icon">✅</span> {{ successMessage }}
+          </output>
+        }
 
         <button
           type="submit"
           class="btn-register"
           [disabled]="registerForm.invalid || isLoading"
         >
-          <span *ngIf="!isLoading">Create Account →</span>
-          <span *ngIf="isLoading" class="spinner">⏳ Creating account...</span>
+          @if (!isLoading) {
+            <span>Create Account →</span>
+          } @else {
+            <span class="spinner">⏳ Creating account...</span>
+          }
         </button>
 
       </form>

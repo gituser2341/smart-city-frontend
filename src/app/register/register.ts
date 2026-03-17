@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { Router, RouterModule } from '@angular/router';
   templateUrl: './register.html',
   styleUrls: ['./register.css']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
 
   name = '';
   email = '';
@@ -21,13 +21,27 @@ export class RegisterComponent {
   isLoading = false;
   showPassword = false;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly renderer: Renderer2
+  ) {}
 
-  togglePassword() {
+  ngOnInit(): void {
+    this.renderer.setStyle(document.body, 'background', '#ffffff');
+    this.renderer.setStyle(document.body, 'color', '#111827');
+  }
+
+  ngOnDestroy(): void {
+    this.renderer.removeStyle(document.body, 'background');
+    this.renderer.removeStyle(document.body, 'color');
+  }
+
+  togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  register() {
+  register(): void {
     if (!this.name || !this.email || !this.password) {
       this.errorMessage = 'All fields are required.';
       return;

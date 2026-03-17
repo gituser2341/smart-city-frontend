@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { SafeUrlPipe } from '../pipes/safe-url.pipe';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 export interface MediaFile {
   file: File;
@@ -13,60 +13,67 @@ export interface MediaFile {
   sizeMB: string;
 }
 
+interface Department {
+  value: string;
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-create-complaint',
   standalone: true,
-  imports: [FormsModule, CommonModule, SafeUrlPipe],
+  imports: [FormsModule, CommonModule],
   templateUrl: './create-complaint.html',
   styleUrls: ['./create-complaint.css']
 })
 export class CreateComplaintComponent implements OnInit {
 
-  title = '';
+  title       = '';
   description = '';
-  department = '';
-  priority = 'MEDIUM';
+  department  = '';
+  priority    = 'MEDIUM';
 
-  latitude: number | null = null;
+  latitude:  number | null = null;
   longitude: number | null = null;
   locationStatus = '📡 Detecting your location...';
-  locationReady = false;
+  locationReady  = false;
 
-  mediaFiles: MediaFile[] = [];
-  uploadError = '';
-  message = '';
+  mediaFiles:  MediaFile[] = [];
+  uploadError  = '';
+  message      = '';
   isSubmitting = false;
-  currentStep = 1;
+  currentStep  = 1;
 
-  // ── Image Limits ───────────────────────────────
   readonly IMAGE_MAX_SIZE_MB  = 10;
   readonly IMAGE_MIN_WIDTH    = 640;
   readonly IMAGE_MIN_HEIGHT   = 480;
 
-  // ── Video Limits ───────────────────────────────
   readonly VIDEO_MAX_SIZE_MB  = 200;
-  readonly VIDEO_MAX_DURATION = 30;        // seconds
+  readonly VIDEO_MAX_DURATION = 30;
   readonly VIDEO_MIN_WIDTH    = 640;
   readonly VIDEO_MIN_HEIGHT   = 480;
   readonly VIDEO_MAX_WIDTH    = 1920;
   readonly VIDEO_MAX_HEIGHT   = 1080;
 
-  // ── General ────────────────────────────────────
   readonly MAX_FILES = 3;
 
-  departments = [
+  readonly departments: Department[] = [
     { value: 'WATER',       label: 'Water',       icon: '💧' },
     { value: 'ELECTRICITY', label: 'Electricity', icon: '⚡' },
     { value: 'SANITATION',  label: 'Sanitation',  icon: '🗑️' },
     { value: 'ROAD',        label: 'Road',        icon: '🛣️' }
   ];
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly sanitizer: DomSanitizer
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           this.latitude  = position.coords.latitude;
           this.longitude = position.coords.longitude;
           this.locationStatus = `📍 ${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
@@ -74,7 +81,7 @@ export class CreateComplaintComponent implements OnInit {
         },
         () => {
           this.locationStatus = '⚠️ Location access denied. Please enable GPS.';
-          this.locationReady = false;
+          this.locationReady  = false;
         }
       );
     }
@@ -82,17 +89,24 @@ export class CreateComplaintComponent implements OnInit {
 
   get remainingSlots(): number { return this.MAX_FILES - this.mediaFiles.length; }
   get canAddMore(): boolean    { return this.mediaFiles.length < this.MAX_FILES; }
+  get progressWidth(): string  { return `${(this.currentStep / 3) * 100}%`; }
 
-  // ── File Selection Entry Point ─────────────────
-  onFileSelect(event: any) {
-    const files: FileList = event.target.files;
-    if (!files || files.length === 0) return;
+  /* Generates a SafeResourceUrl for the map iframe — replaces the unsafe pipe */
+  getMapUrl(lat: number, lng: number): SafeResourceUrl {
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.005},${lng + 0.005},${lat + 0.005}&layer=mapnik&marker=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  onFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) { return; }
 
     this.uploadError = '';
 
     if (this.mediaFiles.length >= this.MAX_FILES) {
       this.uploadError = `Maximum ${this.MAX_FILES} files allowed per complaint.`;
-      event.target.value = '';
+      input.value = '';
       return;
     }
 
@@ -108,20 +122,18 @@ export class CreateComplaintComponent implements OnInit {
         continue;
       }
 
-      if (isImage) this.validateImage(file);
-      else         this.validateVideo(file);
+      if (isImage) { this.validateImage(file); }
+      else         { this.validateVideo(file); }
     }
 
     if (skipped > 0) {
       this.uploadError = `Only ${this.MAX_FILES} files allowed. ${skipped} file(s) were skipped.`;
     }
 
-    event.target.value = '';
+    input.value = '';
   }
 
-  // ── Image Validation ───────────────────────────
-  // Rules: JPG/PNG · Max 10MB · Min 640×480px
-  private validateImage(file: File) {
+  private validateImage(file: File): void {
     const allowedTypes = ['image/jpeg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       this.uploadError = `"${file.name}": Only JPG and PNG images are allowed.`;
@@ -134,7 +146,7 @@ export class CreateComplaintComponent implements OnInit {
       return;
     }
 
-    const img = new Image();
+    const img       = new Image();
     const objectUrl = URL.createObjectURL(file);
 
     img.onload = () => {
@@ -143,13 +155,11 @@ export class CreateComplaintComponent implements OnInit {
         this.uploadError = `"${file.name}" must be at least ${this.IMAGE_MIN_WIDTH}×${this.IMAGE_MIN_HEIGHT}px. Got ${img.width}×${img.height}px.`;
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
+      const reader  = new FileReader();
+      reader.onload = (e) => {
         this.mediaFiles.push({
-          file,
-          previewUrl: e.target.result,
-          isVideo: false,
-          name: file.name,
+          file, isVideo: false, name: file.name,
+          previewUrl: (e.target as FileReader).result as string,
           sizeMB: (file.size / 1024 / 1024).toFixed(1)
         });
       };
@@ -164,9 +174,7 @@ export class CreateComplaintComponent implements OnInit {
     img.src = objectUrl;
   }
 
-  // ── Video Validation ───────────────────────────
-  // Rules: MP4/MOV/3GP · Max 20MB · Max 30s · 640×480 to 1920×1080
-  private validateVideo(file: File) {
+  private validateVideo(file: File): void {
     const allowedTypes = ['video/mp4', 'video/quicktime', 'video/3gpp'];
     if (!allowedTypes.includes(file.type)) {
       this.uploadError = `"${file.name}": Only MP4, MOV, and 3GP videos are allowed.`;
@@ -188,33 +196,27 @@ export class CreateComplaintComponent implements OnInit {
       const h = video.videoHeight;
       const d = video.duration;
 
-      // Duration check
       if (d > this.VIDEO_MAX_DURATION) {
         URL.revokeObjectURL(objectUrl);
-        this.uploadError = `"${file.name}" is ${Math.round(d)}s long. Maximum allowed is ${this.VIDEO_MAX_DURATION} seconds.`;
+        this.uploadError = `"${file.name}" is ${Math.round(d)}s long. Maximum is ${this.VIDEO_MAX_DURATION}s.`;
         return;
       }
 
-      // Min resolution check (640×480)
       if (w < this.VIDEO_MIN_WIDTH || h < this.VIDEO_MIN_HEIGHT) {
         URL.revokeObjectURL(objectUrl);
         this.uploadError = `"${file.name}" resolution ${w}×${h}px is too low. Minimum is ${this.VIDEO_MIN_WIDTH}×${this.VIDEO_MIN_HEIGHT}px.`;
         return;
       }
 
-      // Max resolution check (1920×1080) — block 4K and above
       if (w > this.VIDEO_MAX_WIDTH || h > this.VIDEO_MAX_HEIGHT) {
         URL.revokeObjectURL(objectUrl);
         this.uploadError = `"${file.name}" resolution ${w}×${h}px is too high. Maximum is ${this.VIDEO_MAX_WIDTH}×${this.VIDEO_MAX_HEIGHT}px (Full HD).`;
         return;
       }
 
-      // ✅ All checks passed
       this.mediaFiles.push({
-        file,
+        file, isVideo: true, name: file.name,
         previewUrl: objectUrl,
-        isVideo: true,
-        name: file.name,
         sizeMB: (file.size / 1024 / 1024).toFixed(1)
       });
     };
@@ -227,20 +229,18 @@ export class CreateComplaintComponent implements OnInit {
     video.src = objectUrl;
   }
 
-  // ── Remove Single File ─────────────────────────
-  removeMedia(index: number) {
+  removeMedia(index: number): void {
     const removed = this.mediaFiles[index];
-    if (removed.isVideo) URL.revokeObjectURL(removed.previewUrl);
+    if (removed.isVideo) { URL.revokeObjectURL(removed.previewUrl); }
     this.mediaFiles.splice(index, 1);
     this.uploadError = '';
   }
 
-  setDepartment(d: string) { this.department = d; }
-  nextStep() { if (this.currentStep < 3) this.currentStep++; }
-  prevStep() { if (this.currentStep > 1) this.currentStep--; }
-  get progressWidth() { return `${(this.currentStep / 3) * 100}%`; }
+  setDepartment(d: string): void { this.department = d; }
+  nextStep(): void { if (this.currentStep < 3) { this.currentStep++; } }
+  prevStep(): void { if (this.currentStep > 1) { this.currentStep--; } }
 
-  submitComplaint() {
+  submitComplaint(): void {
     if (!this.title || !this.description || !this.department) {
       this.message = 'Please fill in all required fields.';
       return;
@@ -253,8 +253,9 @@ export class CreateComplaintComponent implements OnInit {
     this.isSubmitting = true;
     this.message = '';
 
-    const token   = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const headers = new HttpHeaders({
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
+    });
 
     if (this.mediaFiles.length > 0) {
       this.uploadFilesSequentially(0, [], headers);
@@ -263,7 +264,7 @@ export class CreateComplaintComponent implements OnInit {
     }
   }
 
-  private uploadFilesSequentially(index: number, uploadedUrls: string[], headers: HttpHeaders) {
+  private uploadFilesSequentially(index: number, uploadedUrls: string[], headers: HttpHeaders): void {
     if (index >= this.mediaFiles.length) {
       this.submitWithMedia(uploadedUrls, headers);
       return;
@@ -272,7 +273,7 @@ export class CreateComplaintComponent implements OnInit {
     const formData = new FormData();
     formData.append('file', this.mediaFiles[index].file);
 
-    this.http.post('http://localhost:8080/api/upload', formData, { responseType: 'text' })
+    this.http.post<string>('http://localhost:8080/api/upload', formData, { responseType: 'text' as 'json' })
       .subscribe({
         next: (url) => {
           uploadedUrls.push(url);
@@ -285,29 +286,30 @@ export class CreateComplaintComponent implements OnInit {
       });
   }
 
-  private submitWithMedia(imageUrls: string[], headers: HttpHeaders) {
-    const complaintData = {
-      title:       this.title,
-      description: this.description,
-      department:  this.department,
-      priority:    this.priority,
-      latitude:    this.latitude,
-      longitude:   this.longitude,
-      imageUrls:   imageUrls
-    };
-
-    this.http.post('http://localhost:8080/api/complaints/create', complaintData, { headers })
-      .subscribe({
-        next: () => {
-          this.isSubmitting = false;
-          this.router.navigate(['/citizen']);
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          this.message = err.error?.message || 'Failed to submit. Please try again.';
-        }
-      });
+  private submitWithMedia(imageUrls: string[], headers: HttpHeaders): void {
+    this.http.post(
+      'http://localhost:8080/api/complaints/create',
+      {
+        title:       this.title,
+        description: this.description,
+        department:  this.department,
+        priority:    this.priority,
+        latitude:    this.latitude,
+        longitude:   this.longitude,
+        imageUrls
+      },
+      { headers }
+    ).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.router.navigate(['/citizen']);
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.message = (err.error as { message?: string })?.message ?? 'Failed to submit. Please try again.';
+      }
+    });
   }
 
-  goBack() { this.router.navigate(['/citizen']); }
+  goBack(): void { this.router.navigate(['/citizen']); }
 }

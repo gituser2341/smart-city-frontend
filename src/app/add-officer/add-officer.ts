@@ -4,6 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 
+interface Department {
+  value: string;
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-add-officer',
   standalone: true,
@@ -13,14 +19,15 @@ import { Router } from '@angular/router';
 })
 export class AddOfficerComponent {
 
-  name = '';
-  email = '';
-  password = '';
-  department = '';
-  message = '';
+  name        = '';
+  email       = '';
+  password    = '';
+  department  = '';
+  message     = '';
+  isSuccess   = false;
   isSubmitting = false;
 
-  departments = [
+  readonly departments: Department[] = [
     { value: 'WATER',       label: 'Water',       icon: '💧' },
     { value: 'ELECTRICITY', label: 'Electricity', icon: '⚡' },
     { value: 'SANITATION',  label: 'Sanitation',  icon: '🗑️' },
@@ -28,47 +35,48 @@ export class AddOfficerComponent {
   ];
 
   constructor(
-    private http: HttpClient,
-    private router: Router,
-    private cdr: ChangeDetectorRef  // ← ADD
+    private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
-  addOfficer() {
+  addOfficer(): void {
     if (!this.name || !this.email || !this.password || !this.department) {
-      this.message = 'All fields are required.';
+      this.isSuccess = false;
+      this.message   = 'All fields are required.';
       return;
     }
 
     this.isSubmitting = true;
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    this.message      = '';
 
-    const officerData = {
-      name: this.name,
-      email: this.email,
-      password: this.password,
-      department: this.department
-    };
+    const headers = new HttpHeaders({
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
+    });
 
-    this.http.post('http://localhost:8080/api/admin/add-officer', officerData,
-      { headers, responseType: 'text' })
-      .subscribe({
-        next: () => {
-          this.isSubmitting = false;
-          this.message = '✅ Officer added successfully!';
-          this.name = '';
-          this.email = '';
-          this.password = '';
-          this.department = '';
-          this.cdr.detectChanges();  // ← ADD
-        },
-        error: (err) => {
-          this.isSubmitting = false;
-          this.message = err.error || 'Failed to add officer.';
-          this.cdr.detectChanges();  // ← ADD
-        }
-      });
+    this.http.post(
+      'http://localhost:8080/api/admin/add-officer',
+      { name: this.name, email: this.email, password: this.password, department: this.department },
+      { headers, responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.isSuccess    = true;
+        this.message      = '✅ Officer added successfully!';
+        this.name       = '';
+        this.email      = '';
+        this.password   = '';
+        this.department = '';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.isSuccess    = false;
+        this.message      = (err.error as string) || 'Failed to add officer.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  goBack() { this.router.navigate(['/admin']); }
+  goBack(): void { this.router.navigate(['/admin']); }
 }
