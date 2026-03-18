@@ -58,7 +58,7 @@
           <div class="stat-card stat-escalated" role="button" tabindex="0"
             (click)="setTab('escalated')" (keydown.enter)="setTab('escalated')">
             <div class="stat-icon" aria-hidden="true">🚨</div>
-            <div class="stat-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
+            <div class="stat-num">{{ stats.byStatus.ESCALATED || 0 }}</div>
             <div class="stat-lbl">Escalated</div>
           </div>
         </section>
@@ -78,19 +78,19 @@
         <h2 class="section-title">Complaint Status Overview</h2>
         <div class="status-grid">
           <div class="status-card s-open">
-            <div class="s-num">{{ stats.byStatus?.OPEN || 0 }}</div>
+            <div class="s-num">{{ stats.byStatus.OPEN || 0 }}</div>
             <div class="s-lbl">Open</div>
           </div>
           <div class="status-card s-progress">
-            <div class="s-num">{{ stats.byStatus?.IN_PROGRESS || 0 }}</div>
+            <div class="s-num">{{ stats.byStatus.IN_PROGRESS || 0 }}</div>
             <div class="s-lbl">In Progress</div>
           </div>
           <div class="status-card s-resolved">
-            <div class="s-num">{{ stats.byStatus?.RESOLVED || 0 }}</div>
+            <div class="s-num">{{ stats.byStatus.RESOLVED || 0 }}</div>
             <div class="s-lbl">Resolved</div>
           </div>
           <div class="status-card s-escalated">
-            <div class="s-num">{{ stats.byStatus?.ESCALATED || 0 }}</div>
+            <div class="s-num">{{ stats.byStatus.ESCALATED || 0 }}</div>
             <div class="s-lbl">Escalated</div>
           </div>
         </div>
@@ -99,22 +99,22 @@
         <div class="dept-grid">
           <div class="dept-card">
             <span aria-hidden="true">💧</span>
-            <div class="dept-num">{{ stats.byDepartment?.WATER || 0 }}</div>
+            <div class="dept-num">{{ stats.byDepartment.WATER || 0 }}</div>
             <div class="dept-lbl">Water</div>
           </div>
           <div class="dept-card">
             <span aria-hidden="true">⚡</span>
-            <div class="dept-num">{{ stats.byDepartment?.ELECTRICITY || 0 }}</div>
+            <div class="dept-num">{{ stats.byDepartment.ELECTRICITY || 0 }}</div>
             <div class="dept-lbl">Electricity</div>
           </div>
           <div class="dept-card">
             <span aria-hidden="true">🗑️</span>
-            <div class="dept-num">{{ stats.byDepartment?.SANITATION || 0 }}</div>
+            <div class="dept-num">{{ stats.byDepartment.SANITATION || 0 }}</div>
             <div class="dept-lbl">Sanitation</div>
           </div>
           <div class="dept-card">
             <span aria-hidden="true">🛣️</span>
-            <div class="dept-num">{{ stats.byDepartment?.ROAD || 0 }}</div>
+            <div class="dept-num">{{ stats.byDepartment.ROAD || 0 }}</div>
             <div class="dept-lbl">Road</div>
           </div>
         </div>
@@ -122,19 +122,19 @@
         <h2 class="section-title">By Priority</h2>
         <div class="priority-grid">
           <div class="pri-card p-low">
-            <div class="pri-num">{{ stats.byPriority?.LOW || 0 }}</div>
+            <div class="pri-num">{{ stats.byPriority.LOW || 0 }}</div>
             <div class="pri-lbl">🟢 Low</div>
           </div>
           <div class="pri-card p-med">
-            <div class="pri-num">{{ stats.byPriority?.MEDIUM || 0 }}</div>
+            <div class="pri-num">{{ stats.byPriority.MEDIUM || 0 }}</div>
             <div class="pri-lbl">🟡 Medium</div>
           </div>
           <div class="pri-card p-high">
-            <div class="pri-num">{{ stats.byPriority?.HIGH || 0 }}</div>
+            <div class="pri-num">{{ stats.byPriority.HIGH || 0 }}</div>
             <div class="pri-lbl">🟠 High</div>
           </div>
           <div class="pri-card p-em">
-            <div class="pri-num">{{ stats.byPriority?.EMERGENCY || 0 }}</div>
+            <div class="pri-num">{{ stats.byPriority.EMERGENCY || 0 }}</div>
             <div class="pri-lbl">🔴 Emergency</div>
           </div>
         </div>
