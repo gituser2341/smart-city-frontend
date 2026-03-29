@@ -8,6 +8,7 @@ interface LoginResponse {
   token: string;
   role: string;
   email: string;
+  id : number;
 }
 
 @Component({
@@ -58,6 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         localStorage.setItem('token', res.token);
         localStorage.setItem('role', res.role);
         localStorage.setItem('email', res.email);
+        localStorage.setItem('userId',res.id.toString());
 
         if (res.role === 'CITIZEN') {
           this.router.navigate(['/citizen']);
@@ -65,6 +67,8 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate(['/officer']);
         } else if (res.role === 'ADMIN') {
           this.router.navigate(['/admin']);
+        }else if (res.role === 'DEPARTMENT_HEAD') {
+          this.router.navigate(['/dh']);   // 🔥 IMPORTANT
         } else {
           this.errorMessage = 'Unknown role. Please contact support.';
         }

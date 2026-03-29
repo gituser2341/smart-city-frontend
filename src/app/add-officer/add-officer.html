@@ -1,7 +1,6 @@
 <div class="page-wrapper">
 
-  <button class="back-btn" (click)="goBack()">← Back to Dashboard</button>
-
+  
   <div class="form-card">
 
     <div class="form-header">
@@ -38,24 +37,34 @@
         autocomplete="new-password" />
     </div>
 
-    <div class="field-group">
-      <p class="field-label" id="dept-group-label">Department *</p>
-      <div class="dept-grid" role="group" aria-labelledby="dept-group-label">
-        @for (d of departments; track d.value) {
-          <div class="dept-card"
-            [ngClass]="{'dept-selected': department === d.value}"
-            (click)="department = d.value"
-            role="radio"
-            [attr.aria-checked]="department === d.value"
-            tabindex="0"
-            (keydown.enter)="department = d.value"
-            (keydown.space)="department = d.value">
-            <span class="dept-icon" aria-hidden="true">{{ d.icon }}</span>
-            <span class="dept-label">{{ d.label }}</span>
-          </div>
-        }
-      </div>
+    @if (!isDepartmentLocked) {
+  <div class="field-group">
+    <p class="field-label" id="dept-group-label">Department *</p>
+    <div class="dept-grid" role="group" aria-labelledby="dept-group-label">
+      @for (d of departments; track d.value) {
+        <div class="dept-card"
+          [ngClass]="{'dept-selected': department === d.value}"
+          (click)="department = d.value"
+          role="radio"
+          [attr.aria-checked]="department === d.value"
+          tabindex="0"
+          (keydown.enter)="department = d.value"
+          (keydown.space)="department = d.value">
+          <span class="dept-icon" aria-hidden="true">{{ d.icon }}</span>
+          <span class="dept-label">{{ d.label }}</span>
+        </div>
+      }
     </div>
+  </div>
+} @else {
+  <div class="field-group">
+    <p class="field-label">Department</p>
+    <div class="dept-locked">
+      <span>{{ department }}</span>
+      <span class="locked-badge">Auto-assigned by your department</span>
+    </div>
+  </div>
+}
 
     <button class="btn-submit" (click)="addOfficer()" [disabled]="isSubmitting">
       @if (!isSubmitting) {

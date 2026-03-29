@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
-interface StatusMap  { OPEN: number; IN_PROGRESS: number; RESOLVED: number; ESCALATED: number; }
+interface StatusMap  { OPEN: number; IN_PROGRESS: number; RESOLVED: number }
 interface DeptMap    { WATER: number; ELECTRICITY: number; SANITATION: number; ROAD: number; }
 interface PriorityMap { LOW: number; MEDIUM: number; HIGH: number; EMERGENCY: number; }
 
@@ -44,7 +44,7 @@ interface NewOfficer {
 
 const DEFAULT_STATS: DashboardStats = {
   totalComplaints: 0, totalOfficers: 0, totalCitizens: 0,
-  byStatus:     { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0, ESCALATED: 0 },
+  byStatus:     { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 },
   byDepartment: { WATER: 0, ELECTRICITY: 0, SANITATION: 0, ROAD: 0 },
   byPriority:   { LOW: 0, MEDIUM: 0, HIGH: 0, EMERGENCY: 0 },
 };
@@ -60,7 +60,6 @@ export class AdminComponent implements OnInit {
 
   stats: DashboardStats     = { ...DEFAULT_STATS };
   complaints: Complaint[]          = [];
-  escalatedComplaints: Complaint[] = [];
   officers: Officer[]              = [];
   activeTab                        = 'dashboard';
 
@@ -78,7 +77,6 @@ export class AdminComponent implements OnInit {
     this.loadStats();
     this.loadComplaints();
     this.loadOfficers();
-    this.loadEscalated();
   }
 
   private getHeaders(): HttpHeaders {
@@ -104,7 +102,6 @@ export class AdminComponent implements OnInit {
             OPEN:        data.byStatus?.OPEN        ?? 0,
             IN_PROGRESS: data.byStatus?.IN_PROGRESS ?? 0,
             RESOLVED:    data.byStatus?.RESOLVED    ?? 0,
-            ESCALATED:   data.byStatus?.ESCALATED   ?? 0,
           },
           byDepartment: {
             WATER:       data.byDepartment?.WATER       ?? 0,
@@ -154,18 +151,6 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  loadEscalated(): void {
-    this.http.get<Complaint[]>(
-      'http://localhost:8080/api/admin/escalated',
-      { headers: this.getHeaders() }
-    ).subscribe({
-      next: (data) => { this.escalatedComplaints = data ?? []; this.cdr.detectChanges(); },
-      error: (err) => {
-        console.error('Escalated error:', err);
-        if (err.status === 401) { this.router.navigate(['/login']); }
-      }
-    });
-  }
 
   assignOfficer(complaintId: number, officerId: string): void {
     if (!officerId) { return; }
@@ -174,7 +159,7 @@ export class AdminComponent implements OnInit {
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe({
-      next: () => { this.loadComplaints(); this.loadEscalated(); this.loadStats(); },
+      next: () => { this.loadComplaints(); this.loadStats(); },
       error: (err) => { console.error('Assign error:', err); }
     });
   }

@@ -200,7 +200,7 @@
               <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
               <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
               @if (c.user) {
-                <span class="meta-item">👤 {{ c.user?.name }}</span>
+                <span class="meta-item">👤 {{ c.user.name }}</span>
               }
             </div>
 

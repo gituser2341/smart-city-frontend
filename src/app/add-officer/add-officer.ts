@@ -1,14 +1,8 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-
-interface Department {
-  value: string;
-  label: string;
-  icon: string;
-}
 
 @Component({
   selector: 'app-add-officer',
@@ -19,15 +13,27 @@ interface Department {
 })
 export class AddOfficerComponent {
 
-  name        = '';
-  email       = '';
-  password    = '';
-  department  = '';
-  message     = '';
-  isSuccess   = false;
+  @Input() set lockedDepartment(val: string) {
+    if (val) {
+      this.department = val;
+      this.isDepartmentLocked = true;
+    }
+  }
+
+  @Input() apiUrl = 'http://localhost:8080/api/admin/add-officer';
+
+
+  isDepartmentLocked = false;
+
+  name         = '';
+  email        = '';
+  password     = '';
+  department   = '';
+  message      = '';
+  isSuccess    = false;
   isSubmitting = false;
 
-  readonly departments: Department[] = [
+  readonly departments = [
     { value: 'WATER',       label: 'Water',       icon: '💧' },
     { value: 'ELECTRICITY', label: 'Electricity', icon: '⚡' },
     { value: 'SANITATION',  label: 'Sanitation',  icon: '🗑️' },
@@ -55,7 +61,7 @@ export class AddOfficerComponent {
     });
 
     this.http.post(
-      'http://localhost:8080/api/admin/add-officer',
+      this.apiUrl,
       { name: this.name, email: this.email, password: this.password, department: this.department },
       { headers, responseType: 'text' }
     ).subscribe({
@@ -66,7 +72,7 @@ export class AddOfficerComponent {
         this.name       = '';
         this.email      = '';
         this.password   = '';
-        this.department = '';
+        if (!this.isDepartmentLocked) this.department = '';
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -78,5 +84,5 @@ export class AddOfficerComponent {
     });
   }
 
-  goBack(): void { this.router.navigate(['/admin']); }
+  
 }

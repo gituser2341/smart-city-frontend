@@ -42,20 +42,20 @@ export class OfficerComponent implements OnInit {
 
   complaints: Complaint[] = [];
   officerName = '';
-  total       = 0;
-  inProgress  = 0;
-  resolved    = 0;
-  isLoading   = true;
+  total = 0;
+  inProgress = 0;
+  resolved = 0;
+  isLoading = true;
 
-  performanceScore  = 0;
-  scoreDashOffset   = 314;
-  scoreColor        = '#3b5bdb';
-  scoreStatus       = '';
-  scoreStatusClass  = '';
-  scoreTrend        = 0;
-  commendations     = 0;
-  incidents         = 0;
-  resolutionRate    = 0;
+  performanceScore = 0;
+  scoreDashOffset = 314;
+  scoreColor = '#3b5bdb';
+  scoreStatus = '';
+  scoreStatusClass = '';
+  scoreTrend = 0;
+  commendations = 0;
+  incidents = 0;
+  resolutionRate = 0;
 
   performanceMetrics: PerformanceMetric[] = [];
 
@@ -66,7 +66,7 @@ export class OfficerComponent implements OnInit {
     private readonly router: Router,
     private readonly sanitizer: DomSanitizer,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.officerName = localStorage.getItem('name') ?? 'Officer';
@@ -89,14 +89,14 @@ export class OfficerComponent implements OnInit {
           (a, b) => (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
         );
 
-        this.total      = data.length;
+        this.total = data.length;
         this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
-        this.resolved   = data.filter(c => c.status === 'RESOLVED').length;
+        this.resolved = data.filter(c => c.status === 'RESOLVED').length;
 
         this.commendations = 0;
-        this.incidents     = 0;
+        this.incidents = 0;
 
-        this.computePerformance();
+        this.loadPerformance();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -107,60 +107,6 @@ export class OfficerComponent implements OnInit {
       }
     });
   }
-
-  computePerformance(): void {
-    const resolutionScore = this.total > 0
-      ? Math.round((this.resolved / this.total) * 100)
-      : 0;
-    this.resolutionRate = resolutionScore;
-
-    const responseScore   = Math.min(100, Math.max(0, 100 - this.incidents * 8));
-    const commendScore    = Math.min(100, this.commendations * 10);
-    const loadScore       = Math.max(0, 100 - this.inProgress * 5);
-    const complianceScore = Math.min(100, 85 + this.commendations * 2);
-    const communityScore  = Math.max(0, 80 - this.incidents * 5);
-
-    this.performanceScore = Math.round(
-      resolutionScore * 0.35 +
-      responseScore   * 0.20 +
-      commendScore    * 0.15 +
-      loadScore       * 0.15 +
-      complianceScore * 0.10 +
-      communityScore  * 0.05
-    );
-
-    this.scoreDashOffset = Math.round(314 * (1 - this.performanceScore / 100));
-
-    if (this.performanceScore >= 90) {
-      this.scoreColor       = '#16a34a';
-      this.scoreStatus      = 'Exemplary';
-      this.scoreStatusClass = 'badge-exemplary';
-    } else if (this.performanceScore >= 75) {
-      this.scoreColor       = '#3b5bdb';
-      this.scoreStatus      = 'Proficient';
-      this.scoreStatusClass = 'badge-proficient';
-    } else if (this.performanceScore >= 60) {
-      this.scoreColor       = '#b45309';
-      this.scoreStatus      = 'Developing';
-      this.scoreStatusClass = 'badge-developing';
-    } else {
-      this.scoreColor       = '#dc2626';
-      this.scoreStatus      = 'Needs Improvement';
-      this.scoreStatusClass = 'badge-needs-improvement';
-    }
-
-    this.scoreTrend = +(this.performanceScore - this.previousPeriodScore).toFixed(1);
-
-    this.performanceMetrics = [
-      { label: 'Resolution Rate',    value: resolutionScore  },
-      { label: 'Response Quality',   value: responseScore    },
-      { label: 'Commendations',      value: commendScore     },
-      { label: 'Case Load Balance',  value: loadScore        },
-      { label: 'Compliance',         value: complianceScore  },
-      { label: 'Community Feedback', value: communityScore   },
-    ];
-  }
-
   getMetricColor(value: number): string {
     if (value >= 90) return '#16a34a';
     if (value >= 75) return '#3b5bdb';
@@ -178,13 +124,57 @@ export class OfficerComponent implements OnInit {
         const complaint = this.complaints.find(c => c.id === complaintId);
         if (complaint) {
           complaint.status = status as Complaint['status'];
-          this.inProgress  = this.complaints.filter(c => c.status === 'IN_PROGRESS').length;
-          this.resolved    = this.complaints.filter(c => c.status === 'RESOLVED').length;
-          this.computePerformance();
+          this.inProgress = this.complaints.filter(c => c.status === 'IN_PROGRESS').length;
+          this.resolved = this.complaints.filter(c => c.status === 'RESOLVED').length;
+          this.loadPerformance();
         }
         this.cdr.detectChanges();
       },
       error: (err) => { console.error('Update failed:', err); }
+    });
+  }
+
+  loadPerformance(): void {
+    const officerId = localStorage.getItem('userId');
+
+    this.http.get<any>(
+      `http://localhost:8080/api/complaints/officer-rating/${officerId}`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        const score = res.performanceScore;
+
+        this.performanceScore = score;
+        this.scoreDashOffset = Math.round(314 * (1 - score / 100));
+
+        // UI logic
+        if (score >= 90) {
+          this.scoreColor = '#16a34a';
+          this.scoreStatus = 'Exemplary';
+          this.scoreStatusClass = 'badge-exemplary';
+        } else if (score >= 75) {
+          this.scoreColor = '#3b5bdb';
+          this.scoreStatus = 'Proficient';
+          this.scoreStatusClass = 'badge-proficient';
+        } else if (score >= 60) {
+          this.scoreColor = '#b45309';
+          this.scoreStatus = 'Developing';
+          this.scoreStatusClass = 'badge-developing';
+        } else {
+          this.scoreColor = '#dc2626';
+          this.scoreStatus = 'Needs Improvement';
+          this.scoreStatusClass = 'badge-needs-improvement';
+        }
+
+        this.scoreTrend = +(score - this.previousPeriodScore).toFixed(1);
+
+        // 🔥 OPTIONAL (show ratings in UI)
+        console.log('Citizen Avg:', res.citizenAvg);
+        console.log('DH Avg:', res.dhAvg);
+
+        this.cdr.detectChanges();
+      },
+      error: () => console.error('Failed to load performance score')
     });
   }
 

@@ -1,0 +1,322 @@
+<div class="admin-page">
+
+  <!-- HEADER -->
+  <header class="admin-header">
+    <div class="header-left">
+      <div class="brand-icon">🏙️</div>
+      <div>
+        <div class="brand-name">CivicPulse</div>
+        <div class="brand-sub">Department Head — {{ dhDepartment }}</div>
+      </div>
+    </div>
+    <div class="header-right">
+      @if (totalEscalated > 0) {
+      <button class="escalated-badge" (click)="setTab('escalated')">
+        🚨 {{ totalEscalated }} Escalated
+      </button>
+      }
+      <button class="btn-logout" (click)="logout()">⎋ Logout</button>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">📊
+      Dashboard</button>
+    <button class="tab-btn" [class.active]="activeTab === 'complaints'" (click)="setTab('complaints')">📋
+      Complaints</button>
+    <button class="tab-btn escalated-tab" [class.active]="activeTab === 'escalated'" (click)="setTab('escalated')">
+      🚨 Escalated
+      @if (totalEscalated > 0) {
+      <span class="tab-count">{{ totalEscalated }}</span>
+      }
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'officers'" (click)="setTab('officers')">👮 Officers</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add
+      Officer</button>
+    <button class="tab-btn" [class.active]="activeTab === 'performance'" (click)="setTab('performance')">
+      📈 Performance
+    </button>
+  </nav>
+
+  <!-- GLOBAL MESSAGES -->
+  @if (successMessage()) {
+  <div class="toast toast-success">✅ {{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+  <div class="toast toast-error">⚠️ {{ errorMessage() }}</div>
+  }
+
+  <div class="admin-body">
+
+    <!-- DASHBOARD TAB -->
+    @if (activeTab === 'dashboard') {
+    <div>
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-num">{{ complaints().length }}</div>
+          <div class="stat-lbl">Total Complaints</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔓</div>
+          <div class="stat-num">{{ totalOpen }}</div>
+          <div class="stat-lbl">Open</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚙️</div>
+          <div class="stat-num">{{ totalInProgress }}</div>
+          <div class="stat-lbl">In Progress</div>
+        </div>
+        <div class="stat-card stat-escalated" (click)="setTab('escalated')" role="button" tabindex="0"
+          (keydown.enter)="setTab('escalated')">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-num">{{ totalEscalated }}</div>
+          <div class="stat-lbl">Escalated</div>
+        </div>
+      </section>
+
+      <h2 class="section-title">Officers in {{ dhDepartment }}</h2>
+      <div class="officers-grid">
+        @for (o of officers(); track o.id) {
+        <div class="officer-card">
+          <div class="officer-avatar">👮</div>
+          <div class="officer-name">{{ o.name }}</div>
+          <div class="officer-email">{{ o.email }}</div>
+          <div class="officer-dept">{{ o.department }}</div>
+        </div>
+        }
+        @if (officers().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">👮</div>
+          <p>No officers in your department yet</p>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- COMPLAINTS TAB -->
+    @if (activeTab === 'complaints') {
+    <div>
+      <h2 class="section-title">{{ dhDepartment }} Complaints</h2>
+      <div class="complaints-list">
+        @for (c of complaints(); track c.id) {
+        <div class="complaint-card">
+          <div class="cc-header">
+            <h3 class="cc-title">{{ c.title }}</h3>
+            <div class="cc-badges">
+              <span class="badge" [ngClass]="{
+                    'b-open':     c.status === 'OPEN',
+                    'b-progress': c.status === 'IN_PROGRESS',
+                    'b-resolved': c.status === 'RESOLVED'
+                  }">{{ c.status }}</span>
+              <span class="badge" [ngClass]="{
+                    'p-low':       c.priority === 'LOW',
+                    'p-medium':    c.priority === 'MEDIUM',
+                    'p-high':      c.priority === 'HIGH',
+                    'p-emergency': c.priority === 'EMERGENCY'
+                  }">{{ c.priority }}</span>
+            </div>
+          </div>
+          <p class="cc-desc">{{ c.description }}</p>
+          <div class="cc-meta">
+            <span>📍 {{ c.location }}</span>
+            @if (c.deadline) { <span>⏱ {{ getTimeRemaining(c.deadline) }}</span> }
+            <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
+          </div>
+          <div class="cc-assign">
+            <select [(ngModel)]="selectedOfficerMap[c.id]">
+              <option value="">-- Reassign Officer --</option>
+              @for (o of officers(); track o.id) {
+              <option [value]="o.id">{{ o.name }}</option>
+              }
+            </select>
+            <button class="btn-assign" (click)="reassign(c.id)">Reassign</button>
+          </div>
+        </div>
+        }
+        @if (complaints().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>No active complaints in your department</p>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- ESCALATED TAB -->
+    @if (activeTab === 'escalated') {
+    <div>
+      <div class="escalated-header">
+        <h2 class="section-title">🚨 Escalated Complaints</h2>
+        <p class="escalated-sub">These complaints breached SLA and require immediate reassignment.</p>
+      </div>
+      @if (escalated().length > 0) {
+      <div class="escalated-list">
+        @for (c of escalated(); track c.id) {
+        <div class="escalated-card">
+          <div class="esc-alert-bar">🚨 SLA BREACHED — IMMEDIATE ACTION REQUIRED</div>
+          <div class="esc-body">
+            <div class="esc-header">
+              <h3 class="esc-title">{{ c.title }}</h3>
+              <div class="esc-badges">
+                <span class="badge b-escalated">ESCALATED</span>
+                <span class="badge" [ngClass]="{
+                        'p-low':       c.priority === 'LOW',
+                        'p-medium':    c.priority === 'MEDIUM',
+                        'p-high':      c.priority === 'HIGH',
+                        'p-emergency': c.priority === 'EMERGENCY'
+                      }">{{ c.priority }}</span>
+              </div>
+            </div>
+            <p class="esc-desc">{{ c.description }}</p>
+            <div class="esc-meta">
+              <span>📍 {{ c.location }}</span>
+              <span class="overdue-time">⏰ {{ getTimeRemaining(c.deadline) }}</span>
+              <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
+            </div>
+            <div class="esc-priority-update">
+              <select [(ngModel)]="selectedPriorityMap[c.id]">
+                <option value="">-- Update Priority --</option>
+                <option value="LOW">🟢 Low</option>
+                <option value="MEDIUM">🟡 Medium</option>
+                <option value="HIGH">🟠 High</option>
+                <option value="EMERGENCY">🔴 Emergency</option>
+              </select>
+              <button class="btn-priority" (click)="updatePriority(c.id, selectedPriorityMap[c.id])">
+                Update Priority
+              </button>
+            </div>
+            <div class="esc-assign">
+              <select [(ngModel)]="selectedOfficerMap[c.id]">
+                <option value="">-- Reassign Officer --</option>
+                @for (o of officers(); track o.id) {
+                <option [value]="o.id">{{ o.name }}</option>
+                }
+              </select>
+              <button class="btn-assign btn-reassign" (click)="reassign(c.id)">🚨 Reassign Now</button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p>No escalated complaints — all SLAs within deadline!</p>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- OFFICERS TAB -->
+    @if (activeTab === 'officers') {
+    <div>
+      <h2 class="section-title">Officers — {{ dhDepartment }}</h2>
+      @if (officers().length > 0) {
+      <div class="officers-grid">
+        @for (o of officers(); track o.id) {
+        <div class="officer-card">
+          <div class="officer-avatar">👮</div>
+          <div class="officer-name">{{ o.name }}</div>
+          <div class="officer-email">{{ o.email }}</div>
+          <div class="officer-dept">{{ o.department }}</div>
+          <div class="rating-summary">
+            ⭐ DH Avg: {{ o.dhAvg || 0 }}
+            <br>
+            👥 Citizen Avg: {{ o.citizenAvg || 0 }}
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <div class="empty-icon">👮</div>
+        <p>No officers in your department yet</p>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ADD OFFICER TAB -->
+    @if (activeTab === 'add-officer') {
+    <div>
+      <h2 class="section-title">Add Officer to {{ dhDepartment }}</h2>
+      <app-add-officer [lockedDepartment]="dhDepartment" apiUrl="http://localhost:8080/api/dh/create-officer"
+        backRoute="/dh">
+      </app-add-officer>
+    </div>
+    }
+
+    @if (activeTab === 'performance') {
+    <div>
+      <h2 class="section-title">Officer Performance — {{ dhDepartment }}</h2>
+      @if (officers().length > 0) {
+      <div class="officers-grid">
+        @for (o of officers(); track o.id) {
+        <div class="officer-card perf-card">
+          <div class="officer-avatar">👮</div>
+          <div class="officer-name">{{ o.name }}</div>
+          <div class="officer-email">{{ o.email }}</div>
+          <div class="officer-dept">{{ o.department }}</div>
+
+          <div class="score-label">Performance Score</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar" [style.width.%]="o.performanceScore" [ngClass]="{
+                  'score-low':    o.performanceScore < 40,
+                  'score-medium': o.performanceScore >= 40 && o.performanceScore < 70,
+                  'score-high':   o.performanceScore >= 70
+                }">
+            </div>
+          </div>
+          <div class="score-num">{{ o.performanceScore }}/100</div>
+
+          <div class="dh-rate-section">
+            <div class="rate-label">Rate a resolved complaint</div>
+
+            <select class="assign-select" [(ngModel)]="dhRatingComplaintMap[o.id]">
+              <option value="">Select complaint</option>
+              @for (c of getResolvedByOfficer(o.id); track c.id) {
+              <option [value]="c.id" [disabled]="c.dhRated === true">
+                {{ c.title }}
+              </option>
+              }
+            </select>
+
+            @if (getResolvedByOfficer(o.id).length === 0) {
+            <p class="no-resolved">No resolved complaints yet</p>
+            }
+
+            <div class="stars" role="group" aria-label="Rating stars">
+              @for (star of [1,2,3,4,5]; track star) {
+              <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star" (click)="dhRatingMap[o.id] = star"
+                role="button" tabindex="0" [attr.aria-label]="star + ' star'" (keydown.enter)="dhRatingMap[o.id] = star"
+                (keydown.space)="dhRatingMap[o.id] = star">
+                ★
+              </span>
+              }
+            </div>
+
+            <input type="text" class="field-input" [(ngModel)]="dhFeedbackMap[o.id]" [name]="'feedback-' + o.id"
+              autocomplete="off" placeholder="Optional feedback..." />
+
+            <button class="btn-assign" (click)="submitDhRating(o.id)">
+              Submit Rating
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <p>No officers to evaluate yet</p>
+      </div>
+      }
+    </div>
+    }
+
+  </div>
+</div>
