@@ -48,7 +48,7 @@ export class NotificationComponent implements OnInit {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
     this.http.get<Notification[]>(
-      `http://localhost:8080/api/notifications/${role}`,
+      `http://localhost:8080/api/notifications/my`,
       { headers }
     ).subscribe({
       next: (data) => {
