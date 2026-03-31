@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 
 interface ComplaintUser {
   name: string;
@@ -34,7 +35,7 @@ const PRIORITY_ORDER: Record<string, number> = {
 @Component({
   selector: 'app-officer',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './officer.html',
   styleUrls: ['./officer.css']
 })
@@ -56,8 +57,13 @@ export class OfficerComponent implements OnInit {
   commendations = 0;
   incidents = 0;
   resolutionRate = 0;
+  selectedComplaintId: number | null = null;
+  selectedDepartment = '';
 
   performanceMetrics: PerformanceMetric[] = [];
+  coordinationReason = '';
+  coordSuccess = '';
+  coordError = '';
 
   private readonly previousPeriodScore = 78;
 
@@ -95,6 +101,7 @@ export class OfficerComponent implements OnInit {
 
         this.commendations = 0;
         this.incidents = 0;
+
 
         this.loadPerformance();
         this.isLoading = false;
@@ -183,6 +190,39 @@ export class OfficerComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
+  openCoordination(id: number) {
+    this.selectedComplaintId = id;
+  }
+
+  sendCoordination(complaintId: number) {
+    if (!this.selectedDepartment) {
+      this.showError('Please select a department');
+      return;
+    }
+
+    const reason = this.coordinationReason.trim() || 'Need coordination support';
+
+    this.http.post(
+      `http://localhost:8080/api/officer/request-coordination/${complaintId}?department=${this.selectedDepartment}&reason=${encodeURIComponent(reason)}`,
+      {},
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.selectedComplaintId = null;
+        this.selectedDepartment = '';
+        this.coordinationReason = '';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Coordination error:', err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+  private showError(msg: string) {
+    this.coordError = msg;
+    setTimeout(() => { this.coordError = ''; this.cdr.detectChanges(); }, 3000);
+  }
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

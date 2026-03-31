@@ -10,8 +10,8 @@
       </div>
     </div>
     <div class="header-right">
-  <button class="btn-logout" (click)="logout()">⎋ Logout</button>
-</div>
+      <button class="btn-logout" (click)="logout()">⎋ Logout</button>
+    </div>
   </header>
 
   <!-- TABS -->
@@ -23,7 +23,11 @@
     <button class="tab-btn" [class.active]="activeTab === 'officers'" (click)="setTab('officers')">👮 Officers</button>
     <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add
       Officer</button>
+    <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">
+      🤝 Coordination
+    </button>
     <button class="tab-btn tab-heatmap" routerLink="/heatmap">🗺️ Heatmap</button>
+
   </nav>
 
   <div class="admin-body">
@@ -255,6 +259,42 @@
       </div>
     </div>
     }
+
+    @if (activeTab === 'coordination') {
+  <div>
+    <h2 class="section-title">Coordination Requests</h2>
+
+    <div class="complaints-list">
+      @for (r of coordinationRequests; track r.id) {
+        <div class="complaint-card">
+
+          <h3>Complaint ID: {{ r.complaintId }}</h3>
+          <p>Requested Dept: {{ r.requestedDepartment }}</p>
+          <p>Status: {{ r.status }}</p>
+
+          <div class="cc-actions">
+            <button class="btn-assign"
+              (click)="approveCoordination(r.id)">
+              ✅ Approve
+            </button>
+
+            <button class="btn-logout"
+              (click)="rejectCoordination(r.id)">
+              ❌ Reject
+            </button>
+          </div>
+
+        </div>
+      }
+
+      @if (coordinationRequests.length === 0) {
+        <div class="empty-state">
+          <p>No coordination requests</p>
+        </div>
+      }
+    </div>
+  </div>
+}
 
   </div>
 </div>

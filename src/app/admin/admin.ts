@@ -4,17 +4,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
-interface StatusMap  { OPEN: number; IN_PROGRESS: number; RESOLVED: number }
-interface DeptMap    { WATER: number; ELECTRICITY: number; SANITATION: number; ROAD: number; }
+interface StatusMap { OPEN: number; IN_PROGRESS: number; RESOLVED: number }
+interface DeptMap { WATER: number; ELECTRICITY: number; SANITATION: number; ROAD: number; }
 interface PriorityMap { LOW: number; MEDIUM: number; HIGH: number; EMERGENCY: number; }
 
 interface DashboardStats {
   totalComplaints: number;
-  totalOfficers:   number;
-  totalCitizens:   number;
-  byStatus:        StatusMap;
-  byDepartment:    DeptMap;
-  byPriority:      PriorityMap;
+  totalOfficers: number;
+  totalCitizens: number;
+  byStatus: StatusMap;
+  byDepartment: DeptMap;
+  byPriority: PriorityMap;
 }
 
 interface Complaint {
@@ -44,9 +44,9 @@ interface NewOfficer {
 
 const DEFAULT_STATS: DashboardStats = {
   totalComplaints: 0, totalOfficers: 0, totalCitizens: 0,
-  byStatus:     { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 },
+  byStatus: { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 },
   byDepartment: { WATER: 0, ELECTRICITY: 0, SANITATION: 0, ROAD: 0 },
-  byPriority:   { LOW: 0, MEDIUM: 0, HIGH: 0, EMERGENCY: 0 },
+  byPriority: { LOW: 0, MEDIUM: 0, HIGH: 0, EMERGENCY: 0 },
 };
 
 @Component({
@@ -58,25 +58,27 @@ const DEFAULT_STATS: DashboardStats = {
 })
 export class AdminComponent implements OnInit {
 
-  stats: DashboardStats     = { ...DEFAULT_STATS };
-  complaints: Complaint[]          = [];
-  officers: Officer[]              = [];
-  activeTab                        = 'dashboard';
+  stats: DashboardStats = { ...DEFAULT_STATS };
+  complaints: Complaint[] = [];
+  officers: Officer[] = [];
+  activeTab = 'dashboard';
+  coordinationRequests: any[] = [];
 
   newOfficer: NewOfficer = { name: '', email: '', password: '', department: '' };
   successMessage = '';
-  errorMessage   = '';
+  errorMessage = '';
 
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadStats();
     this.loadComplaints();
     this.loadOfficers();
+    this.loadCoordinationRequests();
   }
 
   private getHeaders(): HttpHeaders {
@@ -84,7 +86,7 @@ export class AdminComponent implements OnInit {
     if (!token) { this.router.navigate(['/login']); }
     return new HttpHeaders({
       'Authorization': 'Bearer ' + (token ?? ''),
-      'Content-Type':  'application/json'
+      'Content-Type': 'application/json'
     });
   }
 
@@ -96,24 +98,24 @@ export class AdminComponent implements OnInit {
       next: (data) => {
         this.stats = {
           totalComplaints: data.totalComplaints ?? 0,
-          totalOfficers:   data.totalOfficers   ?? 0,
-          totalCitizens:   data.totalCitizens   ?? 0,
+          totalOfficers: data.totalOfficers ?? 0,
+          totalCitizens: data.totalCitizens ?? 0,
           byStatus: {
-            OPEN:        data.byStatus?.OPEN        ?? 0,
+            OPEN: data.byStatus?.OPEN ?? 0,
             IN_PROGRESS: data.byStatus?.IN_PROGRESS ?? 0,
-            RESOLVED:    data.byStatus?.RESOLVED    ?? 0,
+            RESOLVED: data.byStatus?.RESOLVED ?? 0,
           },
           byDepartment: {
-            WATER:       data.byDepartment?.WATER       ?? 0,
+            WATER: data.byDepartment?.WATER ?? 0,
             ELECTRICITY: data.byDepartment?.ELECTRICITY ?? 0,
-            SANITATION:  data.byDepartment?.SANITATION  ?? 0,
-            ROAD:        data.byDepartment?.ROAD        ?? 0,
+            SANITATION: data.byDepartment?.SANITATION ?? 0,
+            ROAD: data.byDepartment?.ROAD ?? 0,
           },
           byPriority: {
-            LOW:       data.byPriority?.LOW       ?? 0,
-            MEDIUM:    data.byPriority?.MEDIUM     ?? 0,
-            HIGH:      data.byPriority?.HIGH       ?? 0,
-            EMERGENCY: data.byPriority?.EMERGENCY  ?? 0,
+            LOW: data.byPriority?.LOW ?? 0,
+            MEDIUM: data.byPriority?.MEDIUM ?? 0,
+            HIGH: data.byPriority?.HIGH ?? 0,
+            EMERGENCY: data.byPriority?.EMERGENCY ?? 0,
           }
         };
         this.cdr.detectChanges();
@@ -166,7 +168,7 @@ export class AdminComponent implements OnInit {
 
   addOfficer(): void {
     if (!this.newOfficer.name || !this.newOfficer.email ||
-        !this.newOfficer.password || !this.newOfficer.department) {
+      !this.newOfficer.password || !this.newOfficer.department) {
       this.errorMessage = 'Please fill in all fields.';
       setTimeout(() => { this.errorMessage = ''; }, 3000);
       return;
@@ -197,24 +199,55 @@ export class AdminComponent implements OnInit {
     if (diff < 0) {
       return `${Math.abs(Math.floor(diff / 3_600_000))}h overdue`;
     }
-    const days  = Math.floor(diff / 86_400_000);
+    const days = Math.floor(diff / 86_400_000);
     const hours = Math.floor((diff % 86_400_000) / 3_600_000);
     return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
   }
 
   getDeadlineStatus(deadline: string | undefined): string {
     if (!deadline) { return ''; }
-    const diff  = new Date(deadline).getTime() - Date.now();
+    const diff = new Date(deadline).getTime() - Date.now();
     const hours = Math.floor(diff / 3_600_000);
-    if (diff < 0)   { return 'OVERDUE'; }
-    if (hours < 4)  { return 'CRITICAL'; }
+    if (diff < 0) { return 'OVERDUE'; }
+    if (hours < 4) { return 'CRITICAL'; }
     if (hours < 24) { return 'WARNING'; }
     return 'OK';
+  }
+
+  loadCoordinationRequests() {
+    this.http.get<any[]>(
+      'http://localhost:8080/api/admin/coordination-requests',
+      { headers: this.getHeaders() }
+    ).subscribe(res => {
+      this.coordinationRequests = res;
+    });
   }
 
   setTab(tab: string): void {
     this.activeTab = tab;
   }
+
+  approveCoordination(id: number) {
+  this.http.post(
+    `http://localhost:8080/api/admin/approve-request/${id}`,
+    {},
+    { headers: this.getHeaders(), responseType: 'text' }
+  ).subscribe(() => {
+    alert("✅ Approved");
+    this.loadCoordinationRequests();
+  });
+}
+
+rejectCoordination(id: number) {
+  this.http.post(
+    `http://localhost:8080/api/admin/reject-request/${id}`,
+    {},
+    { headers: this.getHeaders(), responseType: 'text' }
+  ).subscribe(() => {
+    alert("❌ Rejected");
+    this.loadCoordinationRequests();
+  });
+}
 
   logout(): void {
     localStorage.clear();
