@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../services/websocket.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface Complaint {
   id: number;
@@ -27,7 +28,7 @@ interface Complaint {
 @Component({
   selector: 'app-citizen',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,TranslateModule],
   templateUrl: './citizen.html',
   styleUrls: ['./citizen.css']
 })
@@ -39,6 +40,7 @@ export class CitizenComponent implements OnInit, OnDestroy {
   inProgress = 0;
   resolved = 0;
   liveNotification = '';
+  currentLang = localStorage.getItem('lang') ?? 'en';
 
   ratingMap: Record<number, number> = {};
   ratingCommentMap: Record<number, string> = {};
@@ -50,10 +52,17 @@ export class CitizenComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly sanitizer: DomSanitizer,
     private readonly cdr: ChangeDetectorRef,
-    private readonly wsService: WebSocketService
-  ) {}
+    private readonly wsService: WebSocketService,
+    private readonly translate: TranslateService
+  ) {
+    this.translate.setDefaultLang('en');
+    this.translate.use('en'); 
+  }
 
   ngOnInit(): void {
+    const savedLang = localStorage.getItem('lang') ?? 'en';
+    this.currentLang = savedLang;
+    this.translate.use(savedLang);
     const email = localStorage.getItem('email') ?? '';
     const token = localStorage.getItem('token') ?? '';
 
@@ -75,6 +84,13 @@ export class CitizenComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.wsService.disconnect();
+  }
+
+  toggleLanguage(): void {
+    this.currentLang = this.currentLang === 'en' ? 'ta' : 'en';
+    this.translate.use(this.currentLang);
+    localStorage.setItem('lang', this.currentLang);
+    this.cdr.detectChanges();
   }
 
   private getHeaders(): HttpHeaders {

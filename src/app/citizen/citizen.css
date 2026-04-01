@@ -480,6 +480,25 @@
   font-style: italic;
 }
 
+.btn-lang {
+  padding: 0.42rem 1rem;
+  border-radius: 7px;
+  border: 1px solid var(--border, #e5e7ef);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-2, #374151);
+  font-family: inherit;
+}
+
+.btn-lang:hover {
+  background: var(--brand-lt, #eef2ff);
+  border-color: var(--brand-lt2, #c7d2fe);
+  color: var(--brand, #3b5bdb);
+}
+
 /* ─── EMPTY STATE ─────────────────────────────────────────────── */
 .empty-state {
   text-align: center;

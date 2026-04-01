@@ -21,10 +21,7 @@
             "tsConfig": "tsconfig.app.json",
             "polyfills": ["zone.js"],
             "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
+               "src/assets"
             ],
             "styles": [
               "node_modules/leaflet/dist/leaflet.css",

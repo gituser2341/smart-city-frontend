@@ -1,0 +1,52 @@
+{
+  "header": {
+    "title": "Smart City Portal",
+    "sub": "Citizen Dashboard",
+    "raise": "Raise Complaint",
+    "notifications": "Notifications",
+    "logout": "Logout"
+  },
+  "stats": {
+    "total": "Total",
+    "open": "Open",
+    "inProgress": "In Progress",
+    "resolved": "Resolved"
+  },
+  "complaints": {
+    "title": "My Complaints",
+    "empty": "No complaints raised yet",
+    "raiseFirst": "Raise your first complaint",
+    "department": "Department",
+    "created": "Created",
+    "location": "Location",
+    "deadline": "Deadline",
+    "escalated": "Escalated",
+    "unassigned": "Unassigned"
+  },
+  "status": {
+    "OPEN": "Open",
+    "IN_PROGRESS": "In Progress",
+    "RESOLVED": "Resolved",
+    "ESCALATED": "Escalated"
+  },
+  "priority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "EMERGENCY": "Emergency"
+  },
+  "rating": {
+    "title": "Rate this resolution",
+    "placeholder": "Optional feedback...",
+    "submit": "Submit Rating",
+    "success": "Rating submitted successfully!",
+    "error": "Please select a star rating.",
+    "rated": "You rated this"
+  },
+  "map": {
+    "label": "Complaint Location"
+  },
+  "lang": {
+    "toggle": "தமிழ்"
+  }
+}
