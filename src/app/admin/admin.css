@@ -526,6 +526,19 @@
   margin-bottom: 1rem; font-weight: 600;
 }
 
+.dh-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #EEEDFE;
+  color: #3C3489;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 1.25rem;
+}
+
 /* ─── EMPTY STATE ─────────────────────────────────────────────── */
 .empty-state {
   text-align: center; padding: 3.5rem 2rem;

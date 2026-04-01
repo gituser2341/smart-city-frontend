@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 interface Notification {
   id: number;
@@ -12,7 +13,7 @@ interface Notification {
 @Component({
   selector: 'app-notification',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,TranslateModule],
   templateUrl: './notification.html',
   styleUrls: ['./notification.css']
 })
@@ -25,8 +26,12 @@ export class NotificationComponent implements OnInit {
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+    private readonly cdr: ChangeDetectorRef,
+    private readonly translate: TranslateService
+  ) {
+    this.translate.setDefaultLang('en');
+    this.translate.use(localStorage.getItem('lang') ?? 'en'); 
+  }
 
   ngOnInit(): void {
     this.isLoading    = true;

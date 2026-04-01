@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home';
 import { authGuard } from './auth.guard';
 import { HeatmapComponent } from './admin/heatmap/heatmap';  // ← fixed
 import { DepartmentHeadComponent } from './department-head/department-head.component';
+import { OfflineComponent } from './offline/offline.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'create-complaint', component: CreateComplaintComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationComponent, canActivate: [authGuard] },
   { path: 'heatmap', component: HeatmapComponent, canActivate: [authGuard] },
+  { path: 'offline', component: OfflineComponent },
   { path: 'dh', component: DepartmentHeadComponent,canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];

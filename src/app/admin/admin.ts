@@ -42,6 +42,13 @@ interface NewOfficer {
   department: string;
 }
 
+interface NewDH {
+  name: string;
+  email: string;
+  password: string;
+  department: string;
+}
+
 const DEFAULT_STATS: DashboardStats = {
   totalComplaints: 0, totalOfficers: 0, totalCitizens: 0,
   byStatus: { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 },
@@ -67,6 +74,10 @@ export class AdminComponent implements OnInit {
   newOfficer: NewOfficer = { name: '', email: '', password: '', department: '' };
   successMessage = '';
   errorMessage = '';
+  
+  newDH: NewDH = { name: '', email: '', password: '', department: '' };
+  dhSuccessMessage = '';
+  dhErrorMessage = '';
 
   constructor(
     private readonly http: HttpClient,
@@ -193,6 +204,34 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  // Add this method
+addDH(): void {
+  if (!this.newDH.name || !this.newDH.email || !this.newDH.password || !this.newDH.department) {
+    this.dhErrorMessage = 'All fields are required.';
+    setTimeout(() => { this.dhErrorMessage = ''; }, 3000);
+    return;
+  }
+
+  this.http.post(
+    'http://localhost:8080/api/admin/create-dh',
+    this.newDH,
+    { headers: this.getHeaders(), responseType: 'text' }
+  ).subscribe({
+    next: () => {
+      this.dhSuccessMessage = 'Department head added successfully!';
+      this.newDH = { name: '', email: '', password: '', department: '' };
+      this.loadStats();
+      setTimeout(() => { this.dhSuccessMessage = ''; }, 3000);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.dhErrorMessage = (err.error as string) || 'Failed to add department head.';
+      setTimeout(() => { this.dhErrorMessage = ''; }, 3000);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
   getTimeRemaining(deadline: string | undefined): string {
     if (!deadline) { return ''; }
     const diff = new Date(deadline).getTime() - Date.now();
@@ -228,26 +267,26 @@ export class AdminComponent implements OnInit {
   }
 
   approveCoordination(id: number) {
-  this.http.post(
-    `http://localhost:8080/api/admin/approve-request/${id}`,
-    {},
-    { headers: this.getHeaders(), responseType: 'text' }
-  ).subscribe(() => {
-    alert("✅ Approved");
-    this.loadCoordinationRequests();
-  });
-}
+    this.http.post(
+      `http://localhost:8080/api/admin/approve-request/${id}`,
+      {},
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe(() => {
+      alert("✅ Approved");
+      this.loadCoordinationRequests();
+    });
+  }
 
-rejectCoordination(id: number) {
-  this.http.post(
-    `http://localhost:8080/api/admin/reject-request/${id}`,
-    {},
-    { headers: this.getHeaders(), responseType: 'text' }
-  ).subscribe(() => {
-    alert("❌ Rejected");
-    this.loadCoordinationRequests();
-  });
-}
+  rejectCoordination(id: number) {
+    this.http.post(
+      `http://localhost:8080/api/admin/reject-request/${id}`,
+      {},
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe(() => {
+      alert("❌ Rejected");
+      this.loadCoordinationRequests();
+    });
+  }
 
   logout(): void {
     localStorage.clear();

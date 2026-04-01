@@ -42,6 +42,12 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     /* Apply theme for the initial URL on hard reload */
     this.applyBodyTheme(this.router.url);
+    window.addEventListener('offline', () => {
+      this.router.navigate(['/offline']);
+    });
+    window.addEventListener('online', () => {
+      this.router.navigate(['/citizen']);
+    });
   }
 
   ngOnDestroy(): void {

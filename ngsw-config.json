@@ -1,0 +1,71 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app-shell",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "complaints-api",
+      "urls": ["http://localhost:8080/api/complaints/**"],
+      "cacheConfig": {
+        "maxSize": 50,
+        "maxAge": "10m",
+        "timeout": "5s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "notifications-api",
+      "urls": ["http://localhost:8080/api/notifications/**"],
+      "cacheConfig": {
+        "maxSize": 30,
+        "maxAge": "5m",
+        "timeout": "3s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "stats-api",
+      "urls": ["http://localhost:8080/api/admin/dashboard-stats"],
+      "cacheConfig": {
+        "maxSize": 5,
+        "maxAge": "2m",
+        "timeout": "3s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "i18n",
+      "urls": ["/assets/i18n/**"],
+      "cacheConfig": {
+        "maxSize": 10,
+        "maxAge": "1d",
+        "strategy": "performance"
+      }
+    }
+  ]
+}

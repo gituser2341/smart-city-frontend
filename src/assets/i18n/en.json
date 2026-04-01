@@ -1,5 +1,56 @@
 {
-  "header": {
+   "createComplaint": {
+    "back": "← Back to Dashboard",
+    "brand": "Raise a Complaint",
+    "brandSub": "Help us make your city better by reporting issues directly to the right department.",
+    "step1Name": "Basic Info",
+    "step1Desc": "Title & Description",
+    "step2Name": "Category",
+    "step2Desc": "Department",
+    "step3Name": "Evidence",
+    "step3Desc": "Photo/Video & Location",
+    "progress": "Step {{current}} of 3",
+    "s1Title": "What's the issue?",
+    "s1Sub": "Give us a clear description of the problem",
+    "titleLabel": "Complaint Title",
+    "titlePlaceholder": "e.g. Broken streetlight on MG Road",
+    "descLabel": "Detailed Description",
+    "descPlaceholder": "Describe the issue in detail — where exactly, how severe, how long it's been happening...",
+    "nextCategory": "Next → Category",
+    "s2Title": "Category",
+    "s2Sub": "Help us route your complaint to the right team",
+    "deptLabel": "Department",
+    "nextEvidence": "Next → Evidence",
+    "back2": "← Back",
+    "s3Title": "Photo / Video & Location",
+    "s3Sub": "Add evidence and confirm your location",
+    "uploadLabel": "Upload Evidence (Optional)",
+    "imgTitle": "Image",
+    "imgFormat": "Format: JPG, PNG",
+    "imgSize": "Max size: 10 MB",
+    "imgMin": "Min: 640 × 480 px",
+    "vidTitle": "Video",
+    "vidFormat": "Format: MP4, MOV, 3GP",
+    "vidSize": "Max size: 200 MB",
+    "vidDuration": "Max duration: 30 sec",
+    "vidRes": "640×480 → 1920×1080",
+    "addMore": "Add more",
+    "slotsLeft": "left",
+    "clickUpload": "Click to upload photos or videos",
+    "upToFiles": "Up to {{max}} files · Images or Videos",
+    "locationLabel": "Location",
+    "submit": "Submit Complaint",
+    "submitting": "Submitting...",
+    "required": "Please fill in all required fields.",
+    "noLocation": "Location not captured. Please allow GPS access."
+  },
+  "dept": {
+    "WATER": "Water",
+    "ELECTRICITY": "Electricity",
+    "SANITATION": "Sanitation",
+    "ROAD": "Road"
+  },
+    "header": {
     "title": "Smart City Portal",
     "sub": "Citizen Dashboard",
     "raise": "Raise Complaint",
@@ -48,5 +99,14 @@
   },
   "lang": {
     "toggle": "தமிழ்"
-  }
+  },
+  "notification": {
+  "back": "← Back to Dashboard",
+  "title": "Notifications",
+  "subtitle": "Stay updated on your complaint activity",
+  "loading": "Loading notifications...",
+  "error": "Failed to load notifications.",
+  "emptyTitle": "No notifications yet",
+  "emptySub": "You'll be notified when your complaint status changes"
+}
 }

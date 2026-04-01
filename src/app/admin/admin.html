@@ -23,6 +23,9 @@
     <button class="tab-btn" [class.active]="activeTab === 'officers'" (click)="setTab('officers')">👮 Officers</button>
     <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add
       Officer</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-dh'" (click)="setTab('add-dh')">
+      ⭐ Add DH
+    </button>
     <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">
       🤝 Coordination
     </button>
@@ -260,12 +263,61 @@
     </div>
     }
 
-    @if (activeTab === 'coordination') {
-  <div>
-    <h2 class="section-title">Coordination Requests</h2>
+    @if (activeTab === 'add-dh') {
+    <div>
+      <h2 class="section-title">Add Department Head</h2>
+      <div class="add-officer-card">
 
-    <div class="complaints-list">
-      @for (r of coordinationRequests; track r.id) {
+        <div class="dh-role-badge">⭐ Role: DEPARTMENT_HEAD</div>
+
+        @if (dhSuccessMessage) {
+        <output class="success-msg" aria-live="polite">✅ {{ dhSuccessMessage }}</output>
+        }
+        @if (dhErrorMessage) {
+        <div class="error-msg" role="alert">⚠️ {{ dhErrorMessage }}</div>
+        }
+
+        <div class="field-group">
+          <label class="field-label" for="dh-name">Full Name</label>
+          <input id="dh-name" type="text" [(ngModel)]="newDH.name" name="dhName" autocomplete="name"
+            placeholder="e.g. Priya Sharma" class="field-input" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="dh-email">Email Address</label>
+          <input id="dh-email" type="email" [(ngModel)]="newDH.email" name="dhEmail" autocomplete="off"
+            placeholder="dh@smartcity.gov" class="field-input" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="dh-password">Password</label>
+          <input id="dh-password" type="password" [(ngModel)]="newDH.password" name="dhPassword"
+            autocomplete="new-password" placeholder="Set a strong password" class="field-input" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="dh-dept">Department</label>
+          <select id="dh-dept" [(ngModel)]="newDH.department" name="dhDept" class="field-input">
+            <option value="">-- Select Department --</option>
+            <option value="WATER">💧 Water</option>
+            <option value="ELECTRICITY">⚡ Electricity</option>
+            <option value="SANITATION">🗑️ Sanitation</option>
+            <option value="ROAD">🛣️ Road</option>
+          </select>
+        </div>
+
+        <button class="btn-add-officer" (click)="addDH()">+ Add Department Head</button>
+
+      </div>
+    </div>
+    }
+
+    @if (activeTab === 'coordination') {
+    <div>
+      <h2 class="section-title">Coordination Requests</h2>
+
+      <div class="complaints-list">
+        @for (r of coordinationRequests; track r.id) {
         <div class="complaint-card">
 
           <h3>Complaint ID: {{ r.complaintId }}</h3>
@@ -273,28 +325,26 @@
           <p>Status: {{ r.status }}</p>
 
           <div class="cc-actions">
-            <button class="btn-assign"
-              (click)="approveCoordination(r.id)">
+            <button class="btn-assign" (click)="approveCoordination(r.id)">
               ✅ Approve
             </button>
 
-            <button class="btn-logout"
-              (click)="rejectCoordination(r.id)">
+            <button class="btn-logout" (click)="rejectCoordination(r.id)">
               ❌ Reject
             </button>
           </div>
 
         </div>
-      }
+        }
 
-      @if (coordinationRequests.length === 0) {
+        @if (coordinationRequests.length === 0) {
         <div class="empty-state">
           <p>No coordination requests</p>
         </div>
-      }
+        }
+      </div>
     </div>
-  </div>
-}
+    }
 
   </div>
 </div>

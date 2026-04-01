@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 export interface MediaFile {
   file: File;
@@ -22,74 +23,79 @@ interface Department {
 @Component({
   selector: 'app-create-complaint',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslateModule],
   templateUrl: './create-complaint.html',
   styleUrls: ['./create-complaint.css']
 })
 export class CreateComplaintComponent implements OnInit {
 
-  title       = '';
+  title = '';
   description = '';
-  department  = '';
-  priority    = 'MEDIUM';
+  department = '';
+  priority = 'MEDIUM';
 
-  latitude:  number | null = null;
+  latitude: number | null = null;
   longitude: number | null = null;
   locationStatus = '📡 Detecting your location...';
-  locationReady  = false;
+  locationReady = false;
 
-  mediaFiles:  MediaFile[] = [];
-  uploadError  = '';
-  message      = '';
+  mediaFiles: MediaFile[] = [];
+  uploadError = '';
+  message = '';
   isSubmitting = false;
-  currentStep  = 1;
+  currentStep = 1;
 
-  readonly IMAGE_MAX_SIZE_MB  = 10;
-  readonly IMAGE_MIN_WIDTH    = 640;
-  readonly IMAGE_MIN_HEIGHT   = 480;
+  readonly IMAGE_MAX_SIZE_MB = 10;
+  readonly IMAGE_MIN_WIDTH = 640;
+  readonly IMAGE_MIN_HEIGHT = 480;
 
-  readonly VIDEO_MAX_SIZE_MB  = 200;
+  readonly VIDEO_MAX_SIZE_MB = 200;
   readonly VIDEO_MAX_DURATION = 30;
-  readonly VIDEO_MIN_WIDTH    = 640;
-  readonly VIDEO_MIN_HEIGHT   = 480;
-  readonly VIDEO_MAX_WIDTH    = 1920;
-  readonly VIDEO_MAX_HEIGHT   = 1080;
+  readonly VIDEO_MIN_WIDTH = 640;
+  readonly VIDEO_MIN_HEIGHT = 480;
+  readonly VIDEO_MAX_WIDTH = 1920;
+  readonly VIDEO_MAX_HEIGHT = 1080;
 
   readonly MAX_FILES = 3;
 
   readonly departments: Department[] = [
-    { value: 'WATER',       label: 'Water',       icon: '💧' },
+    { value: 'WATER', label: 'Water', icon: '💧' },
     { value: 'ELECTRICITY', label: 'Electricity', icon: '⚡' },
-    { value: 'SANITATION',  label: 'Sanitation',  icon: '🗑️' },
-    { value: 'ROAD',        label: 'Road',        icon: '🛣️' }
+    { value: 'SANITATION', label: 'Sanitation', icon: '🗑️' },
+    { value: 'ROAD', label: 'Road', icon: '🛣️' }
   ];
 
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
-    private readonly sanitizer: DomSanitizer
-  ) {}
+    private readonly sanitizer: DomSanitizer,
+    private readonly translate: TranslateService
+  ) {
+    this.translate.setDefaultLang('en');
+    const savedLang = localStorage.getItem('lang') ?? 'en';
+    this.translate.use(savedLang);
+  }
 
   ngOnInit(): void {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          this.latitude  = position.coords.latitude;
+          this.latitude = position.coords.latitude;
           this.longitude = position.coords.longitude;
           this.locationStatus = `📍 ${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
           this.locationReady = true;
         },
         () => {
           this.locationStatus = '⚠️ Location access denied. Please enable GPS.';
-          this.locationReady  = false;
+          this.locationReady = false;
         }
       );
     }
   }
 
   get remainingSlots(): number { return this.MAX_FILES - this.mediaFiles.length; }
-  get canAddMore(): boolean    { return this.mediaFiles.length < this.MAX_FILES; }
-  get progressWidth(): string  { return `${(this.currentStep / 3) * 100}%`; }
+  get canAddMore(): boolean { return this.mediaFiles.length < this.MAX_FILES; }
+  get progressWidth(): string { return `${(this.currentStep / 3) * 100}%`; }
 
   /* Generates a SafeResourceUrl for the map iframe — replaces the unsafe pipe */
   getMapUrl(lat: number, lng: number): SafeResourceUrl {
@@ -111,7 +117,7 @@ export class CreateComplaintComponent implements OnInit {
     }
 
     const incoming = Array.from(files).slice(0, this.remainingSlots);
-    const skipped  = files.length - incoming.length;
+    const skipped = files.length - incoming.length;
 
     for (const file of incoming) {
       const isImage = file.type.startsWith('image/');
@@ -123,7 +129,7 @@ export class CreateComplaintComponent implements OnInit {
       }
 
       if (isImage) { this.validateImage(file); }
-      else         { this.validateVideo(file); }
+      else { this.validateVideo(file); }
     }
 
     if (skipped > 0) {
@@ -146,7 +152,7 @@ export class CreateComplaintComponent implements OnInit {
       return;
     }
 
-    const img       = new Image();
+    const img = new Image();
     const objectUrl = URL.createObjectURL(file);
 
     img.onload = () => {
@@ -155,7 +161,7 @@ export class CreateComplaintComponent implements OnInit {
         this.uploadError = `"${file.name}" must be at least ${this.IMAGE_MIN_WIDTH}×${this.IMAGE_MIN_HEIGHT}px. Got ${img.width}×${img.height}px.`;
         return;
       }
-      const reader  = new FileReader();
+      const reader = new FileReader();
       reader.onload = (e) => {
         this.mediaFiles.push({
           file, isVideo: false, name: file.name,
@@ -187,9 +193,9 @@ export class CreateComplaintComponent implements OnInit {
       return;
     }
 
-    const video     = document.createElement('video');
+    const video = document.createElement('video');
     const objectUrl = URL.createObjectURL(file);
-    video.preload   = 'metadata';
+    video.preload = 'metadata';
 
     video.onloadedmetadata = () => {
       const w = video.videoWidth;
@@ -241,12 +247,13 @@ export class CreateComplaintComponent implements OnInit {
   prevStep(): void { if (this.currentStep > 1) { this.currentStep--; } }
 
   submitComplaint(): void {
+    // in submitComplaint()
     if (!this.title || !this.description || !this.department) {
-      this.message = 'Please fill in all required fields.';
+      this.message = this.translate.instant('createComplaint.required');
       return;
     }
     if (!this.latitude || !this.longitude) {
-      this.message = 'Location not captured. Please allow GPS access.';
+      this.message = this.translate.instant('createComplaint.noLocation');
       return;
     }
 
@@ -280,7 +287,7 @@ export class CreateComplaintComponent implements OnInit {
           this.uploadFilesSequentially(index + 1, uploadedUrls, headers);
         },
         error: () => {
-          this.message      = `Failed to upload "${this.mediaFiles[index].name}". Please try again.`;
+          this.message = `Failed to upload "${this.mediaFiles[index].name}". Please try again.`;
           this.isSubmitting = false;
         }
       });
@@ -290,12 +297,12 @@ export class CreateComplaintComponent implements OnInit {
     this.http.post(
       'http://localhost:8080/api/complaints/create',
       {
-        title:       this.title,
+        title: this.title,
         description: this.description,
-        department:  this.department,
-        priority:    this.priority,
-        latitude:    this.latitude,
-        longitude:   this.longitude,
+        department: this.department,
+        priority: this.priority,
+        latitude: this.latitude,
+        longitude: this.longitude,
         imageUrls
       },
       { headers }

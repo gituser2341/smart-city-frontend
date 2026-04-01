@@ -1,35 +1,35 @@
 <div class="page-wrapper">
 
   <button class="back-btn" (click)="goBack()">
-    ← Back to Dashboard
+    {{ 'notification.back' | translate }}
   </button>
 
   <div class="notif-card">
 
     <div class="notif-header">
       <div class="notif-icon">🔔</div>
-      <h1 class="notif-title">Notifications</h1>
-      <p class="notif-subtitle">Stay updated on your complaint activity</p>
+      <h1 class="notif-title">{{ 'notification.title' | translate }}</h1>
+      <p class="notif-subtitle">{{ 'notification.subtitle' | translate }}</p>
     </div>
 
     @if (isLoading) {
       <div class="loading-state">
         <div class="spinner"></div>
-        <p>Loading notifications...</p>
+        <p>{{ 'notification.loading' | translate }}</p>
       </div>
     }
 
     @if (!isLoading && errorMessage) {
       <div class="error-msg">
-        ⚠️ {{ errorMessage }}
+        ⚠️ {{ 'notification.error' | translate }}
       </div>
     }
 
     @if (!isLoading && !errorMessage && notifications.length === 0) {
       <div class="empty-state">
         <div class="empty-icon">📭</div>
-        <p>No notifications yet</p>
-        <span>You'll be notified when your complaint status changes</span>
+        <p>{{ 'notification.emptyTitle' | translate }}</p>
+        <span>{{ 'notification.emptySub' | translate }}</span>
       </div>
     }
 
