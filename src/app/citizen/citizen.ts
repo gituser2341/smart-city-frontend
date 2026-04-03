@@ -6,6 +6,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../services/websocket.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ChatbotComponent } from './chatbot/chatbot.component';
+
 
 interface Complaint {
   id: number;
@@ -28,7 +30,7 @@ interface Complaint {
 @Component({
   selector: 'app-citizen',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule,TranslateModule],
+  imports: [CommonModule, RouterModule, FormsModule,TranslateModule,ChatbotComponent],
   templateUrl: './citizen.html',
   styleUrls: ['./citizen.css']
 })

@@ -1,0 +1,113 @@
+<div class="chatbot-wrapper">
+
+  <!-- Floating button -->
+  <button class="chatbot-fab" (click)="toggle()"
+    [attr.aria-label]="isOpen() ? 'Close chatbot' : 'Open chatbot'">
+    @if (!isOpen()) { 💬 } @else { ✕ }
+  </button>
+
+  @if (isOpen()) {
+    <div class="chatbot-panel">
+
+      <!-- Header -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar">🤖</div>
+          <div>
+            <div class="chat-title">CivicBot</div>
+            <div class="chat-sub">Smart City Assistant</div>
+          </div>
+        </div>
+        <button class="chat-close" (click)="toggle()">✕</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" #msgContainer>
+
+        @for (m of messages(); track $index) {
+          <div class="msg-row" [class.msg-user]="m.from === 'user'">
+            @if (m.from === 'bot') {
+              <div class="msg-avatar">🤖</div>
+            }
+            <div class="msg-bubble" [class.bubble-user]="m.from === 'user'">
+              {{ m.text }}
+
+              @if (m.card) {
+                <div class="status-card">
+                  <div class="sc-title">{{ m.card.title }}</div>
+                  <div class="sc-row">
+                    <span class="sc-label">Status</span>
+                    <span class="sc-badge" [ngClass]="{
+                      'sc-open':       m.card.status === 'OPEN',
+                      'sc-progress':   m.card.status === 'IN_PROGRESS',
+                      'sc-resolved':   m.card.status === 'RESOLVED',
+                      'sc-escalated':  m.card.status === 'ESCALATED'
+                    }">{{ m.card.status }}</span>
+                  </div>
+                  <div class="sc-row">
+                    <span class="sc-label">Priority</span>
+                    <span class="sc-val">{{ m.card.priority }}</span>
+                  </div>
+                  <div class="sc-row">
+                    <span class="sc-label">Department</span>
+                    <span class="sc-val">{{ m.card.department }}</span>
+                  </div>
+                  <div class="sc-row">
+                    <span class="sc-label">Officer</span>
+                    <span class="sc-val">{{ m.card.assignedOfficer }}</span>
+                  </div>
+                  @if (m.card.escalated) {
+                    <div class="sc-escalated-banner">🚨 Escalated</div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (isLoading) {
+          <div class="msg-row">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble typing">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Menu buttons -->
+      @if (mode === 'menu') {
+        <div class="chat-menu">
+          <button class="menu-btn" (click)="selectMode('register')">
+            📋 File a Complaint
+          </button>
+          <button class="menu-btn" (click)="selectMode('track')">
+            🔍 Track Complaint
+          </button>
+          <button class="menu-btn" (click)="selectMode('faq')">
+            ❓ FAQ
+          </button>
+        </div>
+      }
+
+      <!-- Input -->
+      @if (mode !== 'menu') {
+        <div class="chat-input-row">
+          <button class="back-btn" (click)="back()">←</button>
+          <input
+            class="chat-input"
+            [(ngModel)]="input"
+            placeholder="Type a message..."
+            (keydown.enter)="send()"
+            [disabled]="isLoading"
+          />
+          <button class="send-btn" (click)="send()" [disabled]="isLoading">
+            ➤
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+</div>
