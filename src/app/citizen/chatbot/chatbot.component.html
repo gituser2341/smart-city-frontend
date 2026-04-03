@@ -1,8 +1,6 @@
 <div class="chatbot-wrapper">
 
-  <!-- Floating button -->
-  <button class="chatbot-fab" (click)="toggle()"
-    [attr.aria-label]="isOpen() ? 'Close chatbot' : 'Open chatbot'">
+  <button class="chatbot-fab" (click)="toggle()">
     @if (!isOpen()) { 💬 } @else { ✕ }
   </button>
 
@@ -29,19 +27,21 @@
             @if (m.from === 'bot') {
               <div class="msg-avatar">🤖</div>
             }
-            <div class="msg-bubble" [class.bubble-user]="m.from === 'user'">
+            <div class="msg-bubble"
+              [class.bubble-user]="m.from === 'user'">
               {{ m.text }}
 
+              <!-- Status card -->
               @if (m.card) {
                 <div class="status-card">
                   <div class="sc-title">{{ m.card.title }}</div>
                   <div class="sc-row">
                     <span class="sc-label">Status</span>
                     <span class="sc-badge" [ngClass]="{
-                      'sc-open':       m.card.status === 'OPEN',
-                      'sc-progress':   m.card.status === 'IN_PROGRESS',
-                      'sc-resolved':   m.card.status === 'RESOLVED',
-                      'sc-escalated':  m.card.status === 'ESCALATED'
+                      'sc-open':      m.card.status === 'OPEN',
+                      'sc-progress':  m.card.status === 'IN_PROGRESS',
+                      'sc-resolved':  m.card.status === 'RESOLVED',
+                      'sc-escalated': m.card.status === 'ESCALATED'
                     }">{{ m.card.status }}</span>
                   </div>
                   <div class="sc-row">
@@ -61,6 +61,57 @@
                   }
                 </div>
               }
+
+              <!-- AI suggestion card -->
+              @if (m.suggestion && !suggestionConfirmed) {
+                <div class="suggestion-card">
+                  <div class="sug-row">
+                    <span class="sug-label">Department</span>
+                    <span class="sug-val dept-badge">
+                      {{ m.suggestion.department }}
+                    </span>
+                  </div>
+                  <div class="sug-row">
+                    <span class="sug-label">Priority</span>
+                    <span class="sug-val" [ngClass]="{
+                      'pri-low':       m.suggestion.priority === 'LOW',
+                      'pri-medium':    m.suggestion.priority === 'MEDIUM',
+                      'pri-high':      m.suggestion.priority === 'HIGH',
+                      'pri-emergency': m.suggestion.priority === 'EMERGENCY'
+                    }">{{ m.suggestion.priority }}</span>
+                  </div>
+                  <div class="sug-row">
+                    <span class="sug-label">Confidence</span>
+                    <div class="conf-bar-wrap">
+                      <div class="conf-bar"
+                        [style.width.%]="m.suggestion.confidence">
+                      </div>
+                    </div>
+                    <span class="sug-val">{{ m.suggestion.confidence }}%</span>
+                  </div>
+                  @if (m.suggestion.sensitiveLocation) {
+                    <div class="sug-sensitive">
+                      🚨 Sensitive: {{ m.suggestion.sensitiveLocation }}
+                    </div>
+                  }
+                  @if (m.suggestion.conflict) {
+                    <div class="sug-conflict">
+                      ⚠️ Multiple departments detected
+                    </div>
+                  }
+                  <div class="sug-actions">
+                    <button class="sug-btn sug-yes"
+                      (click)="confirmSuggestion(true)">
+                      ✅ Confirm
+                    </button>
+                    <button class="sug-btn sug-no"
+                      (click)="confirmSuggestion(false)">
+                      ✏️ Edit
+                    </button>
+                  </div>
+                </div>
+              }
+
             </div>
           </div>
         }
@@ -74,9 +125,15 @@
           </div>
         }
 
+        @if (liveTranscript) {
+          <div class="live-transcript">
+            🎤 {{ liveTranscript }}
+          </div>
+        }
+
       </div>
 
-      <!-- Menu buttons -->
+      <!-- Menu -->
       @if (mode === 'menu') {
         <div class="chat-menu">
           <button class="menu-btn" (click)="selectMode('register')">
@@ -91,18 +148,32 @@
         </div>
       }
 
-      <!-- Input -->
+      <!-- Input row -->
       @if (mode !== 'menu') {
         <div class="chat-input-row">
           <button class="back-btn" (click)="back()">←</button>
-          <input
-            class="chat-input"
+          <input class="chat-input"
             [(ngModel)]="input"
-            placeholder="Type a message..."
+            [placeholder]="isListening ? 'Listening...' : 'Type a message...'"
             (keydown.enter)="send()"
-            [disabled]="isLoading"
-          />
-          <button class="send-btn" (click)="send()" [disabled]="isLoading">
+            [disabled]="isLoading || isListening" />
+
+          <!-- Voice lang toggle -->
+          <button class="lang-toggle" (click)="toggleVoiceLang()"
+            [title]="'Switch voice language'">
+            {{ voiceLangLabel }}
+          </button>
+
+          <!-- Mic button -->
+          <button class="mic-btn"
+            [class.mic-active]="isListening"
+            (click)="toggleVoice()"
+            [title]="isListening ? 'Stop' : 'Speak'">
+            🎤
+          </button>
+
+          <button class="send-btn" (click)="send()"
+            [disabled]="isLoading || isListening">
             ➤
           </button>
         </div>
