@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 type Mode = 'menu' | 'register' | 'track' | 'faq';
-type Step = 'description' | 'location' | 'priority' | 'confirm';
+type Step = 'description' | 'location' | 'confirm_location' | 'priority' | 'confirm';
 
 interface Message {
   from: 'bot' | 'user';
@@ -57,6 +57,12 @@ export class ChatbotComponent implements AfterViewChecked {
   voiceLang = 'en-IN';
   private recognition: any = null;
   isVoiceConfirming = false;
+
+  //location
+  locationReady = false;
+  locationStatus = '';
+  latitude: number | null = null;
+  longitude: number | null = null;
 
   // Registration state
   step: Step = 'description';
@@ -109,6 +115,10 @@ export class ChatbotComponent implements AfterViewChecked {
   showMenu() {
     this.mode = 'menu';
     this.step = 'description';
+    this.latitude = null;
+    this.longitude = null;
+    this.locationReady = false;
+    this.locationStatus = '';
     this.form = {
       title: '', description: '', location: '',
       priority: 'LOW', department: ''
@@ -131,6 +141,55 @@ export class ChatbotComponent implements AfterViewChecked {
     } else if (mode === 'faq') {
       this.bot('❓ Ask me anything about our services!');
     }
+  }
+
+  private detectLocation(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        this.bot('📍 Location not supported. Please type your location.');
+        this.step = 'location';
+        resolve();
+        return;
+      }
+
+      this.bot('📡 Detecting your location...');
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.latitude = pos.coords.latitude;
+          this.longitude = pos.coords.longitude;
+          this.locationReady = true;
+          this.locationStatus = `${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
+          this.bot(
+            `📍 Location detected: ${this.locationStatus}\n` +
+            `Type YES to use it or NO to enter manually.`
+          );
+          this.step = 'confirm_location' as any;
+          resolve();
+        },
+        (err) => {
+          // ← ADD THIS
+          console.error('Geolocation error code:', err.code);
+          console.error('Geolocation error message:', err.message);
+
+          const reason = {
+            1: 'Permission denied — please allow location in browser settings.',
+            2: 'Position unavailable — GPS signal not found.',
+            3: 'Timed out — location took too long to detect.'
+          }[err.code] ?? 'Unknown error.';
+
+          this.bot(`⚠️ ${reason} Please type your location instead.`);
+          this.locationReady = false;
+          this.step = 'location';
+          resolve();
+        },
+        {
+          timeout: 15000,           // ← increase from 8000 to 15000
+          enableHighAccuracy: false, // ← change to false — high accuracy often fails indoors
+          maximumAge: 60000          // ← accept cached position up to 1 minute old
+        }
+      );
+    });
   }
 
   send() {
@@ -206,9 +265,31 @@ export class ChatbotComponent implements AfterViewChecked {
           }
         });
         break;
+      case 'confirm_location' as any:
+        if (text.toUpperCase() === 'YES') {
+          // Use GPS coordinates, ask for landmark/description
+          this.form.location = this.locationStatus;
+          this.bot('📝 Add a landmark or street name to help officers find it easily (or press Enter to skip):');
+          this.step = 'location';
+        } else {
+          // User wants to type manually
+          this.latitude = null;
+          this.longitude = null;
+          this.locationReady = false;
+          this.bot('📍 Please type your location:');
+          this.step = 'location';
+        }
+        break;
 
       case 'location':
-        this.form.location = text;
+        // If GPS was used, append manual description
+        if (this.locationReady && this.form.location) {
+          this.form.location = text
+            ? `${this.form.location} (${text})`
+            : this.form.location;
+        } else {
+          this.form.location = text;
+        }
         this.step = 'confirm';
         this.showConfirmSummary();
         break;
@@ -240,8 +321,7 @@ export class ChatbotComponent implements AfterViewChecked {
   confirmSuggestion(accepted: boolean) {
     if (accepted) {
       this.suggestionConfirmed = true;
-      this.bot('📍 Where is the issue located?');
-      this.step = 'location';
+      this.detectLocation();  // ← ask GPS first
     } else {
       this.bot('No problem. What priority should this be? (LOW / MEDIUM / HIGH / EMERGENCY)');
       this.step = 'priority';
@@ -249,10 +329,14 @@ export class ChatbotComponent implements AfterViewChecked {
   }
 
   private showConfirmSummary() {
+    const locationLine = this.locationReady
+      ? `• Location: ${this.form.location} (GPS verified ✓)`
+      : `• Location: ${this.form.location}`;
+
     this.bot(
       `📋 Complaint summary:\n` +
       `• Description: ${this.form.description}\n` +
-      `• Location: ${this.form.location}\n` +
+      `${locationLine}\n` +
       `• Department: ${this.form.department}\n` +
       `• Priority: ${this.form.priority}\n\n` +
       `Type YES to submit or NO to cancel.`
@@ -263,13 +347,28 @@ export class ChatbotComponent implements AfterViewChecked {
     this.isLoading = true;
     this.http.post<any>(
       `${this.BASE}/submit-complaint`,
-      this.form,
+      {
+        title: this.form.title,
+        description: this.form.description,
+        location: this.form.location,
+        department: this.form.department,
+        priority: this.form.priority,
+        latitude: this.latitude,    // ← add
+        longitude: this.longitude    // ← add
+      },
       { headers: this.headers }
     ).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.bot(`✅ Complaint #${res.id} filed! Status: ${res.status} | Dept: ${res.department}`);
-        setTimeout(() => this.showMenu(), 2500);
+        const officerMsg = res.officer !== 'Unassigned'
+          ? `Officer ${res.officer} has been assigned.`
+          : 'No officer available yet — you will be notified when assigned.';
+        this.bot(
+          `✅ Complaint #${res.id} filed successfully!\n` +
+          `Status: ${res.status} | Dept: ${res.department}\n` +
+          `${officerMsg}`
+        );
+        setTimeout(() => this.showMenu(), 3000);
       },
       error: () => {
         this.isLoading = false;
@@ -277,7 +376,6 @@ export class ChatbotComponent implements AfterViewChecked {
       }
     });
   }
-
   // ── Track flow ─────────────────────────────────────────────────
 
   private handleTrack(text: string) {
