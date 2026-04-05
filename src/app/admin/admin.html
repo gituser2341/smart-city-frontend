@@ -16,21 +16,13 @@
 
   <!-- TABS -->
   <nav class="tab-bar" aria-label="Admin sections">
-    <button class="tab-btn" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">📊
-      Dashboard</button>
-    <button class="tab-btn" [class.active]="activeTab === 'complaints'" (click)="setTab('complaints')">📋
-      Complaints</button>
-    <button class="tab-btn" [class.active]="activeTab === 'officers'" (click)="setTab('officers')">👮 Officers</button>
-    <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add
-      Officer</button>
-    <button class="tab-btn" [class.active]="activeTab === 'add-dh'" (click)="setTab('add-dh')">
-      ⭐ Add DH
-    </button>
-    <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">
-      🤝 Coordination
-    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'dashboard'"    (click)="setTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" [class.active]="activeTab === 'complaints'"   (click)="setTab('complaints')">📋 Complaints</button>
+    <button class="tab-btn" [class.active]="activeTab === 'officers'"     (click)="setTab('officers')">👮 Officers</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-officer'"  (click)="setTab('add-officer')">➕ Add Officer</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-dh'"       (click)="setTab('add-dh')">⭐ Add DH</button>
+    <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">🤝 Coordination</button>
     <button class="tab-btn tab-heatmap" routerLink="/heatmap">🗺️ Heatmap</button>
-
   </nav>
 
   <div class="admin-body">
@@ -81,6 +73,10 @@
         <div class="status-card s-resolved">
           <div class="s-num">{{ stats.byStatus.RESOLVED || 0 }}</div>
           <div class="s-lbl">Resolved</div>
+        </div>
+        <div class="status-card s-escalated">
+          <div class="s-num">{{ stats.byStatus.ESCALATED || 0 }}</div>
+          <div class="s-lbl">Escalated</div>
         </div>
       </div>
 
@@ -134,6 +130,12 @@
     @if (activeTab === 'complaints') {
     <div>
       <h2 class="section-title">All Complaints</h2>
+
+      <!-- ── ASSIGN / REASSIGN SUCCESS MESSAGE ── -->
+      @if (reassignMessage) {
+        <output class="reassign-success-msg" aria-live="polite">{{ reassignMessage }}</output>
+      }
+
       <div class="complaints-list">
 
         @for (c of complaints; track c.id) {
@@ -142,46 +144,74 @@
             <h3 class="cc-title">{{ c.title }}</h3>
             <div class="cc-badges">
               <span class="badge" [ngClass]="{
-            'b-open': c.status === 'OPEN',
-            'b-progress': c.status === 'IN_PROGRESS',
-            'b-resolved': c.status === 'RESOLVED',
-          }">
-                {{ c.status }}
-              </span>
+                'b-open':      c.status === 'OPEN',
+                'b-progress':  c.status === 'IN_PROGRESS',
+                'b-resolved':  c.status === 'RESOLVED',
+                'b-escalated': c.status === 'ESCALATED'
+              }">{{ c.status }}</span>
               <span class="badge" [ngClass]="{
-            'p-low': c.priority === 'LOW',
-            'p-medium': c.priority === 'MEDIUM',
-            'p-high': c.priority === 'HIGH',
-            'p-emergency': c.priority === 'EMERGENCY'
-          }">
-                {{ c.priority }}
-              </span>
+                'p-low':       c.priority === 'LOW',
+                'p-medium':    c.priority === 'MEDIUM',
+                'p-high':      c.priority === 'HIGH',
+                'p-emergency': c.priority === 'EMERGENCY'
+              }">{{ c.priority }}</span>
             </div>
           </div>
+
           <p class="cc-desc">{{ c.description }}</p>
+
           <div class="cc-meta">
             <span>📍 {{ c.location }}</span>
             <span>🏢 {{ c.department }}</span>
             @if (c.deadline) {
-            <span>⏱ {{ getTimeRemaining(c.deadline) }}</span>
+              <span>⏱ {{ getTimeRemaining(c.deadline) }}</span>
             }
           </div>
+
+          <!-- ── ASSIGN / REASSIGN / LOCK BASED ON STATUS ── -->
           <div class="cc-assign">
-            <label [for]="'officer-select-' + c.id" class="visually-hidden">
-              Assign officer to complaint {{ c.id }}
-            </label>
-            <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelect>
-              <option value="">-- Assign Officer --</option>
-              @for (o of officers; track o.id) {
-              <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
-              }
-            </select>
-            <button class="btn-assign" (click)="assignOfficer(c.id, officerSelect.value)">
-              Assign
-            </button>
+
+            @if (c.status === 'RESOLVED') {
+              <!-- RESOLVED: fully locked -->
+              <span class="resolved-lock-badge">✅ Resolved — reassignment not allowed</span>
+
+            } @else if (c.status === 'OPEN') {
+              <!-- OPEN: first-time assign -->
+              <label [for]="'officer-select-' + c.id" class="visually-hidden">
+                Assign officer to complaint {{ c.id }}
+              </label>
+              <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectOpen>
+                <option value="">-- Assign Officer --</option>
+                @for (o of officers; track o.id) {
+                  <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+                }
+              </select>
+              <button class="btn-assign" (click)="assignNewOfficer(c.id, officerSelectOpen.value)">
+                Assign
+              </button>
+
+            } @else if (c.status === 'IN_PROGRESS' || c.status === 'ESCALATED') {
+              <!-- IN_PROGRESS / ESCALATED: reassign -->
+              <label [for]="'officer-select-' + c.id" class="visually-hidden">
+                Reassign officer to complaint {{ c.id }}
+              </label>
+              <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectReassign>
+                <option value="">-- Reassign Officer --</option>
+                @for (o of officers; track o.id) {
+                  <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+                }
+              </select>
+              <button class="btn-assign btn-reassign" (click)="assignOfficer(c.id, officerSelectReassign.value)">
+                Reassign
+              </button>
+            }
+
           </div>
+          <!-- ─────────────────────────────────────────────── -->
+
         </div>
         }
+
         @if (complaints.length === 0) {
         <div class="empty-state">
           <div class="empty-icon" aria-hidden="true">📭</div>
@@ -231,14 +261,14 @@
 
         <div class="field-group">
           <label class="field-label" for="officer-name">Full Name</label>
-          <input id="officer-name" type="text" [(ngModel)]="newOfficer.name" name="officerName" autocomplete="name"
-            placeholder="Officer full name" class="field-input" />
+          <input id="officer-name" type="text" [(ngModel)]="newOfficer.name" name="officerName"
+            autocomplete="name" placeholder="Officer full name" class="field-input" />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="officer-email">Email Address</label>
-          <input id="officer-email" type="email" [(ngModel)]="newOfficer.email" name="officerEmail" autocomplete="email"
-            placeholder="officer@city.gov" class="field-input" />
+          <input id="officer-email" type="email" [(ngModel)]="newOfficer.email" name="officerEmail"
+            autocomplete="email" placeholder="officer@city.gov" class="field-input" />
         </div>
 
         <div class="field-group">
@@ -263,6 +293,7 @@
     </div>
     }
 
+    <!-- ── ADD DH TAB ── -->
     @if (activeTab === 'add-dh') {
     <div>
       <h2 class="section-title">Add Department Head</h2>
@@ -279,14 +310,14 @@
 
         <div class="field-group">
           <label class="field-label" for="dh-name">Full Name</label>
-          <input id="dh-name" type="text" [(ngModel)]="newDH.name" name="dhName" autocomplete="name"
-            placeholder="e.g. Priya Sharma" class="field-input" />
+          <input id="dh-name" type="text" [(ngModel)]="newDH.name" name="dhName"
+            autocomplete="name" placeholder="e.g. Priya Sharma" class="field-input" />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="dh-email">Email Address</label>
-          <input id="dh-email" type="email" [(ngModel)]="newDH.email" name="dhEmail" autocomplete="off"
-            placeholder="dh@smartcity.gov" class="field-input" />
+          <input id="dh-email" type="email" [(ngModel)]="newDH.email" name="dhEmail"
+            autocomplete="off" placeholder="dh@smartcity.gov" class="field-input" />
         </div>
 
         <div class="field-group">
@@ -307,36 +338,26 @@
         </div>
 
         <button class="btn-add-officer" (click)="addDH()">+ Add Department Head</button>
-
       </div>
     </div>
     }
 
+    <!-- ── COORDINATION TAB ── -->
     @if (activeTab === 'coordination') {
     <div>
       <h2 class="section-title">Coordination Requests</h2>
-
       <div class="complaints-list">
         @for (r of coordinationRequests; track r.id) {
         <div class="complaint-card">
-
           <h3>Complaint ID: {{ r.complaintId }}</h3>
           <p>Requested Dept: {{ r.requestedDepartment }}</p>
           <p>Status: {{ r.status }}</p>
-
           <div class="cc-actions">
-            <button class="btn-assign" (click)="approveCoordination(r.id)">
-              ✅ Approve
-            </button>
-
-            <button class="btn-logout" (click)="rejectCoordination(r.id)">
-              ❌ Reject
-            </button>
+            <button class="btn-assign" (click)="approveCoordination(r.id)">✅ Approve</button>
+            <button class="btn-logout" (click)="rejectCoordination(r.id)">❌ Reject</button>
           </div>
-
         </div>
         }
-
         @if (coordinationRequests.length === 0) {
         <div class="empty-state">
           <p>No coordination requests</p>

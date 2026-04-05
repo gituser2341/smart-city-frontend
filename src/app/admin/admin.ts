@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
-interface StatusMap { OPEN: number; IN_PROGRESS: number; RESOLVED: number }
+interface StatusMap { OPEN: number; IN_PROGRESS: number; RESOLVED: number; ESCALATED: number; }
 interface DeptMap { WATER: number; ELECTRICITY: number; SANITATION: number; ROAD: number; }
 interface PriorityMap { LOW: number; MEDIUM: number; HIGH: number; EMERGENCY: number; }
 
@@ -51,7 +51,7 @@ interface NewDH {
 
 const DEFAULT_STATS: DashboardStats = {
   totalComplaints: 0, totalOfficers: 0, totalCitizens: 0,
-  byStatus: { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 },
+  byStatus: { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0, ESCALATED: 0 },
   byDepartment: { WATER: 0, ELECTRICITY: 0, SANITATION: 0, ROAD: 0 },
   byPriority: { LOW: 0, MEDIUM: 0, HIGH: 0, EMERGENCY: 0 },
 };
@@ -74,10 +74,13 @@ export class AdminComponent implements OnInit {
   newOfficer: NewOfficer = { name: '', email: '', password: '', department: '' };
   successMessage = '';
   errorMessage = '';
-  
+
   newDH: NewDH = { name: '', email: '', password: '', department: '' };
   dhSuccessMessage = '';
   dhErrorMessage = '';
+
+  // ── Assign / Reassign feedback message ──────────────────────
+  reassignMessage = '';
 
   constructor(
     private readonly http: HttpClient,
@@ -109,23 +112,24 @@ export class AdminComponent implements OnInit {
       next: (data) => {
         this.stats = {
           totalComplaints: data.totalComplaints ?? 0,
-          totalOfficers: data.totalOfficers ?? 0,
-          totalCitizens: data.totalCitizens ?? 0,
+          totalOfficers:   data.totalOfficers   ?? 0,
+          totalCitizens:   data.totalCitizens   ?? 0,
           byStatus: {
-            OPEN: data.byStatus?.OPEN ?? 0,
+            OPEN:        data.byStatus?.OPEN        ?? 0,
             IN_PROGRESS: data.byStatus?.IN_PROGRESS ?? 0,
-            RESOLVED: data.byStatus?.RESOLVED ?? 0,
+            RESOLVED:    data.byStatus?.RESOLVED    ?? 0,
+            ESCALATED:   data.byStatus?.ESCALATED   ?? 0,
           },
           byDepartment: {
-            WATER: data.byDepartment?.WATER ?? 0,
+            WATER:       data.byDepartment?.WATER       ?? 0,
             ELECTRICITY: data.byDepartment?.ELECTRICITY ?? 0,
-            SANITATION: data.byDepartment?.SANITATION ?? 0,
-            ROAD: data.byDepartment?.ROAD ?? 0,
+            SANITATION:  data.byDepartment?.SANITATION  ?? 0,
+            ROAD:        data.byDepartment?.ROAD        ?? 0,
           },
           byPriority: {
-            LOW: data.byPriority?.LOW ?? 0,
-            MEDIUM: data.byPriority?.MEDIUM ?? 0,
-            HIGH: data.byPriority?.HIGH ?? 0,
+            LOW:       data.byPriority?.LOW       ?? 0,
+            MEDIUM:    data.byPriority?.MEDIUM    ?? 0,
+            HIGH:      data.byPriority?.HIGH      ?? 0,
             EMERGENCY: data.byPriority?.EMERGENCY ?? 0,
           }
         };
@@ -164,15 +168,61 @@ export class AdminComponent implements OnInit {
     });
   }
 
-
+  // ── REASSIGN: only for IN_PROGRESS and ESCALATED ────────────
   assignOfficer(complaintId: number, officerId: string): void {
     if (!officerId) { return; }
+
+    const complaint = this.complaints.find(c => c.id === complaintId);
+
+    if (complaint?.status === 'RESOLVED') {
+      alert('Cannot reassign a resolved complaint.');
+      return;
+    }
+
+    if (complaint?.status === 'OPEN') {
+      alert('This complaint has not been assigned yet. Please assign an officer first.');
+      return;
+    }
+
     this.http.put(
       `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe({
-      next: () => { this.loadComplaints(); this.loadStats(); },
+      next: () => {
+        this.reassignMessage = `✅ Complaint #${complaintId} has been reassigned successfully!`;
+        setTimeout(() => { this.reassignMessage = ''; this.cdr.detectChanges(); }, 3000);
+        this.loadComplaints();
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
+      error: (err) => { console.error('Assign error:', err); }
+    });
+  }
+
+  // ── FIRST-TIME ASSIGN: only for OPEN ────────────────────────
+  assignNewOfficer(complaintId: number, officerId: string): void {
+    if (!officerId) { return; }
+
+    const complaint = this.complaints.find(c => c.id === complaintId);
+
+    if (complaint?.status !== 'OPEN') {
+      alert('This complaint is already assigned. Use Reassign instead.');
+      return;
+    }
+
+    this.http.put(
+      `http://localhost:8080/api/admin/assign/${complaintId}?officerId=${officerId}`,
+      {},
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.reassignMessage = `✅ Complaint #${complaintId} has been assigned successfully!`;
+        setTimeout(() => { this.reassignMessage = ''; this.cdr.detectChanges(); }, 3000);
+        this.loadComplaints();
+        this.loadStats();
+        this.cdr.detectChanges();
+      },
       error: (err) => { console.error('Assign error:', err); }
     });
   }
@@ -204,33 +254,32 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Add this method
-addDH(): void {
-  if (!this.newDH.name || !this.newDH.email || !this.newDH.password || !this.newDH.department) {
-    this.dhErrorMessage = 'All fields are required.';
-    setTimeout(() => { this.dhErrorMessage = ''; }, 3000);
-    return;
-  }
-
-  this.http.post(
-    'http://localhost:8080/api/admin/create-dh',
-    this.newDH,
-    { headers: this.getHeaders(), responseType: 'text' }
-  ).subscribe({
-    next: () => {
-      this.dhSuccessMessage = 'Department head added successfully!';
-      this.newDH = { name: '', email: '', password: '', department: '' };
-      this.loadStats();
-      setTimeout(() => { this.dhSuccessMessage = ''; }, 3000);
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      this.dhErrorMessage = (err.error as string) || 'Failed to add department head.';
+  addDH(): void {
+    if (!this.newDH.name || !this.newDH.email || !this.newDH.password || !this.newDH.department) {
+      this.dhErrorMessage = 'All fields are required.';
       setTimeout(() => { this.dhErrorMessage = ''; }, 3000);
-      this.cdr.detectChanges();
+      return;
     }
-  });
-}
+
+    this.http.post(
+      'http://localhost:8080/api/admin/create-dh',
+      this.newDH,
+      { headers: this.getHeaders(), responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.dhSuccessMessage = 'Department head added successfully!';
+        this.newDH = { name: '', email: '', password: '', department: '' };
+        this.loadStats();
+        setTimeout(() => { this.dhSuccessMessage = ''; }, 3000);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.dhErrorMessage = (err.error as string) || 'Failed to add department head.';
+        setTimeout(() => { this.dhErrorMessage = ''; }, 3000);
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   getTimeRemaining(deadline: string | undefined): string {
     if (!deadline) { return ''; }
@@ -253,7 +302,7 @@ addDH(): void {
     return 'OK';
   }
 
-  loadCoordinationRequests() {
+  loadCoordinationRequests(): void {
     this.http.get<any[]>(
       'http://localhost:8080/api/admin/coordination-requests',
       { headers: this.getHeaders() }
@@ -264,26 +313,27 @@ addDH(): void {
 
   setTab(tab: string): void {
     this.activeTab = tab;
+    this.reassignMessage = '';
   }
 
-  approveCoordination(id: number) {
+  approveCoordination(id: number): void {
     this.http.post(
       `http://localhost:8080/api/admin/approve-request/${id}`,
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe(() => {
-      alert("✅ Approved");
+      alert('✅ Approved');
       this.loadCoordinationRequests();
     });
   }
 
-  rejectCoordination(id: number) {
+  rejectCoordination(id: number): void {
     this.http.post(
       `http://localhost:8080/api/admin/reject-request/${id}`,
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe(() => {
-      alert("❌ Rejected");
+      alert('❌ Rejected');
       this.loadCoordinationRequests();
     });
   }
