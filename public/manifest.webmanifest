@@ -9,19 +9,21 @@
   "orientation": "portrait-primary",
   "lang": "en",
   "icons": [
-    { "src": "assets/icons/icon-192x192.png", "sizes": "192x192" }
+    { "src": "icons/icon-96x96.png", "sizes": "96x96" }
 ],
   "screenshots": [
     {
       "src": "assets/screenshots/citizen.png",
-      "sizes": "1280x720",
+      "sizes": "1366x630",
       "type": "image/png",
+      "form_factor": "wide",
       "label": "Citizen Dashboard"
     },
     {
       "src": "assets/screenshots/officer.png",
-      "sizes": "1280x720",
+      "sizes": "1366x632",
       "type": "image/png",
+      "form_factor": "wide",
       "label": "Officer Dashboard"
     }
   ],

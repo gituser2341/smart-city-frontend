@@ -108,5 +108,99 @@
   "error": "Failed to load notifications.",
   "emptyTitle": "No notifications yet",
   "emptySub": "You'll be notified when your complaint status changes"
+},
+"chatbot": {
+  "title": "CivicBot",
+  "sub": "Smart City Assistant",
+  "offline": "Offline — complaints will sync when connected",
+  "menu": {
+    "file": "📋 File a Complaint",
+    "track": "🔍 Track Complaint",
+    "faq": "❓ FAQ"
+  },
+  "input": {
+    "placeholder": "Type a message...",
+    "listening": "Listening...",
+    "back": "←",
+    "send": "➤"
+  },
+  "voice": {
+    "unsupported": "Voice input is not supported in your browser.",
+    "failed": "Voice input failed. Please type your message.",
+    "unclear": "I could not hear clearly. Please try again or type.",
+    "permissionDenied": "Microphone permission denied. Please allow mic access.",
+    "noSpeech": "No speech detected. Please try again.",
+    "network": "Network error. Check your connection.",
+    "aborted": "Voice input cancelled.",
+    "noMic": "No microphone found."
+  },
+  "register": {
+    "intro": "📋 Describe your complaint in detail.\nYou can type or use the 🎤 mic button to speak.\n\nExample: \"Water leakage near the school on main road\"",
+    "detecting": "📡 Detecting your location...",
+    "locationDetected": "📍 Location detected",
+    "locationConfirm": "Type YES to use it or NO to enter manually.",
+    "locationPermission": "Permission denied — please allow location in browser settings.",
+    "locationUnavailable": "Position unavailable — GPS signal not found.",
+    "locationTimeout": "Timed out — location took too long.",
+    "locationFallback": "📡 GPS unavailable. Trying network location...",
+    "locationManual": "📍 Please type your location:",
+    "locationLandmark": "📝 Add a landmark or street name (or press Enter to skip):",
+    "analyzed": "✅ I analyzed your complaint. Please confirm the details below.",
+    "sensitive": "🚨 Sensitive location detected",
+    "priorityUpgraded": "Priority upgraded.",
+    "conflict": "⚠️ Multiple departments detected. Please confirm the suggestion below.",
+    "confirm": "Type YES to submit or NO to cancel.",
+    "summary": "📋 Complaint summary:",
+    "summaryDescription": "• Description",
+    "summaryLocation": "• Location",
+    "summaryDepartment": "• Department",
+    "summaryPriority": "• Priority",
+    "summaryGps": "GPS verified ✓",
+    "submitSuccess": "✅ Complaint filed!",
+    "submitFailed": "❌ Submission failed. Please try again.",
+    "savedOffline": "📡 You're offline.\nYour complaint has been saved locally.\nIt will be submitted automatically when you're back online.",
+    "savedFallback": "⚠️ Submission failed. Saved locally.\nWill retry automatically when connection is restored.",
+    "cancelled": "❌ Cancelled. Returning to menu...",
+    "invalidPriority": "Please type: LOW, MEDIUM, HIGH, or EMERGENCY",
+    "priorityPrompt": "⚠️ What is the priority? Type: LOW, MEDIUM, HIGH, or EMERGENCY",
+    "yesNo": "Please type YES to submit or NO to cancel.",
+    "autoDetectFailed": "Could not auto-detect. Please type the location next.",
+    "editPriority": "No problem. What priority should this be? (LOW / MEDIUM / HIGH / EMERGENCY)"
+  },
+  "track": {
+    "intro": "🔍 Enter your complaint ID number (e.g. 101)",
+    "status": "Here is your complaint status:",
+    "notFound": "No complaint found with ID",
+    "failed": "Could not fetch status. Please try again.",
+    "invalidId": "Please enter a valid complaint ID.",
+    "another": "Would you like to track another complaint?"
+  },
+  "faq": {
+    "intro": "❓ Ask me anything about our services!",
+    "failed": "Sorry, I could not find an answer right now."
+  },
+  "suggestion": {
+    "department": "Department",
+    "priority": "Priority",
+    "confidence": "Confidence",
+    "sensitive": "Sensitive",
+    "conflict": "Multiple departments detected",
+    "confirm": "✅ Confirm",
+    "edit": "✏️ Edit"
+  },
+  "status": {
+    "label": "Status",
+    "priority": "Priority",
+    "department": "Department",
+    "officer": "Officer",
+    "escalated": "🚨 Escalated"
+  },
+  "sync": {
+    "back": "🌐 You're back online! Syncing",
+    "pending": "pending complaint(s)...",
+    "success": "complaint(s) submitted successfully!",
+    "failed": "complaint(s) failed to sync. Will retry when online."
+  },
+  "menu_greeting": "👋 Hi! I am CivicBot. How can I help you today?"
 }
 }

@@ -5,6 +5,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { OfflineQueueService } from '../../services/offline-queue.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';  
 
 type Mode = 'menu' | 'register' | 'track' | 'faq';
 type Step = 'description' | 'location' | 'confirm_location' | 'priority' | 'confirm';
@@ -37,7 +39,7 @@ interface SuggestionCard {
 @Component({
   selector: 'app-chatbot',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,TranslateModule],
   templateUrl: './chatbot.component.html',
   styleUrls: ['./chatbot.component.css']
 })
@@ -72,14 +74,21 @@ export class ChatbotComponent implements AfterViewChecked {
   };
   suggestionConfirmed = false;
 
+  //offline
+  isOffline = false;
+  syncMessage = '';
+
   private readonly BASE = 'http://localhost:8080/api/chatbot';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private offlineQueue: OfflineQueueService,private translate: TranslateService) {
     this.initVoice();
+    const savedLang = localStorage.getItem('lang') ?? 'en';
+    this.translate.use(savedLang);
   }
 
   ngAfterViewChecked() {
     this.scrollToBottom();
+    this.watchNetworkStatus();
   }
 
   private scrollToBottom() {
@@ -107,6 +116,10 @@ export class ChatbotComponent implements AfterViewChecked {
     this.push({ from: 'user', text });
   }
 
+  private t(key: string): string {
+    return this.translate.instant(key);
+  }
+
   toggle() {
     this.isOpen.update(v => !v);
     if (this.isOpen() && this.messages().length === 0) this.showMenu();
@@ -119,75 +132,79 @@ export class ChatbotComponent implements AfterViewChecked {
     this.longitude = null;
     this.locationReady = false;
     this.locationStatus = '';
-    this.form = {
-      title: '', description: '', location: '',
-      priority: 'LOW', department: ''
-    };
+    this.form = { title: '', description: '', location: '',
+                  priority: 'LOW', department: '' };
     this.suggestionConfirmed = false;
-    this.bot('👋 Hi! I am CivicBot. How can I help you today?');
+    this.bot(this.t('chatbot.menu_greeting'));
   }
 
   selectMode(mode: Mode) {
     this.mode = mode;
     if (mode === 'register') {
       this.step = 'description';
-      this.bot(
-        '📋 Describe your complaint in detail.\n' +
-        'You can type or use the 🎤 mic button to speak.\n\n' +
-        'Example: "Water leakage near the school on main road"'
-      );
+      this.bot(this.t('chatbot.register.intro'));
     } else if (mode === 'track') {
-      this.bot('🔍 Enter your complaint ID number (e.g. 101)');
+      this.bot(this.t('chatbot.track.intro'));
     } else if (mode === 'faq') {
-      this.bot('❓ Ask me anything about our services!');
+      this.bot(this.t('chatbot.faq.intro'));
     }
   }
 
   private detectLocation(): Promise<void> {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
-        this.bot('📍 Location not supported. Please type your location.');
+        this.bot(this.t('chatbot.register.locationManual'));
         this.step = 'location';
-        resolve();
-        return;
+        resolve(); return;
       }
-
-      this.bot('📡 Detecting your location...');
-
+      this.bot(this.t('chatbot.register.detecting'));
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.latitude = pos.coords.latitude;
-          this.longitude = pos.coords.longitude;
-          this.locationReady = true;
+          this.latitude       = pos.coords.latitude;
+          this.longitude      = pos.coords.longitude;
+          this.locationReady  = true;
           this.locationStatus = `${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
           this.bot(
-            `📍 Location detected: ${this.locationStatus}\n` +
-            `Type YES to use it or NO to enter manually.`
+            `${this.t('chatbot.register.locationDetected')}: ${this.locationStatus}\n` +
+            this.t('chatbot.register.locationConfirm')
           );
           this.step = 'confirm_location' as any;
           resolve();
         },
         (err) => {
-          // ← ADD THIS
-          console.error('Geolocation error code:', err.code);
-          console.error('Geolocation error message:', err.message);
-
-          const reason = {
-            1: 'Permission denied — please allow location in browser settings.',
-            2: 'Position unavailable — GPS signal not found.',
-            3: 'Timed out — location took too long to detect.'
-          }[err.code] ?? 'Unknown error.';
-
-          this.bot(`⚠️ ${reason} Please type your location instead.`);
+          console.error('Geolocation error:', err.code);
+          const reasons: Record<number, string> = {
+            1: this.t('chatbot.register.locationPermission'),
+            2: this.t('chatbot.register.locationUnavailable'),
+            3: this.t('chatbot.register.locationTimeout')
+          };
+          if (err.code === 2) {
+            this.bot(this.t('chatbot.register.locationFallback'));
+            this.http.get<any>('https://ipapi.co/json/').subscribe({
+              next: (res) => {
+                this.latitude       = res.latitude;
+                this.longitude      = res.longitude;
+                this.locationReady  = true;
+                this.locationStatus = `${res.city}, ${res.region}`;
+                this.bot(
+                  `${this.t('chatbot.register.locationDetected')}: ${this.locationStatus}\n` +
+                  this.t('chatbot.register.locationConfirm')
+                );
+                this.step = 'confirm_location' as any;
+              },
+              error: () => {
+                this.bot(this.t('chatbot.register.locationManual'));
+                this.step = 'location';
+              }
+            });
+            resolve(); return;
+          }
+          this.bot(`⚠️ ${reasons[err.code] ?? ''} ${this.t('chatbot.register.locationManual')}`);
           this.locationReady = false;
           this.step = 'location';
           resolve();
         },
-        {
-          timeout: 15000,           // ← increase from 8000 to 15000
-          enableHighAccuracy: false, // ← change to false — high accuracy often fails indoors
-          maximumAge: 60000          // ← accept cached position up to 1 minute old
-        }
+        { timeout: 15000, enableHighAccuracy: false, maximumAge: 60000 }
       );
     });
   }
@@ -230,59 +247,52 @@ export class ChatbotComponent implements AfterViewChecked {
 
   private handleRegister(text: string) {
     switch (this.step) {
-
       case 'description':
         this.form.description = text;
-        this.form.title = text.slice(0, 60);
-        this.isLoading = true;
-
+        this.form.title       = text.slice(0, 60);
+        this.isLoading        = true;
         this.http.get<any>(
           `${this.BASE}/suggest-department?text=${encodeURIComponent(text)}`
         ).subscribe({
           next: (res) => {
-            this.isLoading = false;
+            this.isLoading       = false;
             this.form.department = res.department;
-            this.form.priority = res.priority;
-
+            this.form.priority   = res.priority;
             const msg = res.conflict
-              ? '⚠️ Multiple departments detected. Please confirm the suggestion below.'
+              ? this.t('chatbot.register.conflict')
               : res.sensitiveLocation
-                ? `🚨 Sensitive location detected: ${res.sensitiveLocation}. Priority upgraded.`
-                : '✅ I analyzed your complaint. Please confirm the details below.';
-
+                ? `${this.t('chatbot.register.sensitive')}: ${res.sensitiveLocation}. ${this.t('chatbot.register.priorityUpgraded')}`
+                : this.t('chatbot.register.analyzed');
             this.bot(msg, undefined, {
-              department: res.department,
-              priority: res.priority,
-              confidence: res.confidence,
-              conflict: res.conflict,
+              department:        res.department,
+              priority:          res.priority,
+              confidence:        res.confidence,
+              conflict:          res.conflict,
               sensitiveLocation: res.sensitiveLocation
             });
           },
           error: () => {
             this.isLoading = false;
-            this.bot('Could not auto-detect. Please type the location next.');
+            this.bot(this.t('chatbot.register.autoDetectFailed'));
             this.step = 'location';
           }
         });
         break;
+
       case 'confirm_location' as any:
         if (text.toUpperCase() === 'YES') {
-          // Use GPS coordinates, ask for landmark/description
           this.form.location = this.locationStatus;
-          this.bot('📝 Add a landmark or street name to help officers find it easily (or press Enter to skip):');
+          this.bot(this.t('chatbot.register.locationLandmark'));
           this.step = 'location';
         } else {
-          // User wants to type manually
-          this.latitude = null;
-          this.longitude = null;
+          this.latitude = null; this.longitude = null;
           this.locationReady = false;
-          this.bot('📍 Please type your location:');
+          this.bot(this.t('chatbot.register.locationManual'));
           this.step = 'location';
         }
         break;
 
       case 'location':
-        // If GPS was used, append manual description
         if (this.locationReady && this.form.location) {
           this.form.location = text
             ? `${this.form.location} (${text})`
@@ -296,8 +306,8 @@ export class ChatbotComponent implements AfterViewChecked {
 
       case 'priority':
         const p = text.toUpperCase();
-        if (!['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'].includes(p)) {
-          this.bot('Please type: LOW, MEDIUM, HIGH, or EMERGENCY');
+        if (!['LOW','MEDIUM','HIGH','EMERGENCY'].includes(p)) {
+          this.bot(this.t('chatbot.register.invalidPriority'));
           return;
         }
         this.form.priority = p;
@@ -309,10 +319,10 @@ export class ChatbotComponent implements AfterViewChecked {
         if (text.toUpperCase() === 'YES') {
           this.submitComplaint();
         } else if (text.toUpperCase() === 'NO') {
-          this.bot('❌ Cancelled. Returning to menu...');
+          this.bot(this.t('chatbot.register.cancelled'));
           setTimeout(() => this.showMenu(), 1500);
         } else {
-          this.bot('Please type YES to submit or NO to cancel.');
+          this.bot(this.t('chatbot.register.yesNo'));
         }
         break;
     }
@@ -321,58 +331,57 @@ export class ChatbotComponent implements AfterViewChecked {
   confirmSuggestion(accepted: boolean) {
     if (accepted) {
       this.suggestionConfirmed = true;
-      this.detectLocation();  // ← ask GPS first
+      this.detectLocation();
     } else {
-      this.bot('No problem. What priority should this be? (LOW / MEDIUM / HIGH / EMERGENCY)');
+      this.bot(this.t('chatbot.register.editPriority'));
       this.step = 'priority';
     }
   }
 
   private showConfirmSummary() {
     const locationLine = this.locationReady
-      ? `• Location: ${this.form.location} (GPS verified ✓)`
-      : `• Location: ${this.form.location}`;
-
+      ? `${this.t('chatbot.register.summaryLocation')}: ${this.form.location} (${this.t('chatbot.register.summaryGps')})`
+      : `${this.t('chatbot.register.summaryLocation')}: ${this.form.location}`;
     this.bot(
-      `📋 Complaint summary:\n` +
-      `• Description: ${this.form.description}\n` +
+      `${this.t('chatbot.register.summary')}\n` +
+      `${this.t('chatbot.register.summaryDescription')}: ${this.form.description}\n` +
       `${locationLine}\n` +
-      `• Department: ${this.form.department}\n` +
-      `• Priority: ${this.form.priority}\n\n` +
-      `Type YES to submit or NO to cancel.`
+      `${this.t('chatbot.register.summaryDepartment')}: ${this.form.department}\n` +
+      `${this.t('chatbot.register.summaryPriority')}: ${this.form.priority}\n\n` +
+      this.t('chatbot.register.confirm')
     );
   }
-
   private submitComplaint() {
+    if (this.offlineQueue.isOffline()) {
+      this.offlineQueue.add({
+        title: this.form.title, description: this.form.description,
+        location: this.form.location, department: this.form.department,
+        priority: this.form.priority, latitude: this.latitude, longitude: this.longitude
+      });
+      this.bot(this.t('chatbot.register.savedOffline'));
+      setTimeout(() => this.showMenu(), 2500);
+      return;
+    }
     this.isLoading = true;
-    this.http.post<any>(
-      `${this.BASE}/submit-complaint`,
-      {
-        title: this.form.title,
-        description: this.form.description,
-        location: this.form.location,
-        department: this.form.department,
-        priority: this.form.priority,
-        latitude: this.latitude,    // ← add
-        longitude: this.longitude    // ← add
-      },
-      { headers: this.headers }
-    ).subscribe({
+    this.http.post<any>(`${this.BASE}/submit-complaint`, {
+      title: this.form.title, description: this.form.description,
+      location: this.form.location, department: this.form.department,
+      priority: this.form.priority, latitude: this.latitude, longitude: this.longitude
+    }, { headers: this.headers }).subscribe({
       next: (res) => {
         this.isLoading = false;
-        const officerMsg = res.officer !== 'Unassigned'
-          ? `Officer ${res.officer} has been assigned.`
-          : 'No officer available yet — you will be notified when assigned.';
-        this.bot(
-          `✅ Complaint #${res.id} filed successfully!\n` +
-          `Status: ${res.status} | Dept: ${res.department}\n` +
-          `${officerMsg}`
-        );
-        setTimeout(() => this.showMenu(), 3000);
+        this.bot(`${this.t('chatbot.register.submitSuccess')} #${res.id} | ${res.department}`);
+        setTimeout(() => this.showMenu(), 2500);
       },
       error: () => {
         this.isLoading = false;
-        this.bot('❌ Submission failed. Please try again.');
+        this.offlineQueue.add({
+          title: this.form.title, description: this.form.description,
+          location: this.form.location, department: this.form.department,
+          priority: this.form.priority, latitude: this.latitude, longitude: this.longitude
+        });
+        this.bot(this.t('chatbot.register.savedFallback'));
+        setTimeout(() => this.showMenu(), 2500);
       }
     });
   }
@@ -380,158 +389,189 @@ export class ChatbotComponent implements AfterViewChecked {
 
   private handleTrack(text: string) {
     const id = text.replace(/[^0-9]/g, '');
-    if (!id) { this.bot('Please enter a valid complaint ID.'); return; }
+    if (!id) { this.bot(this.t('chatbot.track.invalidId')); return; }
     this.isLoading = true;
-    this.http.get<any>(
-      `${this.BASE}/status/${id}`,
-      { headers: this.headers }
-    ).subscribe({
+    this.http.get<any>(`${this.BASE}/status/${id}`, { headers: this.headers }).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.bot('Here is your complaint status:', {
-          id: res.id,
-          title: res.title,
-          status: res.status,
-          priority: res.priority,
-          department: res.department,
-          assignedOfficer: res.assignedOfficer,
-          escalated: res.escalated
+        this.bot(this.t('chatbot.track.status'), {
+          id: res.id, title: res.title, status: res.status,
+          priority: res.priority, department: res.department,
+          assignedOfficer: res.assignedOfficer, escalated: res.escalated
         });
-        setTimeout(() => {
-          this.bot('Would you like to track another complaint?');
-        }, 500);
+        setTimeout(() => this.bot(this.t('chatbot.track.another')), 500);
       },
       error: (err) => {
         this.isLoading = false;
         this.bot(err.status === 404
-          ? `No complaint found with ID ${id}.`
-          : 'Could not fetch status. Please try again.');
+          ? `${this.t('chatbot.track.notFound')} ${id}.`
+          : this.t('chatbot.track.failed'));
       }
     });
   }
-
   // ── FAQ flow ───────────────────────────────────────────────────
 
   private handleFaq(text: string) {
     this.isLoading = true;
-    this.http.get<any>(
-      `${this.BASE}/faq?query=${encodeURIComponent(text)}`
-    ).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        this.bot(res.answer);
-      },
-      error: () => {
-        this.isLoading = false;
-        this.bot('Sorry, I could not find an answer right now.');
-      }
+    this.http.get<any>(`${this.BASE}/faq?query=${encodeURIComponent(text)}`).subscribe({
+      next: (res) => { this.isLoading = false; this.bot(res.answer); },
+      error: () => { this.isLoading = false; this.bot(this.t('chatbot.faq.failed')); }
     });
   }
 
   // ── Voice ──────────────────────────────────────────────────────
 
   private initVoice() {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) return;
-
-    this.recognition = new SpeechRecognition();
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    this.recognition = new SR();
     this.recognition.continuous = false;
     this.recognition.interimResults = true;
+    this.recognition.maxAlternatives = 1;
 
     this.recognition.onresult = (event: any) => {
-      let interim = '';
-      let final = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += t;
-        else interim += t;
-      }
-
-      this.liveTranscript = interim || final;
-
-      if (final) {
-        // ✅ ALWAYS use last result
-        const result = event.results[event.results.length - 1][0];
-        const confidence = result.confidence ?? 1;
-
-        // ✅ Store description properly
-        this.form.description = final;
-        this.form.title = final.slice(0, 60);
-
-        if (confidence < 0.3) {
-          this.bot(`🤔 I heard: "${final}". Is this correct? (YES/NO)`);
-          this.input = final;
-          this.isVoiceConfirming = true;
-          this.isListening = false;
-          return;
-        }
-
-        // ✅ Direct success flow
-        this.input = final;
-        this.isListening = false;
-
-        // 🔥 OPTIONAL: auto-send (recommended)
-        this.send();
-      }
-    };
-
-    this.recognition.onerror = (event: any) => {
-      console.error('Voice error:', event.error, event.message);
-      this.isListening = false;
-      this.liveTranscript = '';
-
-      const errorMessages: Record<string, string> = {
-        'not-allowed': 'Microphone permission denied. Please allow mic access.',
-        'no-speech': 'No speech detected. Please try again.',
-        'network': 'Network error. Check your connection.',
-        'aborted': 'Voice input cancelled.',
-        'audio-capture': 'No microphone found.',
-        'service-not-allowed': 'Speech service blocked. Use HTTPS or localhost.',
-      };
-
-      const msg = errorMessages[event.error] ?? `Voice error: ${event.error}`;
-      this.bot(msg);
-    };
-
-    this.recognition.onend = () => {
-      this.isListening = false;
-    };
+  let interim = '', final = '';
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    const t = event.results[i][0].transcript;
+    if (event.results[i].isFinal) final += t;
+    else interim += t;
   }
 
-  toggleVoice() {
-    if (!this.recognition) {
-      this.bot('Voice input is not supported in your browser.');
+  this.liveTranscript = interim || final;
+
+  if (final) {
+    const confidence = event.results[event.results.length - 1][0].confidence ?? 1;
+
+    if (confidence < 0.3) {
+      this.bot(`🤔 ${final}`);
+      this.isListening = false;
       return;
     }
-    if (this.isListening) {
-      this.recognition.stop();
-      this.isListening = false;
-    } else {
-      this.recognition.lang = this.voiceLang;
-      this.recognition.start();
-      this.isListening = true;
-      this.liveTranscript = '';
+
+    // Keyword map translation — synchronous, no API call
+    let processedText = final;
+    if (this.voiceLang === 'ta-IN') {
+      processedText = this.translateToEnglish(final);
     }
+
+    this.input       = processedText;
+    this.isListening = false;
+    this.send();
+  }
+};
+    this.recognition.onerror = (event: any) => {
+      console.error('Voice error:', event.error);
+      this.isListening = false; this.liveTranscript = '';
+      const map: Record<string, string> = {
+        'not-allowed':  this.t('chatbot.voice.permissionDenied'),
+        'no-speech':    this.t('chatbot.voice.noSpeech'),
+        'network':      this.t('chatbot.voice.network'),
+        'aborted':      this.t('chatbot.voice.aborted'),
+        'audio-capture': this.t('chatbot.voice.noMic')
+      };
+      this.bot(map[event.error] ?? this.t('chatbot.voice.failed'));
+    };
+
+    this.recognition.onend = () => { this.isListening = false; };
   }
 
-  toggleVoiceLang() {
-    this.voiceLang = this.voiceLang === 'en-IN' ? 'ta-IN' : 'en-IN';
-    if (this.isListening) {
-      this.recognition.stop();
-      setTimeout(() => {
-        this.recognition.lang = this.voiceLang;
-        this.recognition.start();
-      }, 300);
-    }
+  
+
+  private readonly TAMIL_KEYWORD_MAP: Record<string, string> = {
+  // Water
+  'நீர்': 'water', 'குழாய்': 'pipe', 'கசிவு': 'leakage',
+  'வெள்ளம்': 'flood', 'கழிவு நீர்': 'sewage', 'வடிகால்': 'drain',
+  // Electricity  
+  'மின்சாரம்': 'electricity', 'விளக்கு': 'light', 'மின்வெட்டு': 'power outage',
+  'கம்பி': 'wire', 'தெரு விளக்கு': 'streetlight',
+  // Road
+  'சாலை': 'road', 'குழி': 'pothole', 'நடைபாதை': 'footpath',
+  'உடைந்த': 'broken', 'சேதம்': 'damaged',
+  // Sanitation
+  'குப்பை': 'garbage', 'கழிவு': 'waste', 'துப்புரவு': 'sanitation',
+  'அழுக்கு': 'dirty', 'துர்நாற்றம்': 'smell',
+  // Sensitive locations
+  'பள்ளி': 'school', 'மருத்துவமனை': 'hospital',
+  'கல்லூரி': 'college', 'பேருந்து நிலையம்': 'bus stand',
+  'சந்தை': 'market', 'கோயில்': 'temple',
+  // Common descriptors
+  'அவசரம்': 'emergency', 'உடனடி': 'urgent',
+  'பெரிய': 'large', 'சிறிய': 'small', 'அருகே': 'near'
+};
+
+private translateToEnglish(text: string): string {
+  let result = text.toLowerCase();
+  const entries = Object.entries(this.TAMIL_KEYWORD_MAP)
+    .sort((a, b) => b[0].length - a[0].length);
+  for (const [tamil, english] of entries) {
+    result = result.replaceAll(tamil, english);
   }
+  return result;
+}
+ toggleVoice() {
+  if (!this.recognition) {
+    this.bot(this.t('chatbot.voice.unsupported'));
+    return;
+  }
+  if (this.isListening) {
+    this.recognition.stop();
+    this.isListening = false;
+  } else {
+    setTimeout(() => {
+      this.recognition.lang = this.voiceLang;
+      this.recognition.start();
+      this.isListening    = true;
+      this.liveTranscript = '';
+    }, 100);
+  }
+}
+
+  toggleVoiceLang() {
+  this.voiceLang = this.voiceLang === 'en-IN' ? 'ta-IN' : 'en-IN';
+  // Recognition lang matches voice lang
+  // but output is always translated to English before storing
+  if (this.isListening) {
+    this.recognition.stop();
+    setTimeout(() => {
+      this.recognition.lang = this.voiceLang;
+      this.recognition.start();
+    }, 300);
+  }
+}
 
   get voiceLangLabel() {
     return this.voiceLang === 'en-IN' ? 'EN' : 'தமிழ்';
   }
+
+  //offline complaint submisso=ion
+private watchNetworkStatus() {
+  this.isOffline = !navigator.onLine;
+
+  window.addEventListener('online', () => {
+    this.isOffline = false;
+    this.syncPending();
+  });
+
+  window.addEventListener('offline', () => {
+    this.isOffline = true;
+  });
+}
+
+private syncPending() {
+    const count = this.offlineQueue.pendingCount;
+    if (count === 0) return;
+    this.bot(`${this.t('chatbot.sync.back')} ${count} ${this.t('chatbot.sync.pending')}`);
+    this.offlineQueue.syncAll().then(result => {
+      if (result.success > 0)
+        this.bot(`✅ ${result.success} ${this.t('chatbot.sync.success')}`);
+      if (result.failed > 0)
+        this.bot(`⚠️ ${result.failed} ${this.t('chatbot.sync.failed')}`);
+    });
+  }
+
+get pendingCount() {
+  return this.offlineQueue.pendingCount;
+}
 
   back() { this.showMenu(); }
 }

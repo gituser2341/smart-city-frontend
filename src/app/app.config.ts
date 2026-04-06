@@ -1,42 +1,39 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { TranslateHttpLoader, TRANSLATE_HTTP_LOADER_CONFIG } from '@ngx-translate/http-loader';
-import { HttpClient } from '@angular/common/http';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { AuthInterceptor } from './auth-interceptor';
-import { routes } from './app.routes';
+import { provideHttpClient, HttpClient } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
+import { isDevMode } from '@angular/core';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { routes } from './app.routes';
 
-// Translate loader factory
-export function HttpLoaderFactory() {
-  return new TranslateHttpLoader();
+export class CustomTranslateLoader implements TranslateLoader {
+  constructor(private http: HttpClient) {}
+  getTranslation(lang: string): Observable<any> {
+    return this.http.get(`/assets/i18n/${lang}.json`);
+  }
+}
+
+export function loaderFactory(http: HttpClient) {
+  return new CustomTranslateLoader(http);
 }
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideHttpClient(withInterceptorsFromDi()),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { 
-      provide: TRANSLATE_HTTP_LOADER_CONFIG, 
-      useValue: { prefix: './assets/i18n/', suffix: '.json' } 
-    },
+    provideHttpClient(),
     importProvidersFrom(
       TranslateModule.forRoot({
-        fallbackLang: 'en',
+        fallbackLang: 'en',          // ← fixed deprecation
         loader: {
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory
+          provide:    TranslateLoader,
+          useFactory: loaderFactory,  // ← back to useFactory
+          deps:       [HttpClient]    // ← explicitly inject HttpClient
         }
       })
-    ),
-    provideAnimations(),
+    ),  
     provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),                   // enable in prod only
+      enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
     })
   ]

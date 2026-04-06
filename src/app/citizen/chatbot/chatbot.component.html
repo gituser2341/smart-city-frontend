@@ -5,180 +5,174 @@
   </button>
 
   @if (isOpen()) {
-    <div class="chatbot-panel">
+  <div class="chatbot-panel">
 
-      <!-- Header -->
-      <div class="chat-header">
-        <div class="chat-header-left">
-          <div class="chat-avatar">🤖</div>
-          <div>
-            <div class="chat-title">CivicBot</div>
-            <div class="chat-sub">Smart City Assistant</div>
-          </div>
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-title">{{ 'chatbot.title' | translate }}</div>
+          <div class="chat-sub">{{ 'chatbot.sub' | translate }}</div>
         </div>
-        <button class="chat-close" (click)="toggle()">✕</button>
       </div>
+      <button class="chat-close" (click)="toggle()">✕</button>
+    </div>
 
-      <!-- Messages -->
-      <div class="chat-messages" #msgContainer>
+    <!-- Messages -->
+    <div class="chat-messages" #msgContainer>
 
-        @for (m of messages(); track $index) {
-          <div class="msg-row" [class.msg-user]="m.from === 'user'">
-            @if (m.from === 'bot') {
-              <div class="msg-avatar">🤖</div>
+      @for (m of messages(); track $index) {
+      <div class="msg-row" [class.msg-user]="m.from === 'user'">
+        @if (m.from === 'bot') {
+        <div class="msg-avatar">🤖</div>
+        }
+        <div class="msg-bubble" [class.bubble-user]="m.from === 'user'">
+          {{ m.text }}
+
+          <!-- Status card -->
+          @if (m.card) {
+          <div class="status-card">
+            <div class="sc-title">{{ m.card.title }}</div>
+            <div class="sc-row">
+              <span class="sc-label">{{ 'chatbot.status.label' | translate }}</span>
+              <span class="sc-badge" [ngClass]="{
+        'sc-open':      m.card.status === 'OPEN',
+        'sc-progress':  m.card.status === 'IN_PROGRESS',
+        'sc-resolved':  m.card.status === 'RESOLVED',
+        'sc-escalated': m.card.status === 'ESCALATED'
+      }">{{ m.card.status }}</span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-label">{{ 'chatbot.status.priority' | translate }}</span>
+              <span class="sc-val">{{ m.card.priority }}</span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-label">{{ 'chatbot.status.department' | translate }}</span>
+              <span class="sc-val">{{ m.card.department }}</span>
+            </div>
+            <div class="sc-row">
+              <span class="sc-label">{{ 'chatbot.status.officer' | translate }}</span>
+              <span class="sc-val">{{ m.card.assignedOfficer }}</span>
+            </div>
+            @if (m.card.escalated) {
+            <div class="sc-escalated-banner">
+              {{ 'chatbot.status.escalated' | translate }}
+            </div>
             }
-            <div class="msg-bubble"
-              [class.bubble-user]="m.from === 'user'">
-              {{ m.text }}
+          </div>
+          }
 
-              <!-- Status card -->
-              @if (m.card) {
-                <div class="status-card">
-                  <div class="sc-title">{{ m.card.title }}</div>
-                  <div class="sc-row">
-                    <span class="sc-label">Status</span>
-                    <span class="sc-badge" [ngClass]="{
-                      'sc-open':      m.card.status === 'OPEN',
-                      'sc-progress':  m.card.status === 'IN_PROGRESS',
-                      'sc-resolved':  m.card.status === 'RESOLVED',
-                      'sc-escalated': m.card.status === 'ESCALATED'
-                    }">{{ m.card.status }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">Priority</span>
-                    <span class="sc-val">{{ m.card.priority }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">Department</span>
-                    <span class="sc-val">{{ m.card.department }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">Officer</span>
-                    <span class="sc-val">{{ m.card.assignedOfficer }}</span>
-                  </div>
-                  @if (m.card.escalated) {
-                    <div class="sc-escalated-banner">🚨 Escalated</div>
-                  }
-                </div>
-              }
 
-              <!-- AI suggestion card -->
-              @if (m.suggestion && !suggestionConfirmed) {
-                <div class="suggestion-card">
-                  <div class="sug-row">
-                    <span class="sug-label">Department</span>
-                    <span class="sug-val dept-badge">
-                      {{ m.suggestion.department }}
-                    </span>
-                  </div>
-                  <div class="sug-row">
-                    <span class="sug-label">Priority</span>
-                    <span class="sug-val" [ngClass]="{
-                      'pri-low':       m.suggestion.priority === 'LOW',
-                      'pri-medium':    m.suggestion.priority === 'MEDIUM',
-                      'pri-high':      m.suggestion.priority === 'HIGH',
-                      'pri-emergency': m.suggestion.priority === 'EMERGENCY'
-                    }">{{ m.suggestion.priority }}</span>
-                  </div>
-                  <div class="sug-row">
-                    <span class="sug-label">Confidence</span>
-                    <div class="conf-bar-wrap">
-                      <div class="conf-bar"
-                        [style.width.%]="m.suggestion.confidence">
-                      </div>
-                    </div>
-                    <span class="sug-val">{{ m.suggestion.confidence }}%</span>
-                  </div>
-                  @if (m.suggestion.sensitiveLocation) {
-                    <div class="sug-sensitive">
-                      🚨 Sensitive: {{ m.suggestion.sensitiveLocation }}
-                    </div>
-                  }
-                  @if (m.suggestion.conflict) {
-                    <div class="sug-conflict">
-                      ⚠️ Multiple departments detected
-                    </div>
-                  }
-                  <div class="sug-actions">
-                    <button class="sug-btn sug-yes"
-                      (click)="confirmSuggestion(true)">
-                      ✅ Confirm
-                    </button>
-                    <button class="sug-btn sug-no"
-                      (click)="confirmSuggestion(false)">
-                      ✏️ Edit
-                    </button>
-                  </div>
-                </div>
-              }
-
+          <!-- AI suggestion card -->
+          @if (m.suggestion && !suggestionConfirmed) {
+          <div class="suggestion-card">
+            <div class="sug-row">
+              <span class="sug-label">{{ 'chatbot.suggestion.department' | translate }}</span>
+              <span class="sug-val dept-badge">{{ m.suggestion.department }}</span>
+            </div>
+            <div class="sug-row">
+              <span class="sug-label">{{ 'chatbot.suggestion.priority' | translate }}</span>
+              <span class="sug-val" [ngClass]="{
+        'pri-low':       m.suggestion.priority === 'LOW',
+        'pri-medium':    m.suggestion.priority === 'MEDIUM',
+        'pri-high':      m.suggestion.priority === 'HIGH',
+        'pri-emergency': m.suggestion.priority === 'EMERGENCY'
+      }">{{ m.suggestion.priority }}</span>
+            </div>
+            <div class="sug-row">
+              <span class="sug-label">{{ 'chatbot.suggestion.confidence' | translate }}</span>
+              <div class="conf-bar-wrap">
+                <div class="conf-bar" [style.width.%]="m.suggestion.confidence"></div>
+              </div>
+              <span class="sug-val">{{ m.suggestion.confidence }}%</span>
+            </div>
+            @if (m.suggestion.sensitiveLocation) {
+            <div class="sug-sensitive">
+              🚨 {{ 'chatbot.suggestion.sensitive' | translate }}: {{ m.suggestion.sensitiveLocation }}
+            </div>
+            }
+            @if (m.suggestion.conflict) {
+            <div class="sug-conflict">
+              ⚠️ {{ 'chatbot.suggestion.conflict' | translate }}
+            </div>
+            }
+            <div class="sug-actions">
+              <button class="sug-btn sug-yes" (click)="confirmSuggestion(true)">
+                {{ 'chatbot.suggestion.confirm' | translate }}
+              </button>
+              <button class="sug-btn sug-no" (click)="confirmSuggestion(false)">
+                {{ 'chatbot.suggestion.edit' | translate }}
+              </button>
             </div>
           </div>
-        }
+          }
 
-        @if (isLoading) {
-          <div class="msg-row">
-            <div class="msg-avatar">🤖</div>
-            <div class="msg-bubble typing">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-        }
 
-        @if (liveTranscript) {
-          <div class="live-transcript">
-            🎤 {{ liveTranscript }}
-          </div>
-        }
-
-      </div>
-
-      <!-- Menu -->
-      @if (mode === 'menu') {
-        <div class="chat-menu">
-          <button class="menu-btn" (click)="selectMode('register')">
-            📋 File a Complaint
-          </button>
-          <button class="menu-btn" (click)="selectMode('track')">
-            🔍 Track Complaint
-          </button>
-          <button class="menu-btn" (click)="selectMode('faq')">
-            ❓ FAQ
-          </button>
         </div>
+      </div>
+      }
+      @if (isOffline) {
+      <div class="offline-banner">
+        {{ 'chatbot.offline' | translate }}
+      </div>
       }
 
-      <!-- Input row -->
-      @if (mode !== 'menu') {
-        <div class="chat-input-row">
-          <button class="back-btn" (click)="back()">←</button>
-          <input class="chat-input"
-            [(ngModel)]="input"
-            [placeholder]="isListening ? 'Listening...' : 'Type a message...'"
-            (keydown.enter)="send()"
-            [disabled]="isLoading || isListening" />
-
-          <!-- Voice lang toggle -->
-          <button class="lang-toggle" (click)="toggleVoiceLang()"
-            [title]="'Switch voice language'">
-            {{ voiceLangLabel }}
-          </button>
-
-          <!-- Mic button -->
-          <button class="mic-btn"
-            [class.mic-active]="isListening"
-            (click)="toggleVoice()"
-            [title]="isListening ? 'Stop' : 'Speak'">
-            🎤
-          </button>
-
-          <button class="send-btn" (click)="send()"
-            [disabled]="isLoading || isListening">
-            ➤
-          </button>
+      @if (isLoading) {
+      <div class="msg-row">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble typing">
+          <span></span><span></span><span></span>
         </div>
+      </div>
+      }
+
+      @if (liveTranscript) {
+      <div class="live-transcript">
+        🎤 {{ liveTranscript }}
+      </div>
       }
 
     </div>
+
+    <!-- Menu -->
+    @if (mode === 'menu') {
+    <div class="chat-menu">
+      <button class="menu-btn" (click)="selectMode('register')">
+        {{ 'chatbot.menu.file' | translate }}
+      </button>
+      <button class="menu-btn" (click)="selectMode('track')">
+        {{ 'chatbot.menu.track' | translate }}
+      </button>
+      <button class="menu-btn" (click)="selectMode('faq')">
+        {{ 'chatbot.menu.faq' | translate }}
+      </button>
+    </div>
+    }
+
+
+    <!-- Input row -->
+    @if (mode !== 'menu') {
+    <div class="chat-input-row">
+      <button class="back-btn" (click)="back()">
+        {{ 'chatbot.input.back' | translate }}
+      </button>
+      <input class="chat-input" [(ngModel)]="input" [placeholder]="isListening
+        ? ('chatbot.input.listening' | translate)
+        : ('chatbot.input.placeholder' | translate)" (keydown.enter)="send()" [disabled]="isLoading || isListening" />
+      <button class="lang-toggle" (click)="toggleVoiceLang()">
+        {{ voiceLangLabel }}
+      </button>
+      <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
+        🎤
+      </button>
+      <button class="send-btn" (click)="send()" [disabled]="isLoading || isListening">
+        {{ 'chatbot.input.send' | translate }}
+      </button>
+    </div>
+    }
+
+
+  </div>
   }
 </div>

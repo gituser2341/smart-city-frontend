@@ -24,7 +24,6 @@ export const routes: Routes = [
   { path: 'create-complaint', component: CreateComplaintComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationComponent, canActivate: [authGuard] },
   { path: 'heatmap', component: HeatmapComponent, canActivate: [authGuard] },
-  { path: 'offline', component: OfflineComponent },
   { path: 'dh', component: DepartmentHeadComponent,canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];
