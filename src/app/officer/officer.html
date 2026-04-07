@@ -46,19 +46,13 @@
       <!-- Score Ring -->
       <div class="perf-card score-ring-card">
         <p class="perf-card-title">Overall Score</p>
-        <div class="ring-wrapper" role="img" [attr.aria-label]="'Performance score: ' + performanceScore + ' out of 100'">
+        <div class="ring-wrapper" role="img"
+          [attr.aria-label]="'Performance score: ' + performanceScore + ' out of 100'">
           <svg class="ring-svg" viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="60" r="50"
-              fill="none" stroke="#e5e7ef" stroke-width="10" />
-            <circle cx="60" cy="60" r="50"
-              fill="none"
-              [attr.stroke]="scoreColor"
-              stroke-width="10"
-              stroke-linecap="round"
-              stroke-dasharray="314"
-              [attr.stroke-dashoffset]="scoreDashOffset"
-              transform="rotate(-90 60 60)"
-              class="ring-progress" />
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7ef" stroke-width="10" />
+            <circle cx="60" cy="60" r="50" fill="none" [attr.stroke]="scoreColor" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="314" [attr.stroke-dashoffset]="scoreDashOffset"
+              transform="rotate(-90 60 60)" class="ring-progress" />
           </svg>
           <div class="ring-center">
             <span class="ring-number" [style.color]="scoreColor">{{ performanceScore }}</span>
@@ -78,18 +72,17 @@
         <h3 class="perf-card-title">Competency Breakdown</h3>
         <div class="metric-bars">
           @for (m of performanceMetrics; track m.label) {
-            <div class="metric-row">
-              <div class="metric-header-row">
-                <span class="metric-label">{{ m.label }}</span>
-                <span class="metric-value" [style.color]="getMetricColor(m.value)">{{ m.value }}</span>
-              </div>
-              <div class="metric-track" role="progressbar" [attr.aria-valuenow]="m.value" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="m.label">
-                <div class="metric-fill"
-                  [style.width.%]="m.value"
-                  [style.background]="getMetricColor(m.value)">
-                </div>
+          <div class="metric-row">
+            <div class="metric-header-row">
+              <span class="metric-label">{{ m.label }}</span>
+              <span class="metric-value" [style.color]="getMetricColor(m.value)">{{ m.value }}</span>
+            </div>
+            <div class="metric-track" role="progressbar" [attr.aria-valuenow]="m.value" aria-valuemin="0"
+              aria-valuemax="100" [attr.aria-label]="m.label">
+              <div class="metric-fill" [style.width.%]="m.value" [style.background]="getMetricColor(m.value)">
               </div>
             </div>
+          </div>
           }
         </div>
       </div>
@@ -151,112 +144,137 @@
     <h2 class="section-title">Assigned Complaints</h2>
 
     @if (isLoading) {
-      <div class="loading-state" role="status" aria-live="polite">
-        <div class="spinner" aria-hidden="true"></div>
-        <p>Loading complaints...</p>
-      </div>
+    <div class="loading-state" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Loading complaints...</p>
+    </div>
     } @else {
 
-      <div class="complaints-list">
+    <div class="complaints-list">
 
-        @if (complaints.length === 0) {
-          <div class="empty-state">
-            <div class="empty-icon" aria-hidden="true">📭</div>
-            <p>No complaints assigned yet</p>
-            <span>You'll see complaints here once admin assigns them to you</span>
-          </div>
-        }
+      @if (complaints.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📭</div>
+        <p>No complaints assigned yet</p>
+        <span>You'll see complaints here once admin assigns them to you</span>
+      </div>
+      }
 
-        @for (c of complaints; track c.id) {
-          <div class="complaint-card" [ngClass]="{'card-emergency': c.priority === 'EMERGENCY'}">
+      @for (c of complaints; track c.id) {
+      <div class="complaint-card" [ngClass]="{'card-emergency': c.priority === 'EMERGENCY'}">
 
-            <div class="complaint-header">
-              <h3 class="complaint-title">{{ c.title }}</h3>
-              <div class="badges">
-                <span class="status-badge"
-                  [ngClass]="{
+        <div class="complaint-header">
+          <h3 class="complaint-title">{{ c.title }}</h3>
+          <div class="badges">
+            <span class="status-badge" [ngClass]="{
                     'status-open':     c.status === 'OPEN',
                     'status-progress': c.status === 'IN_PROGRESS',
                     'status-resolved': c.status === 'RESOLVED'
                   }">
-                  {{ c.status }}
-                </span>
-                <span class="priority-badge"
-                  [ngClass]="{
+              {{ c.status }}
+            </span>
+            <span class="priority-badge" [ngClass]="{
                     'p-low':       c.priority === 'LOW',
                     'p-medium':    c.priority === 'MEDIUM',
                     'p-high':      c.priority === 'HIGH',
                     'p-emergency': c.priority === 'EMERGENCY'
                   }">
-                  {{ c.priority }}
-                </span>
-              </div>
-            </div>
-
-            <p class="complaint-desc">{{ c.description }}</p>
-
-            <div class="complaint-meta">
-              <span class="meta-item">🏢 {{ c.department }}</span>
-              <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
-              <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
-              @if (c.user) {
-                <span class="meta-item">👤 {{ c.user.name }}</span>
-              }
-            </div>
-
-            @if (c.imageUrl) {
-              <div class="complaint-image">
-                <img
-                  [src]="'http://localhost:8080/' + c.imageUrl"
-                  alt="Photo evidence for complaint: {{ c.title }}"
-                />
-              </div>
-            }
-
-            @if (c.latitude && c.longitude) {
-              <div class="map-section">
-                <p class="map-label">📍 Complaint Location</p>
-                <div class="map-frame">
-                  <iframe
-                    [src]="getSafeMapUrl(c.latitude, c.longitude)"
-                    class="map-iframe"
-                    title="Map showing location of complaint: {{ c.title }}"
-                    frameborder="0"
-                    loading="lazy">
-                  </iframe>
-                </div>
-              </div>
-            }
-
-            @if (c.status !== 'RESOLVED') {
-              <div class="status-update">
-                <span class="update-label">Update Status:</span>
-                <div class="status-buttons">
-                  <button
-                    class="btn-status btn-progress"
-                    [ngClass]="{'btn-active': c.status === 'IN_PROGRESS'}"
-                    (click)="updateStatus(c.id, 'IN_PROGRESS')">
-                    ⚙️ In Progress
-                  </button>
-                  <button
-                    class="btn-status btn-resolve"
-                    (click)="updateStatus(c.id, 'RESOLVED')">
-                    ✅ Mark Resolved
-                  </button>
-                </div>
-              </div>
-            }
-
-            @if (c.status === 'RESOLVED') {
-              <div class="resolved-badge">
-                ✅ This complaint has been resolved
-              </div>
-            }
-
+              {{ c.priority }}
+            </span>
           </div>
+        </div>
+
+        <p class="complaint-desc">{{ c.description }}</p>
+
+        <div class="complaint-meta">
+          <span class="meta-item">🏢 {{ c.department }}</span>
+          <span class="meta-item">🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+          <span class="meta-item">📍 {{ c.latitude }}, {{ c.longitude }}</span>
+          @if (c.user) {
+          <span class="meta-item">👤 {{ c.user.name }}</span>
+          }
+        </div>
+
+        @if (c.imageUrl) {
+        <div class="complaint-image">
+          <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Photo evidence for complaint: {{ c.title }}" />
+        </div>
+        }
+
+        @if (c.latitude && c.longitude) {
+        <div class="map-section">
+          <p class="map-label">📍 Complaint Location</p>
+          <div class="map-frame">
+            <iframe [src]="getSafeMapUrl(c.latitude, c.longitude)" class="map-iframe"
+              title="Map showing location of complaint: {{ c.title }}" frameborder="0" loading="lazy">
+            </iframe>
+          </div>
+        </div>
+        }
+
+        @if (c.status !== 'RESOLVED') {
+        <div class="status-update">
+          <span class="update-label">Update Status:</span>
+          <div class="status-buttons">
+            <button class="btn-status btn-progress" [ngClass]="{'btn-active': c.status === 'IN_PROGRESS'}"
+              (click)="updateStatus(c.id, 'IN_PROGRESS')">
+              ⚙️ In Progress
+            </button>
+            <button class="btn-status btn-resolve" (click)="updateStatus(c.id, 'RESOLVED')">
+              ✅ Mark Resolved
+            </button>
+          </div>
+        </div>
+        <!-- Coordination Request -->
+        <div class="coordination-section">
+          <button class="btn-coord" (click)="openCoordination(c.id)">
+            🤝 Request Coordination
+          </button>
+
+          @if (selectedComplaintId === c.id) {
+          <div class="coord-form">
+            <select [(ngModel)]="selectedDepartment">
+              <option value="">Select Department</option>
+              <option value="WATER">Water</option>
+              <option value="ELECTRICITY">Electricity</option>
+              <option value="ROAD">Road</option>
+              <option value="SANITATION">Sanitation</option>
+            </select>
+
+            <textarea [(ngModel)]="coordinationReason" class="coord-textarea"
+              placeholder="Reason for coordination (optional)..." rows="2">
+      </textarea>
+
+            <div class="coord-actions">
+              <button class="btn-send-coord" (click)="sendCoordination(c.id)">
+                📤 Send Request
+              </button>
+              <button class="btn-cancel-coord" (click)="selectedComplaintId = null">
+                ✕ Cancel
+              </button>
+            </div>
+
+            @if (coordSuccess) {
+            <p class="coord-success">{{ coordSuccess }}</p>
+            }
+            @if (coordError) {
+            <p class="coord-error">{{ coordError }}</p>
+            }
+          </div>
+          }
+        </div>
+        }
+
+        @if (c.status === 'RESOLVED') {
+        <div class="resolved-badge">
+          ✅ This complaint has been resolved
+        </div>
         }
 
       </div>
+      }
+
+    </div>
     }
   </section>
 

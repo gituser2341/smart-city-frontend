@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, Input,Output,EventEmitter , ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./add-officer.css']
 })
 export class AddOfficerComponent {
+  @Output() officerAdded = new EventEmitter<void>();
 
   @Input() set lockedDepartment(val: string) {
     if (val) {
@@ -73,6 +74,7 @@ export class AddOfficerComponent {
         this.email      = '';
         this.password   = '';
         if (!this.isDepartmentLocked) this.department = '';
+        this.officerAdded.emit();
         this.cdr.detectChanges();
       },
       error: (err) => {

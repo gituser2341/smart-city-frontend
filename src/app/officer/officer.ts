@@ -195,15 +195,11 @@ export class OfficerComponent implements OnInit {
   }
 
   sendCoordination(complaintId: number) {
-    if (!this.selectedDepartment) {
-      this.showError('Please select a department');
-      return;
-    }
-
     const reason = this.coordinationReason.trim() || 'Need coordination support';
 
     this.http.post(
       `http://localhost:8080/api/officer/request-coordination/${complaintId}?department=${this.selectedDepartment}&reason=${encodeURIComponent(reason)}`,
+      //                   ↑ change complaints to officer
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe({
@@ -215,7 +211,6 @@ export class OfficerComponent implements OnInit {
       },
       error: (err) => {
         console.error('Coordination error:', err);
-        this.cdr.detectChanges();
       }
     });
   }
