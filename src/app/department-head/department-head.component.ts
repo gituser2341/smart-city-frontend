@@ -15,36 +15,38 @@ import { AddOfficerComponent } from '../add-officer/add-officer';
 export class DepartmentHeadComponent implements OnInit {
 
   complaints = signal<any[]>([]);
-  escalated = signal<any[]>([]);
-  officers = signal<any[]>([]);
+  escalated  = signal<any[]>([]);
+  officers   = signal<any[]>([]);
   successMessage = signal('');
-  errorMessage = signal('');
+  errorMessage   = signal('');
 
   dhDepartment = '';
-  dhName = '';
-  activeTab = 'dashboard';
+  dhName       = '';
+  activeTab    = 'dashboard';
 
-  selectedOfficerMap: { [complaintId: number]: number } = {};
-  selectedPriorityMap: { [complaintId: number]: string } = {};
-  dhRatingMap: { [officerId: number]: number } = {};
-  dhFeedbackMap: { [officerId: number]: string } = {};
-  dhRatingComplaintMap: { [officerId: number]: number } = {};
+  // ✅ Track by complaintId (not officerId) — one rating per complaint
+  submittedRatingComplaintIds = new Set<number>();
 
-  // ── Assign / Reassign feedback message ──────────────────────
+  selectedOfficerMap:   { [complaintId: number]: number } = {};
+  selectedPriorityMap:  { [complaintId: number]: string } = {};
+  dhRatingMap:          { [officerId: number]: number }   = {};
+  dhFeedbackMap:        { [officerId: number]: string }   = {};
+  dhRatingComplaintMap: { [officerId: number]: number }   = {};
+
   reassignMessage = '';
 
   constructor(
     private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     const token = localStorage.getItem('token');
     if (!token) { this.router.navigate(['/login']); return; }
     const payload = JSON.parse(atob(token.split('.')[1]));
     this.dhDepartment = payload.department ?? '';
-    this.dhName = payload.name ?? 'Department Head';
+    this.dhName       = payload.name ?? 'Department Head';
     this.loadAll();
   }
 
@@ -57,6 +59,18 @@ export class DepartmentHeadComponent implements OnInit {
   private getHeaders() {
     const token = localStorage.getItem('token');
     if (!token) { this.router.navigate(['/login']); }
+
+    try {
+      const payload = JSON.parse(atob(token!.split('.')[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        localStorage.clear();
+        this.router.navigate(['/login']);
+      }
+    } catch {
+      localStorage.clear();
+      this.router.navigate(['/login']);
+    }
+
     return new HttpHeaders({ Authorization: `Bearer ${token ?? ''}` });
   }
 
@@ -71,7 +85,7 @@ export class DepartmentHeadComponent implements OnInit {
   }
 
   setTab(tab: string) {
-    this.activeTab = tab;
+    this.activeTab    = tab;
     this.reassignMessage = '';
   }
 
@@ -80,7 +94,16 @@ export class DepartmentHeadComponent implements OnInit {
       'http://localhost:8080/api/dh/complaints',
       { headers: this.getHeaders() }
     ).subscribe({
-      next: (data) => { this.complaints.set(data ?? []); this.cdr.detectChanges(); },
+      next: (data) => {
+        this.complaints.set(data ?? []);
+        // ✅ Pre-populate already-rated complaints from backend data
+        (data ?? []).forEach(c => {
+          if (c.dhRated) {
+            this.submittedRatingComplaintIds.add(c.id);
+          }
+        });
+        this.cdr.detectChanges();
+      },
       error: (err) => {
         if (err.status === 401) this.router.navigate(['/login']);
         else this.showError('Failed to load complaints');
@@ -105,26 +128,24 @@ export class DepartmentHeadComponent implements OnInit {
     ).subscribe({
       next: (data) => {
         this.officers.set(data ?? []);
-        this.officers().forEach(o => { this.loadOfficerRatings(o.id); });
+        this.officers().forEach(o => this.loadOfficerRatings(o.id));
         this.cdr.detectChanges();
       },
       error: () => this.showError('Failed to load officers')
     });
   }
 
-  // ── REASSIGN: only for IN_PROGRESS and ESCALATED ────────────
   reassign(complaintId: number) {
     const officerId = this.selectedOfficerMap[complaintId];
     if (!officerId) { this.showError('Please select an officer first'); return; }
 
     const complaint = this.complaints().find(c => c.id === complaintId)
-      ?? this.escalated().find(c => c.id === complaintId);
+                   ?? this.escalated().find(c => c.id === complaintId);
 
     if (complaint?.status === 'RESOLVED') {
       this.showError('Cannot reassign a resolved complaint.');
       return;
     }
-
     if (complaint?.status === 'OPEN') {
       this.showError('This complaint has not been assigned yet. Please assign an officer first.');
       return;
@@ -146,13 +167,11 @@ export class DepartmentHeadComponent implements OnInit {
     });
   }
 
-  // ── FIRST-TIME ASSIGN: only for OPEN ────────────────────────
   assignNewOfficer(complaintId: number) {
     const officerId = this.selectedOfficerMap[complaintId];
     if (!officerId) { this.showError('Please select an officer first'); return; }
 
     const complaint = this.complaints().find(c => c.id === complaintId);
-
     if (complaint?.status !== 'OPEN') {
       this.showError('This complaint is already assigned. Use Reassign instead.');
       return;
@@ -173,16 +192,16 @@ export class DepartmentHeadComponent implements OnInit {
     });
   }
 
-  get totalOpen() { return this.complaints().filter(c => c.status === 'OPEN').length; }
+  get totalOpen()       { return this.complaints().filter(c => c.status === 'OPEN').length; }
   get totalInProgress() { return this.complaints().filter(c => c.status === 'IN_PROGRESS').length; }
-  get totalResolved() { return this.complaints().filter(c => c.status === 'RESOLVED').length; }
-  get totalEscalated() { return this.escalated().length; }
+  get totalResolved()   { return this.complaints().filter(c => c.status === 'RESOLVED').length; }
+  get totalEscalated()  { return this.escalated().length; }
 
   getTimeRemaining(deadline: string | undefined): string {
     if (!deadline) return '';
     const diff = new Date(deadline).getTime() - Date.now();
     if (diff < 0) return `${Math.abs(Math.floor(diff / 3_600_000))}h overdue`;
-    const days = Math.floor(diff / 86_400_000);
+    const days  = Math.floor(diff / 86_400_000);
     const hours = Math.floor((diff % 86_400_000) / 3_600_000);
     return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
   }
@@ -207,13 +226,30 @@ export class DepartmentHeadComponent implements OnInit {
     );
   }
 
+  // ✅ Check if a specific complaint has already been DH-rated
+  isComplaintRated(complaintId: number): boolean {
+    return this.submittedRatingComplaintIds.has(complaintId);
+  }
+
+  // ✅ Check if ALL resolved complaints for an officer are already rated
+  allComplaintsRated(officerId: number): boolean {
+    const resolved = this.getResolvedByOfficer(officerId);
+    return resolved.length > 0 && resolved.every(c => this.isComplaintRated(c.id));
+  }
+
   submitDhRating(officerId: number) {
     const complaintId = this.dhRatingComplaintMap[officerId];
-    const rating = this.dhRatingMap[officerId];
-    const feedback = this.dhFeedbackMap[officerId] ?? '';
+    const rating      = this.dhRatingMap[officerId];
+    const feedback    = this.dhFeedbackMap[officerId] ?? '';
 
     if (!complaintId) { this.showError('Select a complaint to rate'); return; }
-    if (!rating) { this.showError('Select a star rating'); return; }
+    if (!rating)      { this.showError('Select a star rating');       return; }
+
+    // ✅ Guard: prevent re-submitting an already rated complaint
+    if (this.submittedRatingComplaintIds.has(complaintId)) {
+      this.showError('This complaint has already been rated');
+      return;
+    }
 
     this.http.post(
       `http://localhost:8080/api/dh/complaints/${complaintId}/rate?rating=${rating}&feedback=${encodeURIComponent(feedback)}`,
@@ -222,8 +258,9 @@ export class DepartmentHeadComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.showSuccess('Rating submitted successfully');
-        this.dhRatingMap[officerId] = 0;
-        this.dhFeedbackMap[officerId] = '';
+        this.submittedRatingComplaintIds.add(complaintId); // ✅ track by complaintId
+        this.dhRatingMap[officerId]          = 0;
+        this.dhFeedbackMap[officerId]        = '';
         this.dhRatingComplaintMap[officerId] = 0;
         this.loadOfficers();
         this.loadComplaints();
@@ -234,19 +271,20 @@ export class DepartmentHeadComponent implements OnInit {
   }
 
   loadOfficerRatings(officerId: number) {
-    this.http.get<any>(`http://localhost:8080/api/complaints/officer-rating/${officerId}`,
+    this.http.get<any>(
+      `http://localhost:8080/api/complaints/officer-rating/${officerId}`,
       { headers: this.getHeaders() }
-    )
-      .subscribe(res => {
-        const officer = this.officers().find(o => o.id === officerId);
-        if (officer) {
-          officer.dhAvg = res.dhAvg;
-          officer.citizenAvg = res.citizenAvg;
-        }
-      });
+    ).subscribe(res => {
+      const officer = this.officers().find(o => o.id === officerId);
+      if (officer) {
+        officer.dhAvg         = res.dhAvg;
+        officer.citizenAvg    = res.citizenAvg;
+        officer.performanceScore = res.performanceScore;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  // Add this method
   onOfficerAdded() {
     this.loadOfficers();
     this.cdr.detectChanges();

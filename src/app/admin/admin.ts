@@ -322,8 +322,8 @@ export class AdminComponent implements OnInit {
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe(() => {
-      alert('✅ Approved');
       this.loadCoordinationRequests();
+      this.cdr.detectChanges();
     });
   }
 
@@ -333,8 +333,8 @@ export class AdminComponent implements OnInit {
       {},
       { headers: this.getHeaders(), responseType: 'text' }
     ).subscribe(() => {
-      alert('❌ Rejected');
       this.loadCoordinationRequests();
+      this.cdr.detectChanges();
     });
   }
 

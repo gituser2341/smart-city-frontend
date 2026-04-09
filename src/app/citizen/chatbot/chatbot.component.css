@@ -149,6 +149,28 @@
 .send-btn:hover { background: #3251c9; }
 .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.confirm-actions {
+  display: flex; gap: 0.5rem; padding: 0.75rem;
+  border-top: 1px solid var(--color-border-tertiary, #e5e7ef);
+}
+
+.confirm-btn {
+  flex: 1; padding: 0.6rem 0.5rem;
+  border-radius: 9px; border: none;
+  font-size: 0.78rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
+}
+
+.confirm-yes    { background: #3b5bdb; color: #fff; }
+.confirm-yes:hover { background: #3251c9; }
+
+.confirm-retake { background: #f1f3f9; color: #374151; border: 1px solid #e5e7ef; }
+.confirm-retake:hover { background: #e5e7ef; }
+
+.confirm-no     { background: #fee2e2; color: #dc2626; }
+.confirm-no:hover { background: #fecaca; }
+
 /* Voice */
 .mic-btn {
   background: transparent; border: 1.5px solid #e5e7ef;
