@@ -197,7 +197,7 @@
 
         @if (c.imageUrl) {
         <div class="complaint-image">
-          <img [src]="'http://localhost:8080/' + c.imageUrl" alt="Photo evidence for complaint: {{ c.title }}" />
+          <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
         </div>
         }
 

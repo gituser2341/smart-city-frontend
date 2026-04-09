@@ -15,23 +15,23 @@ import { AddOfficerComponent } from '../add-officer/add-officer';
 export class DepartmentHeadComponent implements OnInit {
 
   complaints = signal<any[]>([]);
-  escalated  = signal<any[]>([]);
-  officers   = signal<any[]>([]);
+  escalated = signal<any[]>([]);
+  officers = signal<any[]>([]);
   successMessage = signal('');
-  errorMessage   = signal('');
+  errorMessage = signal('');
 
   dhDepartment = '';
-  dhName       = '';
-  activeTab    = 'dashboard';
+  dhName = '';
+  activeTab = 'dashboard';
 
   // ✅ Track by complaintId (not officerId) — one rating per complaint
   submittedRatingComplaintIds = new Set<number>();
 
-  selectedOfficerMap:   { [complaintId: number]: number } = {};
-  selectedPriorityMap:  { [complaintId: number]: string } = {};
-  dhRatingMap:          { [officerId: number]: number }   = {};
-  dhFeedbackMap:        { [officerId: number]: string }   = {};
-  dhRatingComplaintMap: { [officerId: number]: number }   = {};
+  selectedOfficerMap: { [complaintId: number]: number } = {};
+  selectedPriorityMap: { [complaintId: number]: string } = {};
+  dhRatingMap: { [officerId: number]: number } = {};
+  dhFeedbackMap: { [officerId: number]: string } = {};
+  dhRatingComplaintMap: { [officerId: number]: number } = {};
 
   reassignMessage = '';
 
@@ -39,14 +39,14 @@ export class DepartmentHeadComponent implements OnInit {
     private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const token = localStorage.getItem('token');
     if (!token) { this.router.navigate(['/login']); return; }
     const payload = JSON.parse(atob(token.split('.')[1]));
     this.dhDepartment = payload.department ?? '';
-    this.dhName       = payload.name ?? 'Department Head';
+    this.dhName = payload.name ?? 'Department Head';
     this.loadAll();
   }
 
@@ -85,7 +85,7 @@ export class DepartmentHeadComponent implements OnInit {
   }
 
   setTab(tab: string) {
-    this.activeTab    = tab;
+    this.activeTab = tab;
     this.reassignMessage = '';
   }
 
@@ -140,7 +140,7 @@ export class DepartmentHeadComponent implements OnInit {
     if (!officerId) { this.showError('Please select an officer first'); return; }
 
     const complaint = this.complaints().find(c => c.id === complaintId)
-                   ?? this.escalated().find(c => c.id === complaintId);
+      ?? this.escalated().find(c => c.id === complaintId);
 
     if (complaint?.status === 'RESOLVED') {
       this.showError('Cannot reassign a resolved complaint.');
@@ -192,16 +192,16 @@ export class DepartmentHeadComponent implements OnInit {
     });
   }
 
-  get totalOpen()       { return this.complaints().filter(c => c.status === 'OPEN').length; }
+  get totalOpen() { return this.complaints().filter(c => c.status === 'OPEN').length; }
   get totalInProgress() { return this.complaints().filter(c => c.status === 'IN_PROGRESS').length; }
-  get totalResolved()   { return this.complaints().filter(c => c.status === 'RESOLVED').length; }
-  get totalEscalated()  { return this.escalated().length; }
+  get totalResolved() { return this.complaints().filter(c => c.status === 'RESOLVED').length; }
+  get totalEscalated() { return this.escalated().length; }
 
   getTimeRemaining(deadline: string | undefined): string {
     if (!deadline) return '';
     const diff = new Date(deadline).getTime() - Date.now();
     if (diff < 0) return `${Math.abs(Math.floor(diff / 3_600_000))}h overdue`;
-    const days  = Math.floor(diff / 86_400_000);
+    const days = Math.floor(diff / 86_400_000);
     const hours = Math.floor((diff % 86_400_000) / 3_600_000);
     return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
   }
@@ -221,10 +221,13 @@ export class DepartmentHeadComponent implements OnInit {
   logout() { localStorage.clear(); this.router.navigate(['/login']); }
 
   getResolvedByOfficer(officerId: number): any[] {
-    return this.complaints().filter(
-      c => c.status === 'RESOLVED' && c.assignedOfficer?.id === officerId
-    );
-  }
+  return this.complaints().filter(
+    c => c.status === 'RESOLVED'
+      && c.assignedOfficer?.id === officerId
+      && !this.submittedRatingComplaintIds.has(c.id)
+      && !c.dhRated   // ← also exclude backend-flagged rated complaints
+  );
+}
 
   // ✅ Check if a specific complaint has already been DH-rated
   isComplaintRated(complaintId: number): boolean {
@@ -239,11 +242,11 @@ export class DepartmentHeadComponent implements OnInit {
 
   submitDhRating(officerId: number) {
     const complaintId = this.dhRatingComplaintMap[officerId];
-    const rating      = this.dhRatingMap[officerId];
-    const feedback    = this.dhFeedbackMap[officerId] ?? '';
+    const rating = this.dhRatingMap[officerId];
+    const feedback = this.dhFeedbackMap[officerId] ?? '';
 
     if (!complaintId) { this.showError('Select a complaint to rate'); return; }
-    if (!rating)      { this.showError('Select a star rating');       return; }
+    if (!rating) { this.showError('Select a star rating'); return; }
 
     // ✅ Guard: prevent re-submitting an already rated complaint
     if (this.submittedRatingComplaintIds.has(complaintId)) {
@@ -259,14 +262,19 @@ export class DepartmentHeadComponent implements OnInit {
       next: () => {
         this.showSuccess('Rating submitted successfully');
         this.submittedRatingComplaintIds.add(complaintId); // ✅ track by complaintId
-        this.dhRatingMap[officerId]          = 0;
-        this.dhFeedbackMap[officerId]        = '';
+        this.dhRatingMap[officerId] = 0;
+        this.dhFeedbackMap[officerId] = '';
         this.dhRatingComplaintMap[officerId] = 0;
         this.loadOfficers();
         this.loadComplaints();
         this.cdr.detectChanges();
       },
-      error: (err) => this.showError(err.error || 'Failed to submit rating')
+      error: (err) => {
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : err.error?.message ?? 'Failed to submit rating';
+        this.showError(msg);
+      }
     });
   }
 
@@ -277,8 +285,8 @@ export class DepartmentHeadComponent implements OnInit {
     ).subscribe(res => {
       const officer = this.officers().find(o => o.id === officerId);
       if (officer) {
-        officer.dhAvg         = res.dhAvg;
-        officer.citizenAvg    = res.citizenAvg;
+        officer.dhAvg = res.dhAvg;
+        officer.citizenAvg = res.citizenAvg;
         officer.performanceScore = res.performanceScore;
         this.cdr.detectChanges();
       }

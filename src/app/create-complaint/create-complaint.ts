@@ -282,8 +282,10 @@ export class CreateComplaintComponent implements OnInit {
 
     this.http.post<string>('http://localhost:8080/api/upload', formData, { responseType: 'text' as 'json' })
       .subscribe({
-        next: (url) => {
-          uploadedUrls.push(url);
+        next: (path) => {
+          console.log('Upload response:', path); // should be /uploads/filename.png
+          // ✅ Just use the path directly — no prepending
+          uploadedUrls.push(path);
           this.uploadFilesSequentially(index + 1, uploadedUrls, headers);
         },
         error: () => {
@@ -294,6 +296,8 @@ export class CreateComplaintComponent implements OnInit {
   }
 
   private submitWithMedia(imageUrls: string[], headers: HttpHeaders): void {
+    console.log('imageUrls being submitted:', imageUrls); // ✅ Check this
+
     this.http.post(
       'http://localhost:8080/api/complaints/create',
       {

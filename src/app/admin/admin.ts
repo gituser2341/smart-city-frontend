@@ -112,24 +112,24 @@ export class AdminComponent implements OnInit {
       next: (data) => {
         this.stats = {
           totalComplaints: data.totalComplaints ?? 0,
-          totalOfficers:   data.totalOfficers   ?? 0,
-          totalCitizens:   data.totalCitizens   ?? 0,
+          totalOfficers: data.totalOfficers ?? 0,
+          totalCitizens: data.totalCitizens ?? 0,
           byStatus: {
-            OPEN:        data.byStatus?.OPEN        ?? 0,
+            OPEN: data.byStatus?.OPEN ?? 0,
             IN_PROGRESS: data.byStatus?.IN_PROGRESS ?? 0,
-            RESOLVED:    data.byStatus?.RESOLVED    ?? 0,
-            ESCALATED:   data.byStatus?.ESCALATED   ?? 0,
+            RESOLVED: data.byStatus?.RESOLVED ?? 0,
+            ESCALATED: data.byStatus?.ESCALATED ?? 0,
           },
           byDepartment: {
-            WATER:       data.byDepartment?.WATER       ?? 0,
+            WATER: data.byDepartment?.WATER ?? 0,
             ELECTRICITY: data.byDepartment?.ELECTRICITY ?? 0,
-            SANITATION:  data.byDepartment?.SANITATION  ?? 0,
-            ROAD:        data.byDepartment?.ROAD        ?? 0,
+            SANITATION: data.byDepartment?.SANITATION ?? 0,
+            ROAD: data.byDepartment?.ROAD ?? 0,
           },
           byPriority: {
-            LOW:       data.byPriority?.LOW       ?? 0,
-            MEDIUM:    data.byPriority?.MEDIUM    ?? 0,
-            HIGH:      data.byPriority?.HIGH      ?? 0,
+            LOW: data.byPriority?.LOW ?? 0,
+            MEDIUM: data.byPriority?.MEDIUM ?? 0,
+            HIGH: data.byPriority?.HIGH ?? 0,
             EMERGENCY: data.byPriority?.EMERGENCY ?? 0,
           }
         };

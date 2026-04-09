@@ -30,7 +30,7 @@ interface Complaint {
 @Component({
   selector: 'app-citizen',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule,TranslateModule,ChatbotComponent],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule, ChatbotComponent],
   templateUrl: './citizen.html',
   styleUrls: ['./citizen.css']
 })
@@ -58,7 +58,7 @@ export class CitizenComponent implements OnInit, OnDestroy {
     private readonly translate: TranslateService
   ) {
     this.translate.setDefaultLang('en');
-    this.translate.use('en'); 
+    this.translate.use('en');
   }
 
   ngOnInit(): void {
@@ -107,11 +107,11 @@ export class CitizenComponent implements OnInit, OnDestroy {
       { headers: this.getHeaders() }
     ).subscribe({
       next: (data) => {
-        this.complaints  = data;
-        this.total       = data.length;
-        this.open        = data.filter(c => c.status === 'OPEN').length;
-        this.inProgress  = data.filter(c => c.status === 'IN_PROGRESS').length;
-        this.resolved    = data.filter(c => c.status === 'RESOLVED').length;
+        this.complaints = data;
+        this.total = data.length;
+        this.open = data.filter(c => c.status === 'OPEN').length;
+        this.inProgress = data.filter(c => c.status === 'IN_PROGRESS').length;
+        this.resolved = data.filter(c => c.status === 'RESOLVED').length;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -160,6 +160,13 @@ export class CitizenComponent implements OnInit, OnDestroy {
 
   raiseComplaint(): void {
     this.router.navigate(['/create-complaint']);
+  }
+
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return '';
+    // Handle both cases: '/uploads/file.png' and 'uploads/file.png'
+    const path = imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl;
+    return 'http://localhost:8080' + path;
   }
 
   logout(): void {

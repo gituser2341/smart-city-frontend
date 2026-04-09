@@ -320,52 +320,41 @@
           </div>
           <div class="score-num">{{ o.performanceScore }}/100</div>
 
+          @if (getResolvedByOfficer(o.id).length > 0) {
           <div class="dh-rate-section">
             <div class="rate-label">Rate a resolved complaint</div>
 
-            @if (getResolvedByOfficer(o.id).length === 0) {
-            <p class="no-resolved">No resolved complaints yet</p>
-
-            } @else if (allComplaintsRated(o.id)) {
-            <!-- ✅ All complaints rated — hide form entirely -->
-            <div class="all-rated-badge">
-              ✅ All resolved complaints have been rated
-            </div>
-
-            } @else {
-            <!-- Show form only if there are unrated complaints -->
             <select class="assign-select" [(ngModel)]="dhRatingComplaintMap[o.id]">
               <option value="">Select complaint</option>
               @for (c of getResolvedByOfficer(o.id); track c.id) {
-              <option [value]="c.id" [disabled]="isComplaintRated(c.id)">
-                {{ c.title }}{{ isComplaintRated(c.id) ? ' (already rated)' : '' }}
-              </option>
+              <option [value]="c.id">{{ c.title }}</option>
               }
             </select>
 
-            <div class="stars" role="group" aria-label="Rating stars">
+            <div class="stars" role="group">
               @for (star of [1,2,3,4,5]; track star) {
               <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star" (click)="dhRatingMap[o.id] = star"
-                role="button" tabindex="0" [attr.aria-label]="star + ' star'" (keydown.enter)="dhRatingMap[o.id] = star"
-                (keydown.space)="dhRatingMap[o.id] = star">
-                ★
-              </span>
+                role="button" tabindex="0" (keydown.enter)="dhRatingMap[o.id] = star">★</span>
               }
             </div>
 
-            <input type="text" class="field-input" [(ngModel)]="dhFeedbackMap[o.id]" [name]="'feedback-' + o.id"
-              autocomplete="off" placeholder="Optional feedback..." />
+            <input type="text" class="field-input" [(ngModel)]="dhFeedbackMap[o.id]"
+              placeholder="Optional feedback..." />
 
-            <button class="btn-assign" (click)="submitDhRating(o.id)"
-              [disabled]="isComplaintRated(dhRatingComplaintMap[o.id])">
+            <button class="btn-assign" style="margin-top:0.5rem" (click)="submitDhRating(o.id)">
               Submit Rating
             </button>
-
-            @if (isComplaintRated(dhRatingComplaintMap[o.id]) && dhRatingComplaintMap[o.id]) {
-            <p class="already-rated-hint">This complaint is already rated. Select another.</p>
-            }
+          </div>
+          } @else {
+          <div class="no-resolved"
+            style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-3); font-style:italic;">
+            @if (totalResolved === 0) {
+            No resolved complaints yet
+            } @else {
+            All complaints rated ✓
             }
           </div>
+          }
         </div>
         }
       </div>

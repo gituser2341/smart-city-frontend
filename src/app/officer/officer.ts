@@ -218,6 +218,12 @@ export class OfficerComponent implements OnInit {
     this.coordError = msg;
     setTimeout(() => { this.coordError = ''; this.cdr.detectChanges(); }, 3000);
   }
+
+  // Add this to officer.ts, admin.ts, department-head.ts, citizen.ts
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return '';
+    return 'http://localhost:8080/uploads/' + imageUrl;
+  }
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

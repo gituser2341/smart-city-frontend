@@ -1,9 +1,9 @@
 <div class="dashboard">
 
   @if (liveNotification) {
-    <div class="live-banner" role="status" aria-live="polite">
-      🔔 {{ liveNotification }}
-    </div>
+  <div class="live-banner" role="status" aria-live="polite">
+    🔔 {{ liveNotification }}
+  </div>
   }
 
   <!-- Header -->
@@ -63,160 +63,138 @@
     <div class="complaints-list">
 
       @for (c of complaints; track c.id) {
-        <div class="complaint-card">
+      <div class="complaint-card">
 
-          <div class="complaint-header">
-            <h3 class="complaint-title">{{ c.title }}</h3>
-            <div class="badges">
-              <span class="status-badge" [ngClass]="{
+        <div class="complaint-header">
+          <h3 class="complaint-title">{{ c.title }}</h3>
+          <div class="badges">
+            <span class="status-badge" [ngClass]="{
                 'status-open':      c.status === 'OPEN',
                 'status-progress':  c.status === 'IN_PROGRESS',
                 'status-resolved':  c.status === 'RESOLVED',
                 'status-escalated': c.status === 'ESCALATED'
               }">{{ 'status.' + c.status | translate }}</span>
-              <span class="priority-badge" [ngClass]="{
+            <span class="priority-badge" [ngClass]="{
                 'p-low':       c.priority === 'LOW',
                 'p-medium':    c.priority === 'MEDIUM',
                 'p-high':      c.priority === 'HIGH',
                 'p-emergency': c.priority === 'EMERGENCY'
               }">{{ 'priority.' + c.priority | translate }}</span>
-              @if (c.escalated) {
-                <span class="escalated-badge">
-                  🚨 {{ 'complaints.escalated' | translate }}
-                </span>
-              }
-            </div>
+            @if (c.escalated) {
+            <span class="escalated-badge">
+              🚨 {{ 'complaints.escalated' | translate }}
+            </span>
+            }
+          </div>
+        </div>
+
+        <p class="complaint-desc">{{ c.description }}</p>
+
+        <div class="complaint-meta">
+          <span class="meta-item">
+            🏢 {{ 'complaints.department' | translate }}: {{ c.department }}
+          </span>
+          <span class="meta-item">
+            🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}
+          </span>
+          <span class="meta-item">
+            📍 {{ c.latitude }}, {{ c.longitude }}
+          </span>
+          @if (c.deadline) {
+          <span class="meta-item">
+            ⏱ {{ 'complaints.deadline' | translate }}:
+            {{ c.deadline | date: 'dd MMM yyyy, h:mm a' }}
+          </span>
+          }
+        </div>
+
+        @if (c.imageUrl) {
+        <div class="complaint-image">
+          <img [src]="'http://localhost:8080/uploads/' + c.imageUrl"
+            [alt]="'Photo evidence for complaint: ' + c.title" />
+        </div>
+        }
+        @if (c.latitude && c.longitude) {
+        <div class="map-section">
+          <p class="map-label">📍 {{ 'map.label' | translate }}</p>
+          <div class="map-frame">
+            <iframe [src]="getSafeMapUrl(c.latitude, c.longitude)" class="map-iframe"
+              [title]="'Map showing location of complaint: ' + c.title" frameborder="0" loading="lazy">
+            </iframe>
+          </div>
+        </div>
+        }
+
+        <!-- Rating — RESOLVED + not yet rated -->
+        @if (c.status === 'RESOLVED' && !c.rated) {
+        <div class="rating-section">
+          <div class="rating-label">
+            ⭐ {{ 'rating.title' | translate }}
           </div>
 
-          <p class="complaint-desc">{{ c.description }}</p>
-
-          <div class="complaint-meta">
-            <span class="meta-item">
-              🏢 {{ 'complaints.department' | translate }}: {{ c.department }}
+          <div class="stars" role="group" [attr.aria-label]="'rating.title' | translate">
+            @for (star of [1,2,3,4,5]; track star) {
+            <span class="star" [class.filled]="(ratingMap[c.id] || 0) >= star" (click)="setRating(c.id, star)"
+              role="button" [attr.aria-label]="star + ' star'" tabindex="0" (keydown.enter)="setRating(c.id, star)"
+              (keydown.space)="setRating(c.id, star)">
+              ★
             </span>
-            <span class="meta-item">
-              🕐 {{ c.createdAt | date: 'dd MMM yyyy, h:mm a' }}
-            </span>
-            <span class="meta-item">
-              📍 {{ c.latitude }}, {{ c.longitude }}
-            </span>
-            @if (c.deadline) {
-              <span class="meta-item">
-                ⏱ {{ 'complaints.deadline' | translate }}:
-                {{ c.deadline | date: 'dd MMM yyyy, h:mm a' }}
-              </span>
             }
           </div>
 
-          @if (c.imageUrl) {
-            <div class="complaint-image">
-              <img
-                [src]="'http://localhost:8080/' + c.imageUrl"
-                [alt]="'Photo evidence for complaint: ' + c.title"
-              />
-            </div>
+          <input type="text" class="rating-comment" [(ngModel)]="ratingCommentMap[c.id]" [name]="'comment-' + c.id"
+            autocomplete="off" [placeholder]="'rating.placeholder' | translate"
+            [attr.aria-label]="'Feedback for complaint ' + c.id" />
+
+          @if (ratingSuccess[c.id]) {
+          <output class="rating-success" aria-live="polite">
+            {{ ratingSuccess[c.id] }}
+          </output>
+          }
+          @if (ratingError[c.id]) {
+          <div class="rating-error" role="alert">
+            {{ ratingError[c.id] }}
+          </div>
           }
 
-          @if (c.latitude && c.longitude) {
-            <div class="map-section">
-              <p class="map-label">📍 {{ 'map.label' | translate }}</p>
-              <div class="map-frame">
-                <iframe
-                  [src]="getSafeMapUrl(c.latitude, c.longitude)"
-                  class="map-iframe"
-                  [title]="'Map showing location of complaint: ' + c.title"
-                  frameborder="0"
-                  loading="lazy">
-                </iframe>
-              </div>
-            </div>
-          }
-
-          <!-- Rating — RESOLVED + not yet rated -->
-          @if (c.status === 'RESOLVED' && !c.rated) {
-            <div class="rating-section">
-              <div class="rating-label">
-                ⭐ {{ 'rating.title' | translate }}
-              </div>
-
-              <div class="stars" role="group"
-                [attr.aria-label]="'rating.title' | translate">
-                @for (star of [1,2,3,4,5]; track star) {
-                  <span
-                    class="star"
-                    [class.filled]="(ratingMap[c.id] || 0) >= star"
-                    (click)="setRating(c.id, star)"
-                    role="button"
-                    [attr.aria-label]="star + ' star'"
-                    tabindex="0"
-                    (keydown.enter)="setRating(c.id, star)"
-                    (keydown.space)="setRating(c.id, star)">
-                    ★
-                  </span>
-                }
-              </div>
-
-              <input
-                type="text"
-                class="rating-comment"
-                [(ngModel)]="ratingCommentMap[c.id]"
-                [name]="'comment-' + c.id"
-                autocomplete="off"
-                [placeholder]="'rating.placeholder' | translate"
-                [attr.aria-label]="'Feedback for complaint ' + c.id"
-              />
-
-              @if (ratingSuccess[c.id]) {
-                <output class="rating-success" aria-live="polite">
-                  {{ ratingSuccess[c.id] }}
-                </output>
-              }
-              @if (ratingError[c.id]) {
-                <div class="rating-error" role="alert">
-                  {{ ratingError[c.id] }}
-                </div>
-              }
-
-              <button class="btn-rate" (click)="submitRating(c.id)">
-                {{ 'rating.submit' | translate }}
-              </button>
-            </div>
-          }
-
-          <!-- Submitted rating display -->
-          @if (c.rated) {
-            <div class="rating-submitted">
-              <span class="stars-display"
-                [attr.aria-label]="('rating.rated' | translate) + ' ' + (c.rating ?? 0) + ' out of 5'">
-                @for (star of [1,2,3,4,5]; track star) {
-                  <span class="star"
-                    [class.filled]="(c.rating ?? 0) >= star"
-                    aria-hidden="true">★</span>
-                }
-              </span>
-              <span class="rated-label">
-                {{ 'rating.rated' | translate }} {{ c.rating }}/5
-              </span>
-              @if (c.ratingComment) {
-                <span class="rated-comment">"{{ c.ratingComment }}"</span>
-              }
-            </div>
-          }
-
+          <button class="btn-rate" (click)="submitRating(c.id)">
+            {{ 'rating.submit' | translate }}
+          </button>
         </div>
+        }
+
+        <!-- Submitted rating display -->
+        @if (c.rated) {
+        <div class="rating-submitted">
+          <span class="stars-display"
+            [attr.aria-label]="('rating.rated' | translate) + ' ' + (c.rating ?? 0) + ' out of 5'">
+            @for (star of [1,2,3,4,5]; track star) {
+            <span class="star" [class.filled]="(c.rating ?? 0) >= star" aria-hidden="true">★</span>
+            }
+          </span>
+          <span class="rated-label">
+            {{ 'rating.rated' | translate }} {{ c.rating }}/5
+          </span>
+          @if (c.ratingComment) {
+          <span class="rated-comment">"{{ c.ratingComment }}"</span>
+          }
+        </div>
+        }
+
+      </div>
       }
 
       @if (complaints.length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon" aria-hidden="true">📭</div>
-          <p>{{ 'complaints.empty' | translate }}</p>
-          <button class="btn-raise" (click)="raiseComplaint()">
-            {{ 'complaints.raiseFirst' | translate }}
-          </button>
-        </div>
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📭</div>
+        <p>{{ 'complaints.empty' | translate }}</p>
+        <button class="btn-raise" (click)="raiseComplaint()">
+          {{ 'complaints.raiseFirst' | translate }}
+        </button>
+      </div>
       }
 
     </div>
   </section>
-<app-chatbot></app-chatbot>
+  <app-chatbot></app-chatbot>
 </div>
