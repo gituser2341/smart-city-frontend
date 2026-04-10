@@ -24,6 +24,7 @@ interface Complaint {
   escalated?: boolean;
   rated?: boolean;
   rating?: number;
+  resolutionImageUrl?: string;
   ratingComment?: string;
 }
 
@@ -164,9 +165,8 @@ export class CitizenComponent implements OnInit, OnDestroy {
 
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return '';
-    // Handle both cases: '/uploads/file.png' and 'uploads/file.png'
-    const path = imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl;
-    return 'http://localhost:8080' + path;
+    // ✅ Always build from base — filename only stored in DB
+    return 'http://localhost:8080/uploads/' + imageUrl;
   }
 
   logout(): void {

@@ -132,12 +132,24 @@
             <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
           </div>
 
+          @if (c.imageUrl) {
+          <div class="complaint-image">
+            <p class="img-label">📎 Evidence Photo:</p>
+            <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
+          </div>
+          }
           <!-- ── ASSIGN / REASSIGN / LOCK BASED ON STATUS ── -->
           <div class="cc-assign">
 
             @if (c.status === 'RESOLVED') {
             <!-- RESOLVED: fully locked -->
-            <span class="resolved-lock-badge">✅ Resolved — reassignment not allowed</span>
+            <span class="resolved-lock-badge">✅ Resolved </span>
+            @if (c.resolutionImageUrl) {
+            <div class="resolution-proof">
+              <p class="img-label">📸 Resolution Proof from Officer:</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+            </div>
+            }
 
             } @else if (c.status === 'OPEN') {
             <!-- OPEN: first-time assign -->
@@ -222,6 +234,20 @@
               <span class="overdue-time">⏰ {{ getTimeRemaining(c.deadline) }}</span>
               <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
             </div>
+
+            @if (c.imageUrl) {
+            <div class="complaint-image">
+              <p class="img-label">📎 Evidence Photo:</p>
+              <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
+            </div>
+            }
+
+            @if (c.resolutionImageUrl) {
+            <div class="resolution-proof">
+              <p class="img-label">📸 Resolution Proof from Officer:</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+            </div>
+            }
             <div class="esc-priority-update">
               <select [(ngModel)]="selectedPriorityMap[c.id]">
                 <option value="">-- Update Priority --</option>

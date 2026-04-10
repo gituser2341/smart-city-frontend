@@ -125,6 +125,13 @@
         </div>
         }
 
+        @if (c.resolutionImageUrl) {
+        <div class="resolution-proof">
+          <p class="img-label">📸 Resolution Proof from Officer:</p>
+          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+        </div>
+        }
+
         <!-- Rating — RESOLVED + not yet rated -->
         @if (c.status === 'RESOLVED' && !c.rated) {
         <div class="rating-section">

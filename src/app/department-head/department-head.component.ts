@@ -293,6 +293,12 @@ export class DepartmentHeadComponent implements OnInit {
     });
   }
 
+  getImageUrl(imageUrl: string | undefined): string {
+    if (!imageUrl) return '';
+    // ✅ Always build from base — filename only stored in DB
+    return 'http://localhost:8080/uploads/' + imageUrl;
+  }
+
   onOfficerAdded() {
     this.loadOfficers();
     this.cdr.detectChanges();

@@ -217,11 +217,43 @@
           <span class="update-label">Update Status:</span>
           <div class="status-buttons">
             <button class="btn-status btn-progress" [ngClass]="{'btn-active': c.status === 'IN_PROGRESS'}"
-              (click)="updateStatus(c.id, 'IN_PROGRESS')">
+              [disabled]="isUpdatingStatus[c.id]" (click)="updateStatus(c.id, 'IN_PROGRESS')">
               ⚙️ In Progress
             </button>
-            <button class="btn-status btn-resolve" (click)="updateStatus(c.id, 'RESOLVED')">
-              ✅ Mark Resolved
+          </div>
+
+          <div class="resolve-section">
+            <p class="resolve-label">📸 Upload Resolution Proof to Resolve:</p>
+
+            @if (resolutionPreviewMap[c.id]) {
+            <div class="resolution-preview">
+              <img [src]="resolutionPreviewMap[c.id]" alt="Resolution proof preview" />
+              <button class="btn-remove-proof"
+                (click)="resolutionImageMap[c.id] = null; resolutionPreviewMap[c.id] = ''">
+                ✕ Remove
+              </button>
+            </div>
+            } @else {
+            <label class="upload-proof-btn">
+              📎 Choose Image
+              <input type="file" accept="image/jpeg,image/png" style="display:none"
+                (change)="onResolutionImageSelect($event, c.id)" />
+            </label>
+            }
+
+            @if (resolutionUploadError[c.id]) {
+            <div class="upload-error" role="alert">
+              ⚠️ {{ resolutionUploadError[c.id] }}
+            </div>
+            }
+
+            <button class="btn-status btn-resolve" [disabled]="isUpdatingStatus[c.id] || !resolutionImageMap[c.id]"
+              (click)="updateStatus(c.id, 'RESOLVED')">
+              @if (isUpdatingStatus[c.id]) {
+              <span>⏳ Resolving...</span>
+              } @else {
+              <span>✅ Mark Resolved</span>
+              }
             </button>
           </div>
         </div>
@@ -269,6 +301,13 @@
         <div class="resolved-badge">
           ✅ This complaint has been resolved
         </div>
+
+        @if (c.resolutionImageUrl) {
+        <div class="resolution-proof">
+          <p class="img-label">📸 Resolution Proof:</p>
+          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+        </div>
+        }
         }
 
       </div>
