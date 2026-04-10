@@ -1,19 +1,14 @@
 import { Component, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
+import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { inject } from '@angular/core';
+import { isDevMode } from '@angular/core';
 
-/* Routes that need a light (white) body background */
 const LIGHT_ROUTES = new Set([
-  '/home',
-  '/',
-  '/login',
-  '/register',
-  '/citizen',
-  '/officer',
-  '/admin',
-  '/create-complaint',
-  '/notifications',
-  '/heatmap',
+  '/home', '/', '/login', '/register', '/citizen',
+  '/officer', '/admin', '/dh', '/create-complaint',
+  '/notifications', '/heatmap',
 ]);
 
 @Component({
@@ -26,12 +21,12 @@ const LIGHT_ROUTES = new Set([
 export class AppComponent implements OnInit, OnDestroy {
 
   private readonly routerSub: Subscription;
+  private readonly swUpdate = inject(SwUpdate);
 
   constructor(
-    private readonly router: Router,
+    private readonly router:   Router,
     private readonly renderer: Renderer2
   ) {
-    /* Subscribe before ngOnInit so the very first navigation is caught */
     this.routerSub = this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
     ).subscribe((e) => {
@@ -40,23 +35,32 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    /* Apply theme for the initial URL on hard reload */
     this.applyBodyTheme(this.router.url);
-    globalThis.addEventListener('offline', () => {
-      this.router.navigate(['/offline']);
-    });
-    globalThis.addEventListener('online', () => {
-      this.router.navigate(['/citizen']);
-    });
+    this.initSwUpdate();
   }
 
   ngOnDestroy(): void {
     this.routerSub.unsubscribe();
   }
 
+  private initSwUpdate(): void {
+    if (!this.swUpdate.isEnabled) { return; }
+
+    // Auto-reload when new version is ready
+    this.swUpdate.versionUpdates.pipe(
+      filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY')
+    ).subscribe(() => {
+      window.location.reload();
+    });
+
+    // Check for updates every 6 hours
+    setInterval(() => {
+      this.swUpdate.checkForUpdate().catch(() => {});
+    }, 6 * 60 * 60 * 1000);
+  }
+
   private applyBodyTheme(url: string): void {
-    /* Strip query params and fragments for matching */
-    const path = url.split('?')[0].split('#')[0];
+    const path    = url.split('?')[0].split('#')[0];
     const isLight = LIGHT_ROUTES.has(path);
 
     if (isLight) {

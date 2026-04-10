@@ -1,7 +1,7 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, HttpClient } from '@angular/common/http';
-import { provideServiceWorker } from '@angular/service-worker';
+import { provideServiceWorker,SwUpdate  } from '@angular/service-worker';
 import { isDevMode } from '@angular/core';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
