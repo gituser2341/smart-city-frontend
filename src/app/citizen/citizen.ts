@@ -169,6 +169,10 @@ export class CitizenComponent implements OnInit, OnDestroy {
     return 'http://localhost:8080/uploads/' + imageUrl;
   }
 
+  openImage(url: string): void {
+    window.open(url, '_blank');
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

@@ -135,7 +135,8 @@
           @if (c.imageUrl) {
           <div class="complaint-image">
             <p class="img-label">📎 Evidence Photo:</p>
-            <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
+            <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title"
+              (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
           </div>
           }
           <!-- ── ASSIGN / REASSIGN / LOCK BASED ON STATUS ── -->
@@ -146,8 +147,9 @@
             <span class="resolved-lock-badge">✅ Resolved </span>
             @if (c.resolutionImageUrl) {
             <div class="resolution-proof">
-              <p class="img-label">📸 Resolution Proof from Officer:</p>
-              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+              <p class="img-label">📸 Resolution Proof:</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title"
+                (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
             </div>
             }
 

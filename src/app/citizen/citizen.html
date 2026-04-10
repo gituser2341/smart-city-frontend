@@ -107,13 +107,22 @@
           </span>
           }
         </div>
-
+        <div class="imgs">
         @if (c.imageUrl) {
         <div class="complaint-image">
-          <img [src]="'http://localhost:8080/uploads/' + c.imageUrl"
-            [alt]="'Photo evidence for complaint: ' + c.title" />
+          <p class="img-label">📎 Evidence Photo:</p>
+          <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title"
+            (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
         </div>
         }
+        @if (c.resolutionImageUrl) {
+        <div class="resolution-proof">
+          <p class="img-label">📸 Resolution Proof:</p>
+          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title"
+            (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
+        </div>
+        }
+        </div>
         @if (c.latitude && c.longitude) {
         <div class="map-section">
           <p class="map-label">📍 {{ 'map.label' | translate }}</p>
@@ -124,14 +133,6 @@
           </div>
         </div>
         }
-
-        @if (c.resolutionImageUrl) {
-        <div class="resolution-proof">
-          <p class="img-label">📸 Resolution Proof from Officer:</p>
-          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
-        </div>
-        }
-
         <!-- Rating — RESOLVED + not yet rated -->
         @if (c.status === 'RESOLVED' && !c.rated) {
         <div class="rating-section">

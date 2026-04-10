@@ -221,13 +221,13 @@ export class DepartmentHeadComponent implements OnInit {
   logout() { localStorage.clear(); this.router.navigate(['/login']); }
 
   getResolvedByOfficer(officerId: number): any[] {
-  return this.complaints().filter(
-    c => c.status === 'RESOLVED'
-      && c.assignedOfficer?.id === officerId
-      && !this.submittedRatingComplaintIds.has(c.id)
-      && !c.dhRated   // ← also exclude backend-flagged rated complaints
-  );
-}
+    return this.complaints().filter(
+      c => c.status === 'RESOLVED'
+        && c.assignedOfficer?.id === officerId
+        && !this.submittedRatingComplaintIds.has(c.id)
+        && !c.dhRated   // ← also exclude backend-flagged rated complaints
+    );
+  }
 
   // ✅ Check if a specific complaint has already been DH-rated
   isComplaintRated(complaintId: number): boolean {
@@ -297,6 +297,10 @@ export class DepartmentHeadComponent implements OnInit {
     if (!imageUrl) return '';
     // ✅ Always build from base — filename only stored in DB
     return 'http://localhost:8080/uploads/' + imageUrl;
+  }
+
+  openImage(url: string): void {
+    window.open(url, '_blank');
   }
 
   onOfficerAdded() {

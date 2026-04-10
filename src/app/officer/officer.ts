@@ -67,9 +67,9 @@ export class OfficerComponent implements OnInit {
   coordError = '';
 
   resolutionImageMap: Record<number, File | null> = {};
-resolutionPreviewMap: Record<number, string> = {};
-resolutionUploadError: Record<number, string> = {};
-isUpdatingStatus: Record<number, boolean> = {};
+  resolutionPreviewMap: Record<number, string> = {};
+  resolutionUploadError: Record<number, string> = {};
+  isUpdatingStatus: Record<number, boolean> = {};
 
   private readonly previousPeriodScore = 78;
 
@@ -128,78 +128,78 @@ isUpdatingStatus: Record<number, boolean> = {};
   }
 
   onResolutionImageSelect(event: Event, complaintId: number): void {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
 
-  if (!['image/jpeg', 'image/png'].includes(file.type)) {
-    this.resolutionUploadError[complaintId] = 'Only JPG and PNG allowed.';
-    return;
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    this.resolutionUploadError[complaintId] = 'Image must be under 10MB.';
-    return;
-  }
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      this.resolutionUploadError[complaintId] = 'Only JPG and PNG allowed.';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.resolutionUploadError[complaintId] = 'Image must be under 10MB.';
+      return;
+    }
 
-  this.resolutionImageMap[complaintId] = file;
-  this.resolutionUploadError[complaintId] = '';
+    this.resolutionImageMap[complaintId] = file;
+    this.resolutionUploadError[complaintId] = '';
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    this.resolutionPreviewMap[complaintId] = (e.target as FileReader).result as string;
-    this.cdr.detectChanges();
-  };
-  reader.readAsDataURL(file);
-}
-
-updateStatus(complaintId: number, status: string): void {
-  this.isUpdatingStatus[complaintId] = true;
-
-  if (status === 'RESOLVED' && this.resolutionImageMap[complaintId]) {
-    const formData = new FormData();
-    formData.append('file', this.resolutionImageMap[complaintId]!);
-
-    this.http.post<string>(
-      'http://localhost:8080/api/upload',
-      formData,
-      { responseType: 'text' as 'json' }
-    ).subscribe({
-      next: (filename) => {
-        this.submitStatusUpdate(complaintId, status, filename);
-      },
-      error: () => {
-        this.isUpdatingStatus[complaintId] = false;
-        alert('Failed to upload resolution image.');
-        this.cdr.detectChanges();
-      }
-    });
-  } else {
-    this.submitStatusUpdate(complaintId, status, null);
-  }
-}
-
-private submitStatusUpdate(complaintId: number, status: string, resolutionImageUrl: string | null): void {
-  let url = `http://localhost:8080/api/officer/update-status/${complaintId}?status=${status}`;
-  if (resolutionImageUrl) {
-    url += `&resolutionImageUrl=${encodeURIComponent(resolutionImageUrl)}`;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.resolutionPreviewMap[complaintId] = (e.target as FileReader).result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
   }
 
-  this.http.put(url, {}, { headers: this.getHeaders(), responseType: 'text' as 'json' })
-    .subscribe({
-      next: () => {
-        this.isUpdatingStatus[complaintId] = false;
-        this.resolutionImageMap[complaintId] = null;
-        this.resolutionPreviewMap[complaintId] = '';
-        this.loadComplaints();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isUpdatingStatus[complaintId] = false;
-        console.error('Update failed:', err);
-        this.cdr.detectChanges();
-      }
-    });
-}
+  updateStatus(complaintId: number, status: string): void {
+    this.isUpdatingStatus[complaintId] = true;
+
+    if (status === 'RESOLVED' && this.resolutionImageMap[complaintId]) {
+      const formData = new FormData();
+      formData.append('file', this.resolutionImageMap[complaintId]!);
+
+      this.http.post<string>(
+        'http://localhost:8080/api/upload',
+        formData,
+        { responseType: 'text' as 'json' }
+      ).subscribe({
+        next: (filename) => {
+          this.submitStatusUpdate(complaintId, status, filename);
+        },
+        error: () => {
+          this.isUpdatingStatus[complaintId] = false;
+          alert('Failed to upload resolution image.');
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.submitStatusUpdate(complaintId, status, null);
+    }
+  }
+
+  private submitStatusUpdate(complaintId: number, status: string, resolutionImageUrl: string | null): void {
+    let url = `http://localhost:8080/api/officer/update-status/${complaintId}?status=${status}`;
+    if (resolutionImageUrl) {
+      url += `&resolutionImageUrl=${encodeURIComponent(resolutionImageUrl)}`;
+    }
+
+    this.http.put(url, {}, { headers: this.getHeaders(), responseType: 'text' as 'json' })
+      .subscribe({
+        next: () => {
+          this.isUpdatingStatus[complaintId] = false;
+          this.resolutionImageMap[complaintId] = null;
+          this.resolutionPreviewMap[complaintId] = '';
+          this.loadComplaints();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isUpdatingStatus[complaintId] = false;
+          console.error('Update failed:', err);
+          this.cdr.detectChanges();
+        }
+      });
+  }
 
   loadPerformance(): void {
     const officerId = localStorage.getItem('userId');
@@ -279,11 +279,16 @@ private submitStatusUpdate(complaintId: number, status: string, resolutionImageU
     setTimeout(() => { this.coordError = ''; this.cdr.detectChanges(); }, 3000);
   }
 
-  
+
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return '';
     return 'http://localhost:8080/uploads/' + imageUrl;
   }
+
+  openImage(url: string): void {
+    window.open(url, '_blank');
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

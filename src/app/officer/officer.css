@@ -857,6 +857,36 @@
   margin: 0;
 }
 
+/* Evidence & Resolution Images */
+.complaint-image,
+.resolution-proof {
+  margin-top: 0.75rem;
+}
+
+.img-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-2, #555);
+  margin-bottom: 0.35rem;
+}
+
+.complaint-image img,
+.resolution-proof img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.complaint-image img:hover,
+.resolution-proof img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 /* Empty state */
 .empty-state {
   text-align: center;

@@ -197,7 +197,9 @@
 
         @if (c.imageUrl) {
         <div class="complaint-image">
-          <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
+          <p class="img-label">📎 Evidence Photo:</p>
+          <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title"
+            (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
         </div>
         }
 
@@ -227,7 +229,8 @@
 
             @if (resolutionPreviewMap[c.id]) {
             <div class="resolution-preview">
-              <img [src]="resolutionPreviewMap[c.id]" alt="Resolution proof preview" />
+              <img [src]="resolutionPreviewMap[c.id]" alt="Resolution proof preview"
+                (click)="openImage(resolutionPreviewMap[c.id])" title="Click to view full size" />
               <button class="btn-remove-proof"
                 (click)="resolutionImageMap[c.id] = null; resolutionPreviewMap[c.id] = ''">
                 ✕ Remove
@@ -305,7 +308,8 @@
         @if (c.resolutionImageUrl) {
         <div class="resolution-proof">
           <p class="img-label">📸 Resolution Proof:</p>
-          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
+          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title"
+            (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
         </div>
         }
         }
