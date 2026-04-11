@@ -37,9 +37,8 @@
           </div>
         </div>
 
-        <div class="progress-track" role="progressbar"
-          [attr.aria-valuenow]="currentStep" aria-valuemin="1" aria-valuemax="3"
-          [attr.aria-label]="'Step ' + currentStep + ' of 3'">
+        <div class="progress-track" role="progressbar" [attr.aria-valuenow]="currentStep" aria-valuemin="1"
+          aria-valuemax="3" [attr.aria-label]="'Step ' + currentStep + ' of 3'">
           <div class="progress-fill" [style.width]="progressWidth"></div>
         </div>
         <p class="progress-label">
@@ -53,235 +52,213 @@
 
       <!-- STEP 1 -->
       @if (currentStep === 1) {
-        <div class="step-panel">
-          <h2 class="step-title">{{ 'createComplaint.s1Title' | translate }}</h2>
-          <p class="step-subtitle">{{ 'createComplaint.s1Sub' | translate }}</p>
+      <div class="step-panel">
+        <h2 class="step-title">{{ 'createComplaint.s1Title' | translate }}</h2>
+        <p class="step-subtitle">{{ 'createComplaint.s1Sub' | translate }}</p>
 
-          <div class="field-group">
-            <label class="field-label" for="complaint-title">
-              {{ 'createComplaint.titleLabel' | translate }} *
-            </label>
-            <input
-              id="complaint-title"
-              type="text"
-              class="field-input"
-              [(ngModel)]="title"
-              name="title"
-              autocomplete="off"
-              [placeholder]="'createComplaint.titlePlaceholder' | translate"
-            />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="complaint-desc">
-              {{ 'createComplaint.descLabel' | translate }} *
-            </label>
-            <textarea
-              id="complaint-desc"
-              class="field-input field-textarea"
-              [(ngModel)]="description"
-              name="description"
-              autocomplete="off"
-              [placeholder]="'createComplaint.descPlaceholder' | translate">
-            </textarea>
-          </div>
-
-          <div class="step-actions">
-            <div></div>
-            <button class="btn-next" (click)="nextStep()" [disabled]="!title || !description">
-              {{ 'createComplaint.nextCategory' | translate }}
-            </button>
-          </div>
+        <div class="field-group">
+          <label class="field-label" for="complaint-title">
+            {{ 'createComplaint.titleLabel' | translate }} *
+          </label>
+          <input id="complaint-title" type="text" class="field-input" [(ngModel)]="title" name="title"
+            autocomplete="off" [placeholder]="'createComplaint.titlePlaceholder' | translate" />
         </div>
+
+        <div class="field-group">
+          <label class="field-label" for="complaint-desc">
+            {{ 'createComplaint.descLabel' | translate }} *
+          </label>
+          <textarea id="complaint-desc" class="field-input field-textarea" [(ngModel)]="description" name="description"
+            autocomplete="off" (blur)="autoDetect()" [placeholder]="'createComplaint.descPlaceholder' | translate">
+</textarea>
+
+          @if (isDetecting) {
+          <div class="detecting-msg">
+            🔍 Analyzing your complaint...
+          </div>
+          }
+
+          @if (detectedPriority && !isDetecting) {
+          <div class="detection-result">
+            <span class="detection-badge">🔍 Auto-detected</span>
+            <span>Department: <strong>{{ detectedDepartment }}</strong></span>
+            <span>Priority: <strong>{{ detectedPriority }}</strong></span>
+            @if (sensitiveLocation) {
+            <span class="detection-sensitive">
+              🚨 Sensitive location detected: {{ sensitiveLocation }} — priority upgraded
+            </span>
+            }
+            <span class="detection-hint">You can still change these in the next step.</span>
+          </div>
+          }
+        </div>
+
+        <div class="step-actions">
+          <div></div>
+          <button class="btn-next" (click)="nextStep()" [disabled]="!title || !description">
+            {{ 'createComplaint.nextCategory' | translate }}
+          </button>
+        </div>
+      </div>
       }
 
       <!-- STEP 2 -->
       @if (currentStep === 2) {
-        <div class="step-panel">
-          <h2 class="step-title">{{ 'createComplaint.s2Title' | translate }}</h2>
-          <p class="step-subtitle">{{ 'createComplaint.s2Sub' | translate }}</p>
+      <div class="step-panel">
+        <h2 class="step-title">{{ 'createComplaint.s2Title' | translate }}</h2>
+        <p class="step-subtitle">{{ 'createComplaint.s2Sub' | translate }}</p>
 
-          <div class="field-group">
-            <p class="field-label" id="dept-group-label">
-              {{ 'createComplaint.deptLabel' | translate }} *
-            </p>
-            <div class="dept-grid" role="group" aria-labelledby="dept-group-label">
-              @for (d of departments; track d.value) {
-                <div
-                  class="dept-card"
-                  [ngClass]="{'dept-selected': department === d.value}"
-                  (click)="setDepartment(d.value)"
-                  role="radio"
-                  [attr.aria-checked]="department === d.value"
-                  tabindex="0"
-                  (keydown.enter)="setDepartment(d.value)"
-                  (keydown.space)="setDepartment(d.value)">
-                  <span class="dept-icon" aria-hidden="true">{{ d.icon }}</span>
-                  <span class="dept-label">{{ 'dept.' + d.value | translate }}</span>
-                </div>
-              }
+        <div class="field-group">
+          <p class="field-label" id="dept-group-label">
+            {{ 'createComplaint.deptLabel' | translate }} *
+          </p>
+          <div class="dept-grid" role="group" aria-labelledby="dept-group-label">
+            @for (d of departments; track d.value) {
+            <div class="dept-card" [ngClass]="{'dept-selected': department === d.value}"
+              (click)="setDepartment(d.value)" role="radio" [attr.aria-checked]="department === d.value" tabindex="0"
+              (keydown.enter)="setDepartment(d.value)" (keydown.space)="setDepartment(d.value)">
+              <span class="dept-icon" aria-hidden="true">{{ d.icon }}</span>
+              <span class="dept-label">{{ 'dept.' + d.value | translate }}</span>
             </div>
-          </div>
-
-          <div class="step-actions">
-            <button class="btn-back-step" (click)="prevStep()">
-              {{ 'createComplaint.back2' | translate }}
-            </button>
-            <button class="btn-next" (click)="nextStep()" [disabled]="!department">
-              {{ 'createComplaint.nextEvidence' | translate }}
-            </button>
+            }
           </div>
         </div>
+
+        <div class="step-actions">
+          <button class="btn-back-step" (click)="prevStep()">
+            {{ 'createComplaint.back2' | translate }}
+          </button>
+          <button class="btn-next" (click)="nextStep()" [disabled]="!department">
+            {{ 'createComplaint.nextEvidence' | translate }}
+          </button>
+        </div>
+      </div>
       }
 
       <!-- STEP 3 -->
       @if (currentStep === 3) {
-        <div class="step-panel">
-          <h2 class="step-title">{{ 'createComplaint.s3Title' | translate }}</h2>
-          <p class="step-subtitle">{{ 'createComplaint.s3Sub' | translate }}</p>
+      <div class="step-panel">
+        <h2 class="step-title">{{ 'createComplaint.s3Title' | translate }}</h2>
+        <p class="step-subtitle">{{ 'createComplaint.s3Sub' | translate }}</p>
 
-          <div class="field-group">
+        <div class="field-group">
 
-            <div class="upload-label-row">
-              <p class="field-label" id="upload-label">
-                {{ 'createComplaint.uploadLabel' | translate }}
-              </p>
-              <span class="slot-counter" [ngClass]="{'slot-full': !canAddMore}" aria-live="polite">
-                {{ mediaFiles.length }} / {{ MAX_FILES }} {{ 'createComplaint.files' | translate }}
+          <div class="upload-label-row">
+            <p class="field-label" id="upload-label">
+              {{ 'createComplaint.uploadLabel' | translate }}
+            </p>
+            <span class="slot-counter" [ngClass]="{'slot-full': !canAddMore}" aria-live="polite">
+              {{ mediaFiles.length }} / {{ MAX_FILES }} {{ 'createComplaint.files' | translate }}
+            </span>
+          </div>
+
+          <div class="requirements-box" role="note" aria-label="Upload requirements">
+            <div class="req-col">
+              <span class="req-title">🖼️ {{ 'createComplaint.imgTitle' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.imgFormat' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.imgSize' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.imgMin' | translate }}</span>
+            </div>
+            <div class="req-divider" aria-hidden="true"></div>
+            <div class="req-col">
+              <span class="req-title">🎥 {{ 'createComplaint.vidTitle' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.vidFormat' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.vidSize' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.vidDuration' | translate }}</span>
+              <span class="req-row">{{ 'createComplaint.vidRes' | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Uploaded Media Grid -->
+          @if (mediaFiles.length > 0) {
+          <div class="media-grid" aria-label="Uploaded files">
+            @for (m of mediaFiles; track m.name; let i = $index) {
+            <div class="media-thumb">
+              @if (!m.isVideo) {
+              <img [src]="m.previewUrl" [alt]="'Preview of ' + m.name" class="thumb-img" />
+              } @else {
+              <video [src]="m.previewUrl" class="thumb-video" muted playsinline
+                [attr.aria-label]="'Video preview: ' + m.name"></video>
+              }
+              <div class="thumb-overlay" aria-hidden="true">
+                <span class="thumb-name">{{ m.name }}</span>
+                <span class="thumb-size">{{ m.sizeMB }} MB</span>
+              </div>
+              <button class="thumb-remove" (click)="removeMedia(i)" [attr.aria-label]="'Remove ' + m.name">✕</button>
+              <span class="thumb-type-badge" aria-hidden="true">
+                {{ m.isVideo ? '🎥' : '🖼️' }}
               </span>
             </div>
+            }
 
-            <div class="requirements-box" role="note" aria-label="Upload requirements">
-              <div class="req-col">
-                <span class="req-title">🖼️ {{ 'createComplaint.imgTitle' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.imgFormat' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.imgSize' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.imgMin' | translate }}</span>
-              </div>
-              <div class="req-divider" aria-hidden="true"></div>
-              <div class="req-col">
-                <span class="req-title">🎥 {{ 'createComplaint.vidTitle' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.vidFormat' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.vidSize' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.vidDuration' | translate }}</span>
-                <span class="req-row">{{ 'createComplaint.vidRes' | translate }}</span>
-              </div>
+            @if (canAddMore) {
+            <div class="media-add-slot" role="button" tabindex="0" (click)="addMoreInput.click()"
+              (keydown.enter)="addMoreInput.click()"
+              [attr.aria-label]="'Add more files, ' + remainingSlots + ' slots remaining'">
+              <input #addMoreInput type="file" accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
+                multiple (change)="onFileSelect($event)" style="display:none" aria-hidden="true" />
+              <span class="add-slot-icon" aria-hidden="true">＋</span>
+              <span class="add-slot-text">
+                {{ 'createComplaint.addMore' | translate }}<br />
+                ({{ remainingSlots }} {{ 'createComplaint.slotsLeft' | translate }})
+              </span>
             </div>
-
-            <!-- Uploaded Media Grid -->
-            @if (mediaFiles.length > 0) {
-              <div class="media-grid" aria-label="Uploaded files">
-                @for (m of mediaFiles; track m.name; let i = $index) {
-                  <div class="media-thumb">
-                    @if (!m.isVideo) {
-                      <img [src]="m.previewUrl" [alt]="'Preview of ' + m.name" class="thumb-img" />
-                    } @else {
-                      <video [src]="m.previewUrl" class="thumb-video" muted playsinline
-                        [attr.aria-label]="'Video preview: ' + m.name"></video>
-                    }
-                    <div class="thumb-overlay" aria-hidden="true">
-                      <span class="thumb-name">{{ m.name }}</span>
-                      <span class="thumb-size">{{ m.sizeMB }} MB</span>
-                    </div>
-                    <button class="thumb-remove" (click)="removeMedia(i)"
-                      [attr.aria-label]="'Remove ' + m.name">✕</button>
-                    <span class="thumb-type-badge" aria-hidden="true">
-                      {{ m.isVideo ? '🎥' : '🖼️' }}
-                    </span>
-                  </div>
-                }
-
-                @if (canAddMore) {
-                  <div class="media-add-slot" role="button" tabindex="0"
-                    (click)="addMoreInput.click()"
-                    (keydown.enter)="addMoreInput.click()"
-                    [attr.aria-label]="'Add more files, ' + remainingSlots + ' slots remaining'">
-                    <input
-                      #addMoreInput
-                      type="file"
-                      accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
-                      multiple
-                      (change)="onFileSelect($event)"
-                      style="display:none"
-                      aria-hidden="true"
-                    />
-                    <span class="add-slot-icon" aria-hidden="true">＋</span>
-                    <span class="add-slot-text">
-                      {{ 'createComplaint.addMore' | translate }}<br/>
-                      ({{ remainingSlots }} {{ 'createComplaint.slotsLeft' | translate }})
-                    </span>
-                  </div>
-                }
-              </div>
-            }
-
-            <!-- Initial Upload Zone -->
-            @if (mediaFiles.length === 0) {
-              <div class="upload-zone" role="button" tabindex="0"
-                (click)="fileInput.click()"
-                (keydown.enter)="fileInput.click()"
-                aria-labelledby="upload-label"
-                aria-describedby="upload-hint">
-                <input
-                  #fileInput
-                  type="file"
-                  accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp"
-                  multiple
-                  (change)="onFileSelect($event)"
-                  style="display:none"
-                  aria-hidden="true"
-                />
-                <div class="upload-icon" aria-hidden="true">📎</div>
-                <p class="upload-text">{{ 'createComplaint.clickUpload' | translate }}</p>
-                <span id="upload-hint" class="upload-hint">
-                  {{ 'createComplaint.upToFiles' | translate: { max: MAX_FILES } }}
-                </span>
-              </div>
-            }
-
-            @if (uploadError) {
-              <div class="upload-error" role="alert">⚠️ {{ uploadError }}</div>
-            }
-
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">{{ 'createComplaint.locationLabel' | translate }}</label>
-            <div class="location-box"
-              [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}"
-              aria-live="polite">
-              <span>{{ locationStatus }}</span>
-            </div>
-            @if (locationReady && latitude && longitude) {
-              <div class="map-preview">
-                <iframe
-                  [src]="getMapUrl(latitude, longitude)"
-                  class="map-iframe"
-                  title="Map showing your complaint location"
-                  frameborder="0"
-                  loading="lazy">
-                </iframe>
-              </div>
             }
           </div>
-
-          @if (message) {
-            <div class="error-msg" role="alert">⚠️ {{ message }}</div>
           }
 
-          <div class="step-actions">
-            <button class="btn-back-step" (click)="prevStep()">
-              {{ 'createComplaint.back2' | translate }}
-            </button>
-            <button class="btn-submit" (click)="submitComplaint()" [disabled]="isSubmitting">
-              @if (!isSubmitting) {
-                <span>🚀 {{ 'createComplaint.submit' | translate }}</span>
-              } @else {
-                <span>{{ 'createComplaint.submitting' | translate }}</span>
-              }
-            </button>
+          <!-- Initial Upload Zone -->
+          @if (mediaFiles.length === 0) {
+          <div class="upload-zone" role="button" tabindex="0" (click)="fileInput.click()"
+            (keydown.enter)="fileInput.click()" aria-labelledby="upload-label" aria-describedby="upload-hint">
+            <input #fileInput type="file" accept="image/jpeg,image/png,video/mp4,video/quicktime,video/3gpp" multiple
+              (change)="onFileSelect($event)" style="display:none" aria-hidden="true" />
+            <div class="upload-icon" aria-hidden="true">📎</div>
+            <p class="upload-text">{{ 'createComplaint.clickUpload' | translate }}</p>
+            <span id="upload-hint" class="upload-hint">
+              {{ 'createComplaint.upToFiles' | translate: { max: MAX_FILES } }}
+            </span>
           </div>
+          }
+
+          @if (uploadError) {
+          <div class="upload-error" role="alert">⚠️ {{ uploadError }}</div>
+          }
+
         </div>
+
+        <div class="field-group">
+          <label class="field-label">{{ 'createComplaint.locationLabel' | translate }}</label>
+          <div class="location-box" [ngClass]="{'loc-ready': locationReady, 'loc-waiting': !locationReady}"
+            aria-live="polite">
+            <span>{{ locationStatus }}</span>
+          </div>
+          @if (locationReady && latitude && longitude) {
+          <div class="map-preview">
+            <iframe [src]="getMapUrl(latitude, longitude)" class="map-iframe"
+              title="Map showing your complaint location" frameborder="0" loading="lazy">
+            </iframe>
+          </div>
+          }
+        </div>
+
+        @if (message) {
+        <div class="error-msg" role="alert">⚠️ {{ message }}</div>
+        }
+
+        <div class="step-actions">
+          <button class="btn-back-step" (click)="prevStep()">
+            {{ 'createComplaint.back2' | translate }}
+          </button>
+          <button class="btn-submit" (click)="submitComplaint()" [disabled]="isSubmitting">
+            @if (!isSubmitting) {
+            <span>🚀 {{ 'createComplaint.submit' | translate }}</span>
+            } @else {
+            <span>{{ 'createComplaint.submitting' | translate }}</span>
+            }
+          </button>
+        </div>
+      </div>
       }
 
     </div>

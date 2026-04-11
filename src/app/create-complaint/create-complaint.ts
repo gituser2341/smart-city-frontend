@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit ,ChangeDetectorRef} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -45,6 +45,12 @@ export class CreateComplaintComponent implements OnInit {
   isSubmitting = false;
   currentStep = 1;
 
+  isDetecting = false;
+  detectedPriority = '';
+  detectedDepartment = '';
+  sensitiveLocation = '';
+
+
   readonly IMAGE_MAX_SIZE_MB = 10;
   readonly IMAGE_MIN_WIDTH = 640;
   readonly IMAGE_MIN_HEIGHT = 480;
@@ -69,7 +75,8 @@ export class CreateComplaintComponent implements OnInit {
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly sanitizer: DomSanitizer,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly cdr:       ChangeDetectorRef
   ) {
     this.translate.setDefaultLang('en');
     const savedLang = localStorage.getItem('lang') ?? 'en';
@@ -137,6 +144,29 @@ export class CreateComplaintComponent implements OnInit {
     }
 
     input.value = '';
+  }
+
+  autoDetect(): void {
+    if (!this.description || this.description.trim().length < 5) return;
+
+    this.isDetecting = true;
+    this.cdr.detectChanges();
+    this.http.get<any>(
+      `http://localhost:8080/api/chatbot/suggest-department?text=${encodeURIComponent(this.description)}`
+    ).subscribe({
+      next: (res) => {
+        this.isDetecting = false;
+        this.priority = res.priority;
+        this.detectedPriority = res.priority;
+        this.detectedDepartment = res.department;
+        this.sensitiveLocation = res.sensitiveLocation ?? '';
+        if (!this.department) {
+          this.department = res.department;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => { this.isDetecting = false;this.cdr.detectChanges(); }
+    });
   }
 
   private validateImage(file: File): void {
