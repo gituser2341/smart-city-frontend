@@ -209,12 +209,14 @@ export class OfficerComponent implements OnInit {
       { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
-        const score = res.performanceScore;
+        const score = res.performanceScore ?? 0;
 
         this.performanceScore = score;
         this.scoreDashOffset = Math.round(314 * (1 - score / 100));
+        this.resolutionRate = this.total > 0
+          ? Math.round((this.resolved / this.total) * 100) : 0;
 
-        // UI logic
+        // ── Score status ──────────────────────────────
         if (score >= 90) {
           this.scoreColor = '#16a34a';
           this.scoreStatus = 'Exemplary';
@@ -235,9 +237,43 @@ export class OfficerComponent implements OnInit {
 
         this.scoreTrend = +(score - this.previousPeriodScore).toFixed(1);
 
-        // 🔥 OPTIONAL (show ratings in UI)
-        console.log('Citizen Avg:', res.citizenAvg);
-        console.log('DH Avg:', res.dhAvg);
+        // ── Real values from backend matching PerformanceService formula ──
+        const citizenAvg = res.citizenAvg ?? 0;  // 0–5 stars
+        const dhAvg = res.dhAvg ?? 0;  // 0–5 stars
+        const totalCases = res.total ?? this.total;
+        const resolvedCases = res.resolved ?? this.resolved;
+        const escalatedCases = res.escalated ?? 0;
+        const onTimeResolved = res.onTimeResolved ?? 0;
+
+        // Mirror exact weights from PerformanceService
+        const resolutionRate = totalCases > 0 ? Math.round((resolvedCases / totalCases) * 100) : 0;
+        const escalationFreeRate = totalCases > 0 ? Math.round(100 - (escalatedCases / totalCases) * 100) : 100;
+        const slaScore = totalCases > 0 ? Math.round((onTimeResolved / totalCases) * 100) : 0;
+        const citizenScore = Math.round((citizenAvg / 5) * 100);
+        const dhScore = Math.round((dhAvg / 5) * 100);
+
+        this.performanceMetrics = [
+          {
+            label: '✅ Resolution Rate',
+            value: resolutionRate          // weight 25%
+          },
+          {
+            label: '🚨 Escalation-Free Rate',
+            value: escalationFreeRate      // weight 20%
+          },
+          {
+            label: '⏱️ SLA Compliance',
+            value: slaScore                // weight 20%
+          },
+          {
+            label: '🏢 Dept. Head Rating',
+            value: dhScore                 // weight 20%
+          },
+          {
+            label: '⭐ Citizen Satisfaction',
+            value: citizenScore            // weight 15%
+          }
+        ];
 
         this.cdr.detectChanges();
       },
