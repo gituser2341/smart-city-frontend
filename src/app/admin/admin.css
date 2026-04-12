@@ -407,6 +407,88 @@
 }
 .btn-reassign:hover { background: #b91c1c !important; box-shadow: 0 4px 14px rgba(220,38,38,0.35) !important; }
 
+/* ─── IMAGES ──────────────────────────────────────────────────── */
+.imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 14px;
+  align-items: flex-start;
+}
+
+.complaint-image,
+.resolution-proof,
+.complaint-images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.img-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-3) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.complaint-image img,
+.resolution-proof img {
+  width: 130px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.complaint-image img:hover,
+.resolution-proof img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+  border-color: var(--brand);
+}
+
+.images-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.images-grid img {
+  width: 130px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.images-grid img:hover {
+  transform: scale(1.05);
+  border-color: var(--brand);
+}
+
+/* ─── COORDINATION ────────────────────────────────────────────── */
+.coord-card {
+  border-left-color: #7c3aed !important;
+}
+
+.coord-card:hover {
+  border-left-color: #7c3aed !important;
+  border-color: var(--purple-bd) !important;
+}
+
+.cc-actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
 /* ─── REASSIGN SUCCESS MESSAGE ────────────────────────────────── */
 .reassign-success-msg {
   display: flex;

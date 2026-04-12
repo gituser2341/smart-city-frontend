@@ -26,6 +26,9 @@ interface Complaint {
   department: keyof DeptMap;
   location?: string;
   deadline?: string;
+  imageUrl?: string;           // ← ADD
+  imageUrls?: string[];        // ← ADD
+  resolutionImageUrl?: string; // ← ADD
 }
 
 interface Officer {
@@ -337,6 +340,18 @@ export class AdminComponent implements OnInit {
       this.cdr.detectChanges();
     });
   }
+
+  getImageUrl(imageUrl: string | undefined): string {
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http')) {
+    imageUrl = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+  }
+  return 'http://localhost:8080/uploads/' + imageUrl;
+}
+
+openImage(url: string): void {
+  window.open(url, '_blank');
+}
 
   logout(): void {
     localStorage.clear();

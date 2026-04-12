@@ -131,24 +131,26 @@
             <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
           </div>
 
-          @if (c.imageUrl) {
-          <div class="complaint-image">
-            <p class="img-label">📎 Evidence Photo:</p>
-            <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title"
-              (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
+          <div class="imgs">
+            @if (c.imageUrl) {
+            <div class="complaint-image">
+              <p class="img-label">📎 Evidence</p>
+              <img [src]="getImageUrl(c.imageUrl)" [alt]="'Evidence for: ' + c.title"
+                (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
+            </div>
+            }
+            @if (c.status === 'RESOLVED' && c.resolutionImageUrl) {
+            <div class="resolution-proof">
+              <p class="img-label">📸 Resolution</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for: ' + c.title"
+                (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
+            </div>
+            }
           </div>
-          }
 
           <div class="cc-assign">
             @if (c.status === 'RESOLVED') {
             <span class="resolved-lock-badge">✅ Resolved</span>
-            @if (c.resolutionImageUrl) {
-            <div class="resolution-proof">
-              <p class="img-label">📸 Resolution Proof:</p>
-              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title"
-                (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
-            </div>
-            }
             } @else if (c.status === 'OPEN') {
             <label [for]="'dh-officer-select-' + c.id" class="visually-hidden">
               Assign officer to complaint {{ c.id }}
@@ -224,23 +226,23 @@
               <span>👮 {{ c.assignedOfficer?.name ?? 'Unassigned' }}</span>
             </div>
 
-            @if (c.imageUrl) {
-            <div class="complaint-image">
-              <p class="img-label">📎 Evidence Photo:</p>
-              <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title" />
+            <div class="imgs">
+              @if (c.imageUrl) {
+              <div class="complaint-image">
+                <p class="img-label">📎 Evidence</p>
+                <img [src]="getImageUrl(c.imageUrl)" [alt]="'Evidence for: ' + c.title" />
+              </div>
+              }
+              @if (c.resolutionImageUrl) {
+              <div class="resolution-proof">
+                <p class="img-label">📸 Resolution</p>
+                <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for: ' + c.title" />
+              </div>
+              }
             </div>
-            }
-
-            @if (c.resolutionImageUrl) {
-            <div class="resolution-proof">
-              <p class="img-label">📸 Resolution Proof from Officer:</p>
-              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
-            </div>
-            }
 
             <div class="esc-priority-update">
-              <select
-                [value]="selectedPriorityMap[c.id] || ''"
+              <select [value]="selectedPriorityMap[c.id] || ''"
                 (change)="selectedPriorityMap[c.id] = $any($event.target).value">
                 <option value="">-- Update Priority --</option>
                 <option value="LOW">🟢 Low</option>
@@ -350,11 +352,23 @@
               }
             </select>
 
+            <!-- inside the dh-rate-section, after the select -->
+            @if (dhRatingComplaintMap[o.id]) {
+            @for (c of getResolvedByOfficer(o.id); track c.id) {
+            @if (c.id == dhRatingComplaintMap[o.id] && c.resolutionImageUrl) {
+            <div class="resolution-preview-dh">
+              <p class="img-label">📸 Resolution Proof</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof'"
+                (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
+            </div>
+            }
+            }
+            }
+
             <div class="stars" role="group">
               @for (star of [1,2,3,4,5]; track star) {
-              <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star"
-                (click)="dhRatingMap[o.id] = star" role="button" tabindex="0"
-                (keydown.enter)="dhRatingMap[o.id] = star">★</span>
+              <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star" (click)="dhRatingMap[o.id] = star"
+                role="button" tabindex="0" (keydown.enter)="dhRatingMap[o.id] = star">★</span>
               }
             </div>
 

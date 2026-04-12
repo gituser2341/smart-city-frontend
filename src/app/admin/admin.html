@@ -16,12 +16,16 @@
 
   <!-- TABS -->
   <nav class="tab-bar" aria-label="Admin sections">
-    <button class="tab-btn" [class.active]="activeTab === 'dashboard'"    (click)="setTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" [class.active]="activeTab === 'complaints'"   (click)="setTab('complaints')">📋 Complaints</button>
-    <button class="tab-btn" [class.active]="activeTab === 'officers'"     (click)="setTab('officers')">👮 Officers</button>
-    <button class="tab-btn" [class.active]="activeTab === 'add-officer'"  (click)="setTab('add-officer')">➕ Add Officer</button>
-    <button class="tab-btn" [class.active]="activeTab === 'add-dh'"       (click)="setTab('add-dh')">⭐ Add DH</button>
-    <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">🤝 Coordination</button>
+    <button class="tab-btn" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">📊
+      Dashboard</button>
+    <button class="tab-btn" [class.active]="activeTab === 'complaints'" (click)="setTab('complaints')">📋
+      Complaints</button>
+    <button class="tab-btn" [class.active]="activeTab === 'officers'" (click)="setTab('officers')">👮 Officers</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-officer'" (click)="setTab('add-officer')">➕ Add
+      Officer</button>
+    <button class="tab-btn" [class.active]="activeTab === 'add-dh'" (click)="setTab('add-dh')">⭐ Add DH</button>
+    <button class="tab-btn" [class.active]="activeTab === 'coordination'" (click)="setTab('coordination')">🤝
+      Coordination</button>
     <button class="tab-btn tab-heatmap" routerLink="/heatmap">🗺️ Heatmap</button>
   </nav>
 
@@ -45,6 +49,13 @@
           <div class="stat-icon" aria-hidden="true">👤</div>
           <div class="stat-num">{{ stats.totalCitizens || 0 }}</div>
           <div class="stat-lbl">Total Citizens</div>
+        </div>
+        <!-- ← ADD THIS -->
+        <div class="stat-card stat-escalated" (click)="setTab('complaints')" role="button" tabindex="0"
+          (keydown.enter)="setTab('complaints')">
+          <div class="stat-icon" aria-hidden="true">🚨</div>
+          <div class="stat-num">{{ stats.byStatus.ESCALATED || 0 }}</div>
+          <div class="stat-lbl">Escalated</div>
         </div>
       </section>
 
@@ -133,7 +144,7 @@
 
       <!-- ── ASSIGN / REASSIGN SUCCESS MESSAGE ── -->
       @if (reassignMessage) {
-        <output class="reassign-success-msg" aria-live="polite">{{ reassignMessage }}</output>
+      <output class="reassign-success-msg" aria-live="polite">{{ reassignMessage }}</output>
       }
 
       <div class="complaints-list">
@@ -164,7 +175,35 @@
             <span>📍 {{ c.location }}</span>
             <span>🏢 {{ c.department }}</span>
             @if (c.deadline) {
-              <span>⏱ {{ getTimeRemaining(c.deadline) }}</span>
+            <span>⏱ {{ getTimeRemaining(c.deadline) }}</span>
+            }
+          </div>
+
+          <!-- Images -->
+          <div class="imgs">
+            @if (c.imageUrls && c.imageUrls.length > 0) {
+            <div class="complaint-images">
+              <p class="img-label">📎 Evidence ({{ c.imageUrls.length }})</p>
+              <div class="images-grid">
+                @for (img of c.imageUrls; track img) {
+                <img [src]="getImageUrl(img)" [alt]="'Evidence for: ' + c.title" (click)="openImage(getImageUrl(img))"
+                  title="Click to view full size" />
+                }
+              </div>
+            </div>
+            } @else if (c.imageUrl) {
+            <div class="complaint-image">
+              <p class="img-label">📎 Evidence</p>
+              <img [src]="getImageUrl(c.imageUrl)" [alt]="'Evidence for: ' + c.title"
+                (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
+            </div>
+            }
+            @if (c.status === 'RESOLVED' && c.resolutionImageUrl) {
+            <div class="resolution-proof">
+              <p class="img-label">📸 Resolution</p>
+              <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for: ' + c.title"
+                (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
+            </div>
             }
           </div>
 
@@ -172,38 +211,38 @@
           <div class="cc-assign">
 
             @if (c.status === 'RESOLVED') {
-              <!-- RESOLVED: fully locked -->
-              <span class="resolved-lock-badge">✅ Resolved — reassignment not allowed</span>
+            <!-- RESOLVED: fully locked -->
+            <span class="resolved-lock-badge">✅ Resolved — reassignment not allowed</span>
 
             } @else if (c.status === 'OPEN') {
-              <!-- OPEN: first-time assign -->
-              <label [for]="'officer-select-' + c.id" class="visually-hidden">
-                Assign officer to complaint {{ c.id }}
-              </label>
-              <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectOpen>
-                <option value="">-- Assign Officer --</option>
-                @for (o of officers; track o.id) {
-                  <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
-                }
-              </select>
-              <button class="btn-assign" (click)="assignNewOfficer(c.id, officerSelectOpen.value)">
-                Assign
-              </button>
+            <!-- OPEN: first-time assign -->
+            <label [for]="'officer-select-' + c.id" class="visually-hidden">
+              Assign officer to complaint {{ c.id }}
+            </label>
+            <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectOpen>
+              <option value="">-- Assign Officer --</option>
+              @for (o of officers; track o.id) {
+              <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+              }
+            </select>
+            <button class="btn-assign" (click)="assignNewOfficer(c.id, officerSelectOpen.value)">
+              Assign
+            </button>
 
             } @else if (c.status === 'IN_PROGRESS' || c.status === 'ESCALATED') {
-              <!-- IN_PROGRESS / ESCALATED: reassign -->
-              <label [for]="'officer-select-' + c.id" class="visually-hidden">
-                Reassign officer to complaint {{ c.id }}
-              </label>
-              <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectReassign>
-                <option value="">-- Reassign Officer --</option>
-                @for (o of officers; track o.id) {
-                  <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
-                }
-              </select>
-              <button class="btn-assign btn-reassign" (click)="assignOfficer(c.id, officerSelectReassign.value)">
-                Reassign
-              </button>
+            <!-- IN_PROGRESS / ESCALATED: reassign -->
+            <label [for]="'officer-select-' + c.id" class="visually-hidden">
+              Reassign officer to complaint {{ c.id }}
+            </label>
+            <select [id]="'officer-select-' + c.id" class="assign-select" #officerSelectReassign>
+              <option value="">-- Reassign Officer --</option>
+              @for (o of officers; track o.id) {
+              <option [value]="o.id">{{ o.name }} ({{ o.department }})</option>
+              }
+            </select>
+            <button class="btn-assign btn-reassign" (click)="assignOfficer(c.id, officerSelectReassign.value)">
+              Reassign
+            </button>
             }
 
           </div>
@@ -261,14 +300,14 @@
 
         <div class="field-group">
           <label class="field-label" for="officer-name">Full Name</label>
-          <input id="officer-name" type="text" [(ngModel)]="newOfficer.name" name="officerName"
-            autocomplete="name" placeholder="Officer full name" class="field-input" />
+          <input id="officer-name" type="text" [(ngModel)]="newOfficer.name" name="officerName" autocomplete="name"
+            placeholder="Officer full name" class="field-input" />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="officer-email">Email Address</label>
-          <input id="officer-email" type="email" [(ngModel)]="newOfficer.email" name="officerEmail"
-            autocomplete="email" placeholder="officer@city.gov" class="field-input" />
+          <input id="officer-email" type="email" [(ngModel)]="newOfficer.email" name="officerEmail" autocomplete="email"
+            placeholder="officer@city.gov" class="field-input" />
         </div>
 
         <div class="field-group">
@@ -310,14 +349,14 @@
 
         <div class="field-group">
           <label class="field-label" for="dh-name">Full Name</label>
-          <input id="dh-name" type="text" [(ngModel)]="newDH.name" name="dhName"
-            autocomplete="name" placeholder="e.g. Priya Sharma" class="field-input" />
+          <input id="dh-name" type="text" [(ngModel)]="newDH.name" name="dhName" autocomplete="name"
+            placeholder="e.g. Priya Sharma" class="field-input" />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="dh-email">Email Address</label>
-          <input id="dh-email" type="email" [(ngModel)]="newDH.email" name="dhEmail"
-            autocomplete="off" placeholder="dh@smartcity.gov" class="field-input" />
+          <input id="dh-email" type="email" [(ngModel)]="newDH.email" name="dhEmail" autocomplete="off"
+            placeholder="dh@smartcity.gov" class="field-input" />
         </div>
 
         <div class="field-group">
@@ -345,22 +384,43 @@
     <!-- ── COORDINATION TAB ── -->
     @if (activeTab === 'coordination') {
     <div>
-      <h2 class="section-title">Coordination Requests</h2>
+      <h2 class="section-title">🤝 Coordination Requests</h2>
       <div class="complaints-list">
         @for (r of coordinationRequests; track r.id) {
-        <div class="complaint-card">
-          <h3>Complaint ID: {{ r.complaintId }}</h3>
-          <p>Requested Dept: {{ r.requestedDepartment }}</p>
-          <p>Status: {{ r.status }}</p>
-          <div class="cc-actions">
-            <button class="btn-assign" (click)="approveCoordination(r.id)">✅ Approve</button>
-            <button class="btn-logout" (click)="rejectCoordination(r.id)">❌ Reject</button>
+        <div class="complaint-card coord-card">
+          <div class="cc-header">
+            <h3 class="cc-title">Complaint #{{ r.complaintId }}</h3>
+            <span class="badge" [ngClass]="{
+              'b-open':     r.status === 'PENDING',
+              'b-progress': r.status === 'APPROVED',
+              'b-resolved': r.status === 'REJECTED'
+            }">{{ r.status }}</span>
           </div>
+          <div class="cc-meta">
+            <span>🏢 Requested Dept: <strong>{{ r.requestedDepartment }}</strong></span>
+            @if (r.reason) { <span>💬 {{ r.reason }}</span> }
+            @if (r.requestedByName) { <span>👮 By: {{ r.requestedByName }}</span> }
+          </div>
+          @if (r.status === 'PENDING') {
+          <div class="cc-actions">
+            <button class="btn-assign" (click)="approveCoordination(r.id)">
+              ✅ Approve
+            </button>
+            <button class="btn-assign btn-reassign" (click)="rejectCoordination(r.id)">
+              ❌ Reject
+            </button>
+          </div>
+          } @else {
+          <div class="resolved-lock-badge">
+            {{ r.status === 'APPROVED' ? '✅ Approved' : '❌ Rejected' }}
+          </div>
+          }
         </div>
         }
         @if (coordinationRequests.length === 0) {
         <div class="empty-state">
-          <p>No coordination requests</p>
+          <div class="empty-icon">🤝</div>
+          <p>No coordination requests yet</p>
         </div>
         }
       </div>
