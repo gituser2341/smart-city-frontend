@@ -1,5 +1,5 @@
 import {
-  Component, signal, ElementRef, ViewChild, AfterViewChecked
+  Component, signal, ElementRef, ViewChild, AfterViewChecked, Input, OnChanges, SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,9 +8,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OfflineQueueService } from '../../services/offline-queue.service';
 
 // ── "location" is the new step inserted between description and confirm ──
-type Mode         = 'menu' | 'register' | 'track' | 'faq';
+type Mode = 'menu' | 'register' | 'track' | 'faq';
 type RegisterStep = 'description' | 'location' | 'confirm';
-type TrackStep    = 'list' | 'detail';
+type TrackStep = 'list' | 'detail';
 
 interface Message {
   from: 'bot' | 'user';
@@ -19,72 +19,97 @@ interface Message {
 }
 
 interface StatusCard {
-  id:              number;
-  title:           string;
-  status:          string;
-  priority:        string;
-  department:      string;
+  id: number;
+  title: string;
+  status: string;
+  priority: string;
+  department: string;
   assignedOfficer: string;
-  escalated:       boolean;
+  escalated: boolean;
 }
 
 interface ComplaintSummary {
-  id:     number;
-  title:  string;
+  id: number;
+  title: string;
   status: string;
 }
 
 @Component({
-  selector:    'app-chatbot',
-  standalone:  true,
-  imports:     [CommonModule, FormsModule, TranslateModule],
+  selector: 'app-chatbot',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './chatbot.component.html',
-  styleUrls:   ['./chatbot.component.css']
+  styleUrls: ['./chatbot.component.css']
 })
-export class ChatbotComponent implements AfterViewChecked {
+export class ChatbotComponent implements AfterViewChecked, OnChanges {
+  @Input() lang: string = 'en';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['lang']) {
+      const newLang = changes['lang'].currentValue as string;
+
+      // Sync localStorage so currentLang getter stays consistent
+      localStorage.setItem('lang', newLang);
+      this.translate.use(newLang);
+
+      // Sync voice language
+      this.voiceLang = newLang === 'ta' ? 'ta-IN' : 'en-IN';
+
+      // If currently listening, restart recognition with the new lang
+      if (this.isListening && this.recognition) {
+        this.recognition.stop();
+        setTimeout(() => {
+          this.recognition.lang = this.voiceLang;
+          this.recognition.start();
+        }, 300);
+      } else if (this.recognition) {
+        this.recognition.lang = this.voiceLang;
+      }
+    }
+  }
 
   @ViewChild('msgContainer') private msgContainer!: ElementRef;
 
-  isOpen   = signal(false);
+  isOpen = signal(false);
   messages = signal<Message[]>([]);
-  input    = '';
-  mode: Mode          = 'menu';
+  input = '';
+  mode: Mode = 'menu';
   registerStep: RegisterStep = 'description';
-  trackStep: TrackStep       = 'list';
+  trackStep: TrackStep = 'list';
   isLoading = false;
 
   activeComplaints: ComplaintSummary[] = [];
 
   form = {
-    title:       '',
+    title: '',
     description: '',
-    department:  '',
-    priority:    'LOW',
-    location:    '',
-    latitude:    null as number | null,
-    longitude:   null as number | null
+    department: '',
+    priority: 'LOW',
+    location: '',
+    latitude: null as number | null,
+    longitude: null as number | null
   };
 
   // Location state
   isDetectingLocation = false;   // true while GPS is resolving
-  locationDetected    = false;   // true once GPS succeeded
+  locationDetected = false;   // true once GPS succeeded
 
   // Voice
-  isListening    = false;
+  isListening = false;
   liveTranscript = '';
-  voiceLang      = 'en-IN';
+  voiceLang = 'en-IN';
   private recognition: any = null;
 
   // Offline
-  isOffline   = false;
+  isOffline = false;
   syncMessage = '';
 
   private readonly BASE = 'http://localhost:8080/api/chatbot';
 
   constructor(
-    private readonly http:         HttpClient,
+    private readonly http: HttpClient,
     private readonly offlineQueue: OfflineQueueService,
-    private readonly translate:    TranslateService
+    private readonly translate: TranslateService
   ) {
     this.initVoice();
     this.watchNetworkStatus();
@@ -122,16 +147,16 @@ export class ChatbotComponent implements AfterViewChecked {
   }
 
   showMenu(): void {
-    this.mode               = 'menu';
-    this.registerStep       = 'description';
-    this.trackStep          = 'list';
-    this.activeComplaints   = [];
-    this.syncMessage        = '';
+    this.mode = 'menu';
+    this.registerStep = 'description';
+    this.trackStep = 'list';
+    this.activeComplaints = [];
+    this.syncMessage = '';
     this.isDetectingLocation = false;
-    this.locationDetected   = false;
+    this.locationDetected = false;
     this.resetForm();
     this.bot(this.ta('👋 வணக்கம்! நான் சிவிக்போட். எவ்வாறு உதவ முடியும்?',
-                     '👋 Hi! I am CivicBot. What would you like to do?'));
+      '👋 Hi! I am CivicBot. What would you like to do?'));
   }
 
   back(): void { this.showMenu(); }
@@ -152,7 +177,7 @@ export class ChatbotComponent implements AfterViewChecked {
   // ── File a Complaint ───────────────────────────
 
   startRegister(): void {
-    this.mode         = 'register';
+    this.mode = 'register';
     this.registerStep = 'description';
     this.resetForm();
     this.bot(this.ta(
@@ -167,8 +192,8 @@ export class ChatbotComponent implements AfterViewChecked {
     this.input = '';
     this.liveTranscript = '';
     this.user(text);
-    if      (this.mode === 'register') { this.handleRegister(text); }
-    else if (this.mode === 'faq')      { this.handleFaq(text); }
+    if (this.mode === 'register') { this.handleRegister(text); }
+    else if (this.mode === 'faq') { this.handleFaq(text); }
   }
 
   quickReply(text: string): void {
@@ -189,23 +214,23 @@ export class ChatbotComponent implements AfterViewChecked {
           return;
         }
         this.form.description = text;
-        this.form.title       = text.slice(0, 60);
-        this.isLoading        = true;
+        this.form.title = text.slice(0, 60);
+        this.isLoading = true;
 
         this.http.get<any>(
           `${this.BASE}/suggest-department?text=${encodeURIComponent(text)}`
         ).subscribe({
           next: (res) => {
-            this.isLoading       = false;
+            this.isLoading = false;
             this.form.department = res.department;
-            this.form.priority   = res.priority;
+            this.form.priority = res.priority;
 
             // Move to location step next
             this.registerStep = 'location';
             this.startLocationDetection();
           },
           error: () => {
-            this.isLoading    = false;
+            this.isLoading = false;
             this.registerStep = 'description';
             this.bot(this.ta(
               '⚠️ தானாக கண்டறிய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
@@ -218,9 +243,9 @@ export class ChatbotComponent implements AfterViewChecked {
       // ── Step 2: location (manual typed fallback) ─
       case 'location':
         // User typed a location name manually
-        this.form.location    = text;
-        this.form.latitude    = null;
-        this.form.longitude   = null;
+        this.form.location = text;
+        this.form.latitude = null;
+        this.form.longitude = null;
         this.locationDetected = false;
         this.moveToConfirm();
         break;
@@ -272,10 +297,10 @@ export class ChatbotComponent implements AfterViewChecked {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         this.isDetectingLocation = false;
-        this.locationDetected    = true;
-        this.form.latitude       = position.coords.latitude;
-        this.form.longitude      = position.coords.longitude;
-        this.form.location       =
+        this.locationDetected = true;
+        this.form.latitude = position.coords.latitude;
+        this.form.longitude = position.coords.longitude;
+        this.form.location =
           `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
 
         this.bot(this.ta(
@@ -287,7 +312,7 @@ export class ChatbotComponent implements AfterViewChecked {
       },
       (_err) => {
         this.isDetectingLocation = false;
-        this.locationDetected    = false;
+        this.locationDetected = false;
         this.askForManualLocation();
       },
       { timeout: 10000, enableHighAccuracy: true }
@@ -307,8 +332,8 @@ export class ChatbotComponent implements AfterViewChecked {
   skipGpsAndType(): void {
     if (this.isDetectingLocation) { return; }   // still waiting, ignore
     this.locationDetected = false;
-    this.form.latitude    = null;
-    this.form.longitude   = null;
+    this.form.latitude = null;
+    this.form.longitude = null;
     this.askForManualLocation();
   }
 
@@ -322,13 +347,13 @@ export class ChatbotComponent implements AfterViewChecked {
   private showConfirmSummary(): void {
     const locLine = this.form.latitude
       ? this.ta(
-          `• இடம்         : 📍 ${this.form.location}`,
-          `• Location    : 📍 ${this.form.location}`
-        )
+        `• இடம்         : 📍 ${this.form.location}`,
+        `• Location    : 📍 ${this.form.location}`
+      )
       : this.ta(
-          `• இடம்         : ${this.form.location || '(இடம் இல்லை)'}`,
-          `• Location    : ${this.form.location || '(no location)'}`
-        );
+        `• இடம்         : ${this.form.location || '(இடம் இல்லை)'}`,
+        `• Location    : ${this.form.location || '(no location)'}`
+      );
 
     this.bot(this.ta(
       `📋 புகார் சுருக்கம்:\n` +
@@ -359,13 +384,13 @@ export class ChatbotComponent implements AfterViewChecked {
     this.isLoading = true;
 
     const payload = {
-      title:       this.form.title,
+      title: this.form.title,
       description: this.form.description,
-      department:  this.form.department.toUpperCase(),
-      priority:    this.form.priority,
-      location:    this.form.location,
-      latitude:    this.form.latitude,
-      longitude:   this.form.longitude
+      department: this.form.department.toUpperCase(),
+      priority: this.form.priority,
+      location: this.form.location,
+      latitude: this.form.latitude,
+      longitude: this.form.longitude
     };
 
     if (this.offlineQueue.isOffline()) {
@@ -405,7 +430,7 @@ export class ChatbotComponent implements AfterViewChecked {
   // ── Track a Complaint ──────────────────────────
 
   startTrack(): void {
-    this.mode      = 'track';
+    this.mode = 'track';
     this.trackStep = 'list';
     this.isLoading = true;
     this.bot(this.ta(
@@ -446,8 +471,8 @@ export class ChatbotComponent implements AfterViewChecked {
 
   selectComplaint(complaint: ComplaintSummary): void {
     this.user(complaint.title);
-    this.trackStep        = 'detail';
-    this.isLoading        = true;
+    this.trackStep = 'detail';
+    this.isLoading = true;
     this.activeComplaints = [];
 
     this.http.get<any>(
@@ -460,13 +485,13 @@ export class ChatbotComponent implements AfterViewChecked {
           'உங்கள் புகார் நிலை இங்கே:',
           'Here is your complaint status:'
         ), {
-          id:              res.id,
-          title:           res.title,
-          status:          res.status,
-          priority:        res.priority,
-          department:      res.department,
+          id: res.id,
+          title: res.title,
+          status: res.status,
+          priority: res.priority,
+          department: res.department,
           assignedOfficer: res.assignedOfficer,
-          escalated:       res.escalated ?? false
+          escalated: res.escalated ?? false
         });
         setTimeout(() => this.showMenu(), 2000);
       },
@@ -484,39 +509,73 @@ export class ChatbotComponent implements AfterViewChecked {
   // ── FAQ ────────────────────────────────────────
 
   startFaq(): void {
-    this.mode = 'faq';
+  this.mode = 'faq';
+  this.bot(this.ta(
+    '❓ எங்கள் சேவைகள் பற்றி கேளுங்கள்!\n\nஎடுத்துக்காட்டு: "புகார் எவ்வளவு நேரத்தில் தீர்க்கப்படும்?"',
+    '❓ Ask me anything about our services!\n\nExample: "How long does it take to resolve a complaint?"'
+  ));
+}
+
+private handleFaq(text: string): void {
+  if (text.trim().length < 3) {
     this.bot(this.ta(
-      '❓ எங்கள் சேவைகள் பற்றி கேளுங்கள்!',
-      '❓ Ask me anything about our services!'
+      '⚠️ கேள்வியை சரியாக கேளுங்கள்.',
+      '⚠️ Please enter a valid question.'
     ));
+    return;
   }
 
-  private handleFaq(text: string): void {
-    this.isLoading = true;
-    this.http.get<{ answer: string }>(
-      `${this.BASE}/faq?query=${encodeURIComponent(text)}`
-    ).subscribe({
-      next: (res) => { this.isLoading = false; this.bot(res.answer); },
-      error: () => {
-        this.isLoading = false;
+  this.isLoading = true;
+  this.http.get<{ answer: string }>(
+    `${this.BASE}/faq?query=${encodeURIComponent(text)}`,
+    { headers: this.headers }   // ← ADD headers (was missing!)
+  ).subscribe({
+    next: (res) => {
+      this.isLoading = false;
+      const answer = res?.answer?.trim();
+      if (answer) {
+        this.bot(answer);
+      } else {
         this.bot(this.ta(
-          '❌ பதில் கண்டறிய முடியவில்லை.',
-          '❌ Could not find an answer. Please raise a complaint.'
+          '🤔 இதற்கான பதில் இல்லை. புகார் பதிவு செய்யலாம்.',
+          '🤔 No answer found for that. You can file a complaint instead.'
         ));
       }
-    });
-  }
+      // Prompt for follow-up
+      setTimeout(() => {
+        this.bot(this.ta(
+          '💬 வேறு கேள்வி இருந்தால் கேளுங்கள், அல்லது ← திரும்பு.',
+          '💬 Ask another question, or press ← to go back.'
+        ));
+      }, 400);
+    },
+    error: (err) => {
+      this.isLoading = false;
+      if (err.status === 401) {
+        this.bot(this.ta(
+          '🔐 உள்நுழைவு தேவை.',
+          '🔐 Please log in to use FAQ.'
+        ));
+      } else {
+        this.bot(this.ta(
+          '❌ பதில் கண்டறிய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+          '❌ Could not find an answer. Please try again.'
+        ));
+      }
+    }
+  });
+}
 
   // ── Voice ──────────────────────────────────────
 
   private initVoice(): void {
     const SR = (window as any).SpeechRecognition ||
-               (window as any).webkitSpeechRecognition;
+      (window as any).webkitSpeechRecognition;
     if (!SR) { return; }
 
     this.recognition = new SR();
-    this.recognition.continuous      = false;
-    this.recognition.interimResults  = true;
+    this.recognition.continuous = false;
+    this.recognition.interimResults = true;
     this.recognition.maxAlternatives = 1;
 
     this.recognition.onresult = (event: any) => {
@@ -539,20 +598,20 @@ export class ChatbotComponent implements AfterViewChecked {
         // ta-IN voice → native Tamil Unicode direct from STT, store as-is
         // translateToEnglish is only for romanized Tamil typed manually
         const processedText = final;
-        this.input       = processedText;
+        this.input = processedText;
         this.isListening = false;
         this.send();
       }
     };
 
     this.recognition.onerror = (event: any) => {
-      this.isListening    = false;
+      this.isListening = false;
       this.liveTranscript = '';
       const map: Record<string, string> = {
-        'not-allowed':   '❌ Microphone permission denied.',
-        'no-speech':     '🤫 No speech detected. Please try again.',
-        'network':       '🌐 Network error during voice recognition.',
-        'aborted':       '⛔ Voice recognition stopped.',
+        'not-allowed': '❌ Microphone permission denied.',
+        'no-speech': '🤫 No speech detected. Please try again.',
+        'network': '🌐 Network error during voice recognition.',
+        'aborted': '⛔ Voice recognition stopped.',
         'audio-capture': '🎙️ No microphone found.'
       };
       this.bot(map[event.error] ?? '❌ Voice recognition failed.');
@@ -571,9 +630,9 @@ export class ChatbotComponent implements AfterViewChecked {
       this.isListening = false;
     } else {
       setTimeout(() => {
-        this.recognition.lang  = this.voiceLang;
+        this.recognition.lang = this.voiceLang;
         this.recognition.start();
-        this.isListening    = true;
+        this.isListening = true;
         this.liveTranscript = '';
       }, 100);
     }
@@ -593,30 +652,30 @@ export class ChatbotComponent implements AfterViewChecked {
   // ── Tamil romanized → English ──────────────────
 
   private readonly TAMIL_KEYWORD_MAP: [string, string][] = [
-    ['kazhivu neer',  'sewage'],    ['kazhivuneer',   'sewage'],
-    ['theru vilakku', 'streetlight'],['theruvilaakku', 'streetlight'],
-    ['power cut',     'power outage'],['minvettu',     'power outage'],
-    ['minvetdu',      'power outage'],
-    ['tanni',  'water'],  ['neer',    'water'],   ['nir',      'water'],
-    ['kulai',  'pipe'],   ['kuzhai',  'pipe'],    ['kuzha',    'pipe'],
-    ['kasavu', 'leakage'],['kasivu',  'leakage'],
-    ['vellatam','flood'], ['vellam',  'flood'],
-    ['vadikal','drain'],  ['vadikaal','drain'],   ['sevar',    'sewage'],
-    ['minsaram','electricity'],['mincharama','electricity'],
-    ['vilaakku','light'], ['vilakku', 'light'],   ['kambi',    'wire'],
-    ['salai',  'road'],   ['kuzhi',   'pothole'], ['kuzi',     'pothole'],
-    ['nadaipatha','footpath'],['udaindha','broken'],['udainda', 'broken'],
-    ['setham', 'damaged'],['chetham', 'damaged'],
-    ['kuppai', 'garbage'],['kupai',   'garbage'],
-    ['kazhivu','waste'],  ['thuppuravu','sanitation'],
-    ['azhukku','dirty'],  ['thurnaatram','smell'], ['naatram',  'smell'],
-    ['palli',  'school'], ['maruthuvamana','hospital'],
-    ['maruthuvamane','hospital'],
-    ['kalloori','college'],['kaluri', 'college'],
-    ['santhai', 'market'],['koil',   'temple'],  ['kovil',    'temple'],
-    ['avasaram','emergency'],['urindha','urgent'],
-    ['periya', 'large'],  ['siriya', 'small'],
-    ['aruge',  'near'],   ['arige',  'near'],    ['paakkathu','near'],
+    ['kazhivu neer', 'sewage'], ['kazhivuneer', 'sewage'],
+    ['theru vilakku', 'streetlight'], ['theruvilaakku', 'streetlight'],
+    ['power cut', 'power outage'], ['minvettu', 'power outage'],
+    ['minvetdu', 'power outage'],
+    ['tanni', 'water'], ['neer', 'water'], ['nir', 'water'],
+    ['kulai', 'pipe'], ['kuzhai', 'pipe'], ['kuzha', 'pipe'],
+    ['kasavu', 'leakage'], ['kasivu', 'leakage'],
+    ['vellatam', 'flood'], ['vellam', 'flood'],
+    ['vadikal', 'drain'], ['vadikaal', 'drain'], ['sevar', 'sewage'],
+    ['minsaram', 'electricity'], ['mincharama', 'electricity'],
+    ['vilaakku', 'light'], ['vilakku', 'light'], ['kambi', 'wire'],
+    ['salai', 'road'], ['kuzhi', 'pothole'], ['kuzi', 'pothole'],
+    ['nadaipatha', 'footpath'], ['udaindha', 'broken'], ['udainda', 'broken'],
+    ['setham', 'damaged'], ['chetham', 'damaged'],
+    ['kuppai', 'garbage'], ['kupai', 'garbage'],
+    ['kazhivu', 'waste'], ['thuppuravu', 'sanitation'],
+    ['azhukku', 'dirty'], ['thurnaatram', 'smell'], ['naatram', 'smell'],
+    ['palli', 'school'], ['maruthuvamana', 'hospital'],
+    ['maruthuvamane', 'hospital'],
+    ['kalloori', 'college'], ['kaluri', 'college'],
+    ['santhai', 'market'], ['koil', 'temple'], ['kovil', 'temple'],
+    ['avasaram', 'emergency'], ['urindha', 'urgent'],
+    ['periya', 'large'], ['siriya', 'small'],
+    ['aruge', 'near'], ['arige', 'near'], ['paakkathu', 'near'],
   ];
 
   private translateToEnglish(text: string): string {
@@ -631,7 +690,7 @@ export class ChatbotComponent implements AfterViewChecked {
 
   private watchNetworkStatus(): void {
     this.isOffline = !navigator.onLine;
-    window.addEventListener('online',  () => { this.isOffline = false; this.syncPending(); });
+    window.addEventListener('online', () => { this.isOffline = false; this.syncPending(); });
     window.addEventListener('offline', () => { this.isOffline = true; });
   }
 
@@ -645,10 +704,10 @@ export class ChatbotComponent implements AfterViewChecked {
     this.offlineQueue.syncAll().then(r => {
       if (r.success > 0)
         this.bot(this.ta(`✅ ${r.success} புகார்(கள்) வெற்றிகரமாக சமர்ப்பிக்கப்பட்டன!`,
-                         `✅ ${r.success} complaint(s) submitted successfully!`));
+          `✅ ${r.success} complaint(s) submitted successfully!`));
       if (r.failed > 0)
         this.bot(this.ta(`⚠️ ${r.failed} புகார்(கள்) தோல்வியடைந்தன. மீண்டும் முயற்சிக்கும்.`,
-                         `⚠️ ${r.failed} complaint(s) failed. Will retry later.`));
+          `⚠️ ${r.failed} complaint(s) failed. Will retry later.`));
     });
   }
 }

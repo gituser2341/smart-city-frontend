@@ -3,257 +3,257 @@
   <button class="chatbot-fab" (click)="toggle()">
     @if (!isOpen()) { 💬 } @else { ✕ }
     @if (pendingCount > 0) {
-      <span class="fab-badge">{{ pendingCount }}</span>
+    <span class="fab-badge">{{ pendingCount }}</span>
     }
   </button>
 
   @if (isOpen()) {
-    <div class="chatbot-panel">
+  <div class="chatbot-panel">
 
-      <!-- Header -->
-      <div class="chat-header">
-        <div class="chat-header-left">
-          <div class="chat-avatar">🤖</div>
-          <div>
-            <div class="chat-title">CivicBot</div>
-            <div class="chat-sub">
-              {{ currentLang === 'ta' ? 'திட்ட நகர் உதவியாளர்' : 'Smart City Assistant' }}
-            </div>
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-title">CivicBot</div>
+          <div class="chat-sub">
+            {{ currentLang === 'ta' ? 'திட்ட நகர் உதவியாளர்' : 'Smart City Assistant' }}
           </div>
         </div>
-        <button class="chat-close" (click)="toggle()">✕</button>
       </div>
+      <button class="chat-close" (click)="toggle()">✕</button>
+    </div>
 
-      <!-- Offline banner -->
-      @if (isOffline) {
-        <div class="offline-banner">
-          {{ currentLang === 'ta'
-            ? '📡 இணையம் இல்லை. புகார்கள் சேமிக்கப்பட்டு பின்னர் சமர்ப்பிக்கப்படும்.'
-            : '📡 You are offline. Complaints will be saved and synced automatically.' }}
-        </div>
-      }
+    <!-- Offline banner -->
+    @if (isOffline) {
+    <div class="offline-banner">
+      {{ currentLang === 'ta'
+      ? '📡 இணையம் இல்லை. புகார்கள் சேமிக்கப்பட்டு பின்னர் சமர்ப்பிக்கப்படும்.'
+      : '📡 You are offline. Complaints will be saved and synced automatically.' }}
+    </div>
+    }
 
-      <!-- Messages -->
-      <div class="chat-messages" #msgContainer>
+    <!-- Messages -->
+    <div class="chat-messages" #msgContainer>
 
-        @for (m of messages(); track $index) {
-          <div class="msg-row" [class.msg-user]="m.from === 'user'">
-            @if (m.from === 'bot') {
-              <div class="msg-avatar">🤖</div>
-            }
-            <div class="msg-bubble" [class.bubble-user]="m.from === 'user'">
-              {{ m.text }}
+      @for (m of messages(); track $index) {
+      <div class="msg-row" [class.msg-user]="m.from === 'user'">
+        @if (m.from === 'bot') {
+        <div class="msg-avatar">🤖</div>
+        }
+        <div class="msg-bubble" [class.bubble-user]="m.from === 'user'">
+          {{ m.text }}
 
-              @if (m.card) {
-                <div class="status-card">
-                  <div class="sc-title">{{ m.card.title }}</div>
-                  <div class="sc-row">
-                    <span class="sc-label">
-                      {{ currentLang === 'ta' ? 'நிலை' : 'Status' }}
-                    </span>
-                    <span class="sc-badge" [ngClass]="{
+          @if (m.card) {
+          <div class="status-card">
+            <div class="sc-title">{{ m.card.title }}</div>
+            <div class="sc-row">
+              <span class="sc-label">
+                {{ currentLang === 'ta' ? 'நிலை' : 'Status' }}
+              </span>
+              <span class="sc-badge" [ngClass]="{
                       'sc-open':      m.card.status === 'OPEN',
                       'sc-progress':  m.card.status === 'IN_PROGRESS',
                       'sc-resolved':  m.card.status === 'RESOLVED',
                       'sc-escalated': m.card.status === 'ESCALATED'
                     }">{{ m.card.status }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">
-                      {{ currentLang === 'ta' ? 'முன்னுரிமை' : 'Priority' }}
-                    </span>
-                    <span class="sc-val">{{ m.card.priority }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">
-                      {{ currentLang === 'ta' ? 'துறை' : 'Department' }}
-                    </span>
-                    <span class="sc-val">{{ m.card.department }}</span>
-                  </div>
-                  <div class="sc-row">
-                    <span class="sc-label">
-                      {{ currentLang === 'ta' ? 'அதிகாரி' : 'Officer' }}
-                    </span>
-                    <span class="sc-val">{{ m.card.assignedOfficer }}</span>
-                  </div>
-                  @if (m.card.escalated) {
-                    <div class="sc-escalated-banner">
-                      {{ currentLang === 'ta' ? '🚨 அதிகரிக்கப்பட்டது' : '🚨 Escalated' }}
-                    </div>
-                  }
-                </div>
-              }
-
             </div>
-          </div>
-        }
-
-        <!-- Typing indicator -->
-        @if (isLoading) {
-          <div class="msg-row">
-            <div class="msg-avatar">🤖</div>
-            <div class="msg-bubble typing">
-              <span></span><span></span><span></span>
+            <div class="sc-row">
+              <span class="sc-label">
+                {{ currentLang === 'ta' ? 'முன்னுரிமை' : 'Priority' }}
+              </span>
+              <span class="sc-val">{{ m.card.priority }}</span>
             </div>
-          </div>
-        }
-
-        <!-- GPS detecting spinner -->
-        @if (isDetectingLocation) {
-          <div class="msg-row">
-            <div class="msg-avatar">🤖</div>
-            <div class="msg-bubble location-detecting">
-              <span class="loc-spinner">📡</span>
-              {{ currentLang === 'ta' ? 'GPS தேடுகிறது...' : 'Detecting GPS...' }}
+            <div class="sc-row">
+              <span class="sc-label">
+                {{ currentLang === 'ta' ? 'துறை' : 'Department' }}
+              </span>
+              <span class="sc-val">{{ m.card.department }}</span>
             </div>
-          </div>
-        }
-
-        <!-- Live transcript -->
-        @if (liveTranscript) {
-          <div class="live-transcript">🎤 {{ liveTranscript }}</div>
-        }
-
-        <!-- Active complaints list -->
-        @if (mode === 'track' && trackStep === 'list' && activeComplaints.length > 0) {
-          <div class="chat-menu">
-            @for (c of activeComplaints; track c.id) {
-              <button class="menu-btn" (click)="selectComplaint(c)">
-                📌 {{ c.title }}
-              </button>
+            <div class="sc-row">
+              <span class="sc-label">
+                {{ currentLang === 'ta' ? 'அதிகாரி' : 'Officer' }}
+              </span>
+              <span class="sc-val">{{ m.card.assignedOfficer }}</span>
+            </div>
+            @if (m.card.escalated) {
+            <div class="sc-escalated-banner">
+              {{ currentLang === 'ta' ? '🚨 அதிகரிக்கப்பட்டது' : '🚨 Escalated' }}
+            </div>
             }
           </div>
-        }
+          }
 
+        </div>
       </div>
-
-      <!-- ═══════════════════════════════════════════ -->
-      <!--  ACTION BARS (one shown at a time)          -->
-      <!-- ═══════════════════════════════════════════ -->
-
-      <!-- Main menu buttons -->
-      @if (mode === 'menu') {
-        <div class="chat-menu">
-          <button class="menu-btn" (click)="startRegister()">
-            {{ currentLang === 'ta' ? '📋 புகார் பதிவு செய்க' : '📋 File a Complaint' }}
-          </button>
-          <button class="menu-btn" (click)="startTrack()">
-            {{ currentLang === 'ta' ? '🔍 புகார் நிலை காண்க' : '🔍 Track Complaint' }}
-          </button>
-          <button class="menu-btn" (click)="startFaq()">
-            {{ currentLang === 'ta' ? '❓ அடிக்கடி கேட்கும் கேள்விகள்' : '❓ FAQ' }}
-          </button>
-        </div>
       }
 
-      <!-- ── LOCATION step ── -->
-      <!--  A) GPS succeeded → show "Use this location" + "Type instead" -->
-      @if (mode === 'register' && registerStep === 'location' && locationDetected) {
-        <div class="confirm-actions">
-          <button class="confirm-btn confirm-yes" (click)="useDetectedLocation()">
-            📍 {{ currentLang === 'ta' ? 'இந்த இடத்தை பயன்படுத்து' : 'Use This Location' }}
-          </button>
-          <button class="confirm-btn confirm-retake" (click)="skipGpsAndType()">
-            ✏️ {{ currentLang === 'ta' ? 'வேறு இடம் தட்டச்சு செய்' : 'Type a Location' }}
-          </button>
-          <button class="confirm-btn confirm-no" (click)="back()">
-            ← {{ currentLang === 'ta' ? 'திரும்பு' : 'Back' }}
-          </button>
+      <!-- Typing indicator -->
+      @if (isLoading) {
+      <div class="msg-row">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble typing">
+          <span></span><span></span><span></span>
         </div>
+      </div>
       }
 
-      <!--  B) GPS still running → spinner + "Skip GPS" button -->
-      @if (mode === 'register' && registerStep === 'location' && isDetectingLocation) {
-        <div class="confirm-actions">
-          <button class="confirm-btn confirm-retake" (click)="skipGpsAndType()" [disabled]="true">
-            📡 {{ currentLang === 'ta' ? 'கண்டறிகிறது...' : 'Detecting...' }}
-          </button>
-          <button class="confirm-btn confirm-no" (click)="back()">
-            ← {{ currentLang === 'ta' ? 'திரும்பு' : 'Back' }}
-          </button>
+      <!-- GPS detecting spinner -->
+      @if (isDetectingLocation) {
+      <div class="msg-row">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble location-detecting">
+          <span class="loc-spinner">📡</span>
+          {{ currentLang === 'ta' ? 'GPS தேடுகிறது...' : 'Detecting GPS...' }}
         </div>
+      </div>
       }
 
-      <!--  C) GPS failed → manual text input for location -->
-      @if (mode === 'register' && registerStep === 'location' && !locationDetected && !isDetectingLocation) {
-        <div class="chat-input-row">
-          <button class="back-btn" (click)="back()">←</button>
-          <input class="chat-input"
-            [(ngModel)]="input"
-            [placeholder]="currentLang === 'ta'
-              ? 'உங்கள் இடத்தை தட்டச்சு செய்யவும்...'
-              : 'Type your location (e.g. Near school, Anna Nagar)'"
-            (keydown.enter)="send()"
-            [disabled]="isLoading" />
-          <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
-            🎤
-          </button>
-          <button class="send-btn" (click)="send()" [disabled]="isLoading || !input.trim()">
-            ➤
-          </button>
-        </div>
+      <!-- Live transcript -->
+      @if (liveTranscript) {
+      <div class="live-transcript">🎤 {{ liveTranscript }}</div>
       }
 
-      <!-- ── CONFIRM step action buttons ── -->
-      @if (mode === 'register' && registerStep === 'confirm') {
-        <div class="confirm-actions">
-          <button class="confirm-btn confirm-yes" (click)="quickReply('YES')">
-            ✅ {{ currentLang === 'ta' ? 'சமர்ப்பிக்க' : 'Submit' }}
-          </button>
-          <button class="confirm-btn confirm-retake" (click)="quickReply('RETAKE')">
-            🔄 {{ currentLang === 'ta' ? 'மீண்டும் பேச' : 'Retake' }}
-          </button>
-          <button class="confirm-btn confirm-no" (click)="quickReply('NO')">
-            ❌ {{ currentLang === 'ta' ? 'ரத்து' : 'Cancel' }}
-          </button>
-        </div>
-      }
-
-      <!-- Text input — register description step -->
-      @if (mode === 'register' && registerStep === 'description') {
-        <div class="chat-input-row">
-          <button class="back-btn" (click)="back()">←</button>
-          <input class="chat-input"
-            [(ngModel)]="input"
-            [placeholder]="isListening
-              ? (currentLang === 'ta' ? '🎤 கேட்கிறது...' : '🎤 Listening...')
-              : (currentLang === 'ta' ? 'பிரச்சனையை விவரிக்கவும்...' : 'Describe your issue...')"
-            (keydown.enter)="send()"
-            [disabled]="isLoading || isListening" />
-          <button class="lang-toggle" (click)="toggleVoiceLang()">
-            {{ voiceLangLabel }}
-          </button>
-          <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
-            🎤
-          </button>
-          <button class="send-btn" (click)="send()" [disabled]="isLoading || isListening">
-            ➤
-          </button>
-        </div>
-      }
-
-      <!-- Text input — FAQ -->
-      @if (mode === 'faq') {
-        <div class="chat-input-row">
-          <button class="back-btn" (click)="back()">←</button>
-          <input class="chat-input"
-            [(ngModel)]="input"
-            [placeholder]="currentLang === 'ta' ? 'கேள்வி கேளுங்கள்...' : 'Ask a question...'"
-            (keydown.enter)="send()"
-            [disabled]="isLoading" />
-          <button class="send-btn" (click)="send()" [disabled]="isLoading">➤</button>
-        </div>
-      }
-
-      <!-- Back button — track mode -->
-      @if (mode === 'track') {
-        <div class="chat-input-row">
-          <button class="back-btn" style="flex:1" (click)="back()">
-            {{ currentLang === 'ta' ? '← திரும்பு' : '← Back' }}
-          </button>
-        </div>
+      <!-- Active complaints list -->
+      @if (mode === 'track' && trackStep === 'list' && activeComplaints.length > 0) {
+      <div class="chat-menu">
+        @for (c of activeComplaints; track c.id) {
+        <button class="menu-btn" (click)="selectComplaint(c)">
+          📌 {{ c.title }}
+        </button>
+        }
+      </div>
       }
 
     </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!--  ACTION BARS (one shown at a time)          -->
+    <!-- ═══════════════════════════════════════════ -->
+
+    <!-- Main menu buttons -->
+    @if (mode === 'menu') {
+    <div class="chat-menu">
+      <button class="menu-btn" (click)="startRegister()">
+        {{ currentLang === 'ta' ? '📋 புகார் பதிவு செய்க' : '📋 File a Complaint' }}
+      </button>
+      <button class="menu-btn" (click)="startTrack()">
+        {{ currentLang === 'ta' ? '🔍 புகார் நிலை காண்க' : '🔍 Track Complaint' }}
+      </button>
+      <button class="menu-btn" (click)="startFaq()">
+        {{ currentLang === 'ta' ? '❓ அடிக்கடி கேட்கும் கேள்விகள்' : '❓ FAQ' }}
+      </button>
+    </div>
+    }
+
+    <!-- ── LOCATION step ── -->
+    <!--  A) GPS succeeded → show "Use this location" + "Type instead" -->
+    @if (mode === 'register' && registerStep === 'location' && locationDetected) {
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-yes" (click)="useDetectedLocation()">
+        📍 {{ currentLang === 'ta' ? 'இந்த இடத்தை பயன்படுத்து' : 'Use This Location' }}
+      </button>
+      <button class="confirm-btn confirm-retake" (click)="skipGpsAndType()">
+        ✏️ {{ currentLang === 'ta' ? 'வேறு இடம் தட்டச்சு செய்' : 'Type a Location' }}
+      </button>
+      <button class="confirm-btn confirm-no" (click)="back()">
+        ← {{ currentLang === 'ta' ? 'திரும்பு' : 'Back' }}
+      </button>
+    </div>
+    }
+
+    <!--  B) GPS still running → spinner + "Skip GPS" button -->
+    @if (mode === 'register' && registerStep === 'location' && isDetectingLocation) {
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-retake" (click)="skipGpsAndType()" [disabled]="true">
+        📡 {{ currentLang === 'ta' ? 'கண்டறிகிறது...' : 'Detecting...' }}
+      </button>
+      <button class="confirm-btn confirm-no" (click)="back()">
+        ← {{ currentLang === 'ta' ? 'திரும்பு' : 'Back' }}
+      </button>
+    </div>
+    }
+
+    <!--  C) GPS failed → manual text input for location -->
+    @if (mode === 'register' && registerStep === 'location' && !locationDetected && !isDetectingLocation) {
+    <div class="chat-input-row">
+      <button class="back-btn" (click)="back()">←</button>
+      <input class="chat-input" [(ngModel)]="input" [placeholder]="currentLang === 'ta'
+              ? 'உங்கள் இடத்தை தட்டச்சு செய்யவும்...'
+              : 'Type your location (e.g. Near school, Anna Nagar)'" (keydown.enter)="send()" [disabled]="isLoading" />
+      <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
+        🎤
+      </button>
+      <button class="send-btn" (click)="send()" [disabled]="isLoading || !input.trim()">
+        ➤
+      </button>
+    </div>
+    }
+
+    <!-- ── CONFIRM step action buttons ── -->
+    @if (mode === 'register' && registerStep === 'confirm') {
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-yes" (click)="quickReply('YES')">
+        ✅ {{ currentLang === 'ta' ? 'சமர்ப்பிக்க' : 'Submit' }}
+      </button>
+      <button class="confirm-btn confirm-retake" (click)="quickReply('RETAKE')">
+        🔄 {{ currentLang === 'ta' ? 'மீண்டும் பேச' : 'Retake' }}
+      </button>
+      <button class="confirm-btn confirm-no" (click)="quickReply('NO')">
+        ❌ {{ currentLang === 'ta' ? 'ரத்து' : 'Cancel' }}
+      </button>
+    </div>
+    }
+
+    <!-- Text input — register description step -->
+    @if (mode === 'register' && registerStep === 'description') {
+    <div class="chat-input-row">
+      <button class="back-btn" (click)="back()">←</button>
+      <input class="chat-input" [(ngModel)]="input" [placeholder]="isListening
+              ? (currentLang === 'ta' ? '🎤 கேட்கிறது...' : '🎤 Listening...')
+              : (currentLang === 'ta' ? 'பிரச்சனையை விவரிக்கவும்...' : 'Describe your issue...')"
+        (keydown.enter)="send()" [disabled]="isLoading || isListening" />
+      <button class="lang-toggle" (click)="toggleVoiceLang()">
+        {{ voiceLangLabel }}
+      </button>
+      <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
+        🎤
+      </button>
+      <button class="send-btn" (click)="send()" [disabled]="isLoading || isListening">
+        ➤
+      </button>
+    </div>
+    }
+
+    <!-- Text input — FAQ -->
+    @if (mode === 'faq') {
+    <div class="chat-input-row">
+      <button class="back-btn" (click)="back()">←</button>
+      <input class="chat-input" [(ngModel)]="input" [placeholder]="isListening
+        ? (currentLang === 'ta' ? '🎤 கேட்கிறது...' : '🎤 Listening...')
+        : (currentLang === 'ta' ? 'கேள்வி கேளுங்கள்...' : 'Ask a question...')" (keydown.enter)="send()"
+        [disabled]="isLoading || isListening" />
+      <button class="lang-toggle" (click)="toggleVoiceLang()">
+        {{ voiceLangLabel }}
+      </button>
+      <button class="mic-btn" [class.mic-active]="isListening" (click)="toggleVoice()">
+        🎤
+      </button>
+      <button class="send-btn" (click)="send()" [disabled]="isLoading || !input.trim()">
+        ➤
+      </button>
+    </div>
+    }
+
+    <!-- Back button — track mode -->
+    @if (mode === 'track') {
+    <div class="chat-input-row">
+      <button class="back-btn" style="flex:1" (click)="back()">
+        {{ currentLang === 'ta' ? '← திரும்பு' : '← Back' }}
+      </button>
+    </div>
+    }
+
+  </div>
   }
 </div>
