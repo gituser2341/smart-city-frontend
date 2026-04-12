@@ -100,7 +100,6 @@
     <div>
       <h2 class="section-title">{{ dhDepartment }} Complaints</h2>
 
-      <!-- ── ASSIGN / REASSIGN SUCCESS MESSAGE ── -->
       @if (reassignMessage) {
       <output class="reassign-success-msg" aria-live="polite">{{ reassignMessage }}</output>
       }
@@ -139,12 +138,10 @@
               (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
           </div>
           }
-          <!-- ── ASSIGN / REASSIGN / LOCK BASED ON STATUS ── -->
-          <div class="cc-assign">
 
+          <div class="cc-assign">
             @if (c.status === 'RESOLVED') {
-            <!-- RESOLVED: fully locked -->
-            <span class="resolved-lock-badge">✅ Resolved </span>
+            <span class="resolved-lock-badge">✅ Resolved</span>
             @if (c.resolutionImageUrl) {
             <div class="resolution-proof">
               <p class="img-label">📸 Resolution Proof:</p>
@@ -152,9 +149,7 @@
                 (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
             </div>
             }
-
             } @else if (c.status === 'OPEN') {
-            <!-- OPEN: first-time assign -->
             <label [for]="'dh-officer-select-' + c.id" class="visually-hidden">
               Assign officer to complaint {{ c.id }}
             </label>
@@ -164,12 +159,9 @@
               <option [value]="o.id">{{ o.name }}</option>
               }
             </select>
-            <button class="btn-assign" (click)="assignNewOfficer(c.id)">
-              Assign
-            </button>
+            <button class="btn-assign" (click)="assignNewOfficer(c.id)">Assign</button>
 
             } @else if (c.status === 'IN_PROGRESS' || c.status === 'ESCALATED') {
-            <!-- IN_PROGRESS / ESCALATED: reassign -->
             <label [for]="'dh-officer-select-' + c.id" class="visually-hidden">
               Reassign officer to complaint {{ c.id }}
             </label>
@@ -179,13 +171,9 @@
               <option [value]="o.id">{{ o.name }}</option>
               }
             </select>
-            <button class="btn-assign btn-reassign" (click)="reassign(c.id)">
-              Reassign
-            </button>
+            <button class="btn-assign btn-reassign" (click)="reassign(c.id)">Reassign</button>
             }
-
           </div>
-          <!-- ─────────────────────────────────────────── -->
 
         </div>
         }
@@ -207,7 +195,6 @@
         <p class="escalated-sub">These complaints breached SLA and require immediate reassignment.</p>
       </div>
 
-      <!-- ── REASSIGN SUCCESS MESSAGE ── -->
       @if (reassignMessage) {
       <output class="reassign-success-msg" aria-live="polite">{{ reassignMessage }}</output>
       }
@@ -250,18 +237,22 @@
               <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title" />
             </div>
             }
+
             <div class="esc-priority-update">
-              <select [(ngModel)]="selectedPriorityMap[c.id]">
+              <select
+                [value]="selectedPriorityMap[c.id] || ''"
+                (change)="selectedPriorityMap[c.id] = $any($event.target).value">
                 <option value="">-- Update Priority --</option>
                 <option value="LOW">🟢 Low</option>
                 <option value="MEDIUM">🟡 Medium</option>
                 <option value="HIGH">🟠 High</option>
                 <option value="EMERGENCY">🔴 Emergency</option>
               </select>
-              <button class="btn-priority" (click)="updatePriority(c.id, selectedPriorityMap[c.id])">
+              <button class="btn-priority" (click)="updatePriority(c.id)">
                 Update Priority
               </button>
             </div>
+
             <div class="esc-assign">
               <select [(ngModel)]="selectedOfficerMap[c.id]">
                 <option value="">-- Reassign Officer --</option>
@@ -341,10 +332,10 @@
           <div class="score-label">Performance Score</div>
           <div class="score-bar-wrap">
             <div class="score-bar" [style.width.%]="o.performanceScore" [ngClass]="{
-          'score-low':    o.performanceScore < 40,
-          'score-medium': o.performanceScore >= 40 && o.performanceScore < 70,
-          'score-high':   o.performanceScore >= 70
-        }"></div>
+              'score-low':    o.performanceScore < 40,
+              'score-medium': o.performanceScore >= 40 && o.performanceScore < 70,
+              'score-high':   o.performanceScore >= 70
+            }"></div>
           </div>
           <div class="score-num">{{ o.performanceScore }}/100</div>
 
@@ -361,8 +352,9 @@
 
             <div class="stars" role="group">
               @for (star of [1,2,3,4,5]; track star) {
-              <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star" (click)="dhRatingMap[o.id] = star"
-                role="button" tabindex="0" (keydown.enter)="dhRatingMap[o.id] = star">★</span>
+              <span class="star" [class.filled]="(dhRatingMap[o.id] || 0) >= star"
+                (click)="dhRatingMap[o.id] = star" role="button" tabindex="0"
+                (keydown.enter)="dhRatingMap[o.id] = star">★</span>
               }
             </div>
 
@@ -374,8 +366,7 @@
             </button>
           </div>
           } @else {
-          <div class="no-resolved"
-            style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-3); font-style:italic;">
+          <div style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-3); font-style:italic;">
             @if (totalResolved === 0) {
             No resolved complaints yet
             } @else {

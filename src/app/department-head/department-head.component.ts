@@ -24,11 +24,11 @@ export class DepartmentHeadComponent implements OnInit {
   dhName = '';
   activeTab = 'dashboard';
 
-  // ✅ Track by complaintId (not officerId) — one rating per complaint
   submittedRatingComplaintIds = new Set<number>();
 
   selectedOfficerMap: { [complaintId: number]: number } = {};
   selectedPriorityMap: { [complaintId: number]: string } = {};
+
   dhRatingMap: { [officerId: number]: number } = {};
   dhFeedbackMap: { [officerId: number]: string } = {};
   dhRatingComplaintMap: { [officerId: number]: number } = {};
@@ -84,6 +84,21 @@ export class DepartmentHeadComponent implements OnInit {
     setTimeout(() => this.errorMessage.set(''), 3000);
   }
 
+  // ── FIX 1: Safely extract a readable string from ANY error shape ─────────
+  // Prevents [object Object] from ever reaching the toast
+  private extractErrorMessage(err: any): string {
+    if (!err) return 'Unknown error';
+    if (err.error) {
+      if (typeof err.error === 'string') return err.error;
+      if (typeof err.error === 'object') {
+        if (err.error.message) return err.error.message;
+        return JSON.stringify(err.error);
+      }
+    }
+    if (err.message) return err.message;
+    return `HTTP ${err.status ?? 'error'}`;
+  }
+
   setTab(tab: string) {
     this.activeTab = tab;
     this.reassignMessage = '';
@@ -96,11 +111,8 @@ export class DepartmentHeadComponent implements OnInit {
     ).subscribe({
       next: (data) => {
         this.complaints.set(data ?? []);
-        // ✅ Pre-populate already-rated complaints from backend data
         (data ?? []).forEach(c => {
-          if (c.dhRated) {
-            this.submittedRatingComplaintIds.add(c.id);
-          }
+          if (c.dhRated) this.submittedRatingComplaintIds.add(c.id);
         });
         this.cdr.detectChanges();
       },
@@ -163,7 +175,7 @@ export class DepartmentHeadComponent implements OnInit {
         this.loadEscalated();
         this.cdr.detectChanges();
       },
-      error: () => this.showError('Failed to reassign complaint')
+      error: (err) => this.showError(this.extractErrorMessage(err))
     });
   }
 
@@ -188,7 +200,7 @@ export class DepartmentHeadComponent implements OnInit {
         this.loadComplaints();
         this.cdr.detectChanges();
       },
-      error: () => this.showError('Failed to assign complaint')
+      error: (err) => this.showError(this.extractErrorMessage(err))
     });
   }
 
@@ -206,15 +218,31 @@ export class DepartmentHeadComponent implements OnInit {
     return days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
   }
 
-  updatePriority(complaintId: number, priority: string) {
-    if (!priority) return;
+  // ── FIX 2: Accept the native HTMLSelectElement directly from the template
+  //    via a template reference variable (#priorityRef).
+  //    Reading .value from the DOM element is ALWAYS synchronous and current —
+  //    it completely bypasses the ngModel flush timing issue.
+  updatePriority(complaintId: number) {
+    const priority = this.selectedPriorityMap[complaintId];
+
+    if (!priority) {
+      this.showError('Please select a priority first');
+      return;
+    }
+
     this.http.put(
       `http://localhost:8080/api/dh/complaints/${complaintId}/priority?priority=${priority}`,
       {},
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders(), responseType: 'text' as const }
     ).subscribe({
-      next: () => { this.showSuccess('Priority updated'); this.loadEscalated(); },
-      error: () => this.showError('Failed to update priority')
+      next: () => {
+        this.showSuccess(`Priority updated to ${priority}`);
+        this.selectedPriorityMap[complaintId] = '';
+        this.loadEscalated();
+        this.loadComplaints();
+        this.cdr.detectChanges();
+      },
+      error: (err) => this.showError(this.extractErrorMessage(err))
     });
   }
 
@@ -225,16 +253,14 @@ export class DepartmentHeadComponent implements OnInit {
       c => c.status === 'RESOLVED'
         && c.assignedOfficer?.id === officerId
         && !this.submittedRatingComplaintIds.has(c.id)
-        && !c.dhRated   // ← also exclude backend-flagged rated complaints
+        && !c.dhRated
     );
   }
 
-  // ✅ Check if a specific complaint has already been DH-rated
   isComplaintRated(complaintId: number): boolean {
     return this.submittedRatingComplaintIds.has(complaintId);
   }
 
-  // ✅ Check if ALL resolved complaints for an officer are already rated
   allComplaintsRated(officerId: number): boolean {
     const resolved = this.getResolvedByOfficer(officerId);
     return resolved.length > 0 && resolved.every(c => this.isComplaintRated(c.id));
@@ -248,7 +274,6 @@ export class DepartmentHeadComponent implements OnInit {
     if (!complaintId) { this.showError('Select a complaint to rate'); return; }
     if (!rating) { this.showError('Select a star rating'); return; }
 
-    // ✅ Guard: prevent re-submitting an already rated complaint
     if (this.submittedRatingComplaintIds.has(complaintId)) {
       this.showError('This complaint has already been rated');
       return;
@@ -261,7 +286,7 @@ export class DepartmentHeadComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.showSuccess('Rating submitted successfully');
-        this.submittedRatingComplaintIds.add(complaintId); // ✅ track by complaintId
+        this.submittedRatingComplaintIds.add(complaintId);
         this.dhRatingMap[officerId] = 0;
         this.dhFeedbackMap[officerId] = '';
         this.dhRatingComplaintMap[officerId] = 0;
@@ -269,12 +294,7 @@ export class DepartmentHeadComponent implements OnInit {
         this.loadComplaints();
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        const msg = typeof err.error === 'string'
-          ? err.error
-          : err.error?.message ?? 'Failed to submit rating';
-        this.showError(msg);
-      }
+      error: (err) => this.showError(this.extractErrorMessage(err))
     });
   }
 
@@ -295,7 +315,6 @@ export class DepartmentHeadComponent implements OnInit {
 
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return '';
-    // ✅ Always build from base — filename only stored in DB
     return 'http://localhost:8080/uploads/' + imageUrl;
   }
 
