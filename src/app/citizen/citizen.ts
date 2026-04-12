@@ -20,6 +20,7 @@ interface Complaint {
   longitude: number;
   deadline?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   escalated?: boolean;
   rated?: boolean;
   rating?: number;
@@ -190,9 +191,12 @@ export class CitizenComponent implements OnInit, OnDestroy {
   }
 
   getImageUrl(imageUrl: string | undefined): string {
-    if (!imageUrl) return '';
-    return 'http://localhost:8080/uploads/' + imageUrl;
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http')) {
+    imageUrl = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
   }
+  return 'http://localhost:8080/uploads/' + imageUrl;
+}
 
   openImage(url: string): void {
     window.open(url, '_blank');

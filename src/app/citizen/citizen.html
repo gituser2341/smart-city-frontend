@@ -108,20 +108,31 @@
           }
         </div>
         <div class="imgs">
-        @if (c.imageUrl) {
-        <div class="complaint-image">
-          <p class="img-label">📎 Evidence Photo:</p>
-          <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for complaint: ' + c.title"
-            (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
-        </div>
-        }
-        @if (c.resolutionImageUrl) {
-        <div class="resolution-proof">
-          <p class="img-label">📸 Resolution Proof:</p>
-          <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for ' + c.title"
-            (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
-        </div>
-        }
+          @if (c.imageUrls && c.imageUrls.length > 0) {
+          <div class="complaint-images">
+            <p class="img-label">📎 Evidence ({{ c.imageUrls.length }})</p>
+            <div class="images-grid">
+              @for (img of c.imageUrls; track img) {
+              <img [src]="getImageUrl(img)" [alt]="'Evidence for: ' + c.title" (click)="openImage(getImageUrl(img))"
+                title="Click to view full size" />
+              }
+            </div>
+          </div>
+          } @else if (c.imageUrl) {
+          <div class="complaint-image">
+            <p class="img-label">📎 Evidence</p>
+            <img [src]="getImageUrl(c.imageUrl)" [alt]="'Photo evidence for: ' + c.title"
+              (click)="openImage(getImageUrl(c.imageUrl))" title="Click to view full size" />
+          </div>
+          }
+
+          @if (c.resolutionImageUrl) {
+          <div class="resolution-proof">
+            <p class="img-label">📸 Resolution</p>
+            <img [src]="getImageUrl(c.resolutionImageUrl)" [alt]="'Resolution proof for: ' + c.title"
+              (click)="openImage(getImageUrl(c.resolutionImageUrl))" title="Click to view full size" />
+          </div>
+          }
         </div>
         @if (c.latitude && c.longitude) {
         <div class="map-section">
@@ -204,5 +215,5 @@
 
     </div>
   </section>
-  <app-chatbot [lang]= "currentLang"></app-chatbot>
+  <app-chatbot [lang]="currentLang"></app-chatbot>
 </div>
