@@ -8,7 +8,6 @@ import { WebSocketService } from '../services/websocket.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ChatbotComponent } from './chatbot/chatbot.component';
 
-
 interface Complaint {
   id: number;
   title: string;
@@ -66,8 +65,11 @@ export class CitizenComponent implements OnInit, OnDestroy {
     const savedLang = localStorage.getItem('lang') ?? 'en';
     this.currentLang = savedLang;
     this.translate.use(savedLang);
+
     const email = localStorage.getItem('email') ?? '';
     const token = localStorage.getItem('token') ?? '';
+
+    console.log('CitizenComponent: email =', email, 'token present =', !!token); // DEBUG
 
     this.wsService.connect(email, token);
 
@@ -97,17 +99,30 @@ export class CitizenComponent implements OnInit, OnDestroy {
   }
 
   private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token') ?? '';
+    if (!token) {
+      console.warn('No token found in localStorage'); // DEBUG
+    }
     return new HttpHeaders({
-      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
+      Authorization: 'Bearer ' + token
     });
   }
 
   loadMyComplaints(): void {
+    const headers = this.getHeaders();
+
+    console.log(
+      'Calling /api/complaints/my',
+      'URL:', 'http://localhost:8080/api/complaints/my',
+      'Headers:', headers.keys().map(k => k + ': ' + headers.get(k))
+    ); // DEBUG
+
     this.http.get<Complaint[]>(
       'http://localhost:8080/api/complaints/my',
-      { headers: this.getHeaders() }
+      { headers }
     ).subscribe({
       next: (data) => {
+        console.log('Received /my complaints:', data); // DEBUG
         this.complaints = data;
         this.total = data.length;
         this.open = data.filter(c => c.status === 'OPEN').length;
@@ -116,7 +131,18 @@ export class CitizenComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        if (err.status === 401) { this.router.navigate(['/login']); }
+        console.error('Error loading my complaints:', err);
+
+        if (err.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('email');
+          this.router.navigate(['/login']);
+        } else if (err.status === 403) {
+          console.error(
+            '403 Forbidden: You are authenticated but not allowed to access /api/complaints/my. ' +
+            'Check backend role / scope / JWT filter.'
+          );
+        }
         this.cdr.detectChanges();
       }
     });
@@ -165,7 +191,6 @@ export class CitizenComponent implements OnInit, OnDestroy {
 
   getImageUrl(imageUrl: string | undefined): string {
     if (!imageUrl) return '';
-    // ✅ Always build from base — filename only stored in DB
     return 'http://localhost:8080/uploads/' + imageUrl;
   }
 
