@@ -1,10 +1,13 @@
-import { Component, OnInit ,ChangeDetectorRef} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ComplaintService } from '../services/complaint.service';
+import { ComplaintSyncService } from '../services/complaint-sync.service';
+import { OfflineStorageService } from '../services/offline-storage.service';
 
 export interface MediaFile {
   file: File;
@@ -38,6 +41,9 @@ export class CreateComplaintComponent implements OnInit {
   longitude: number | null = null;
   locationStatus = '📡 Detecting your location...';
   locationReady = false;
+
+  isOnline = navigator.onLine;
+  pendingCount = 0;
 
   mediaFiles: MediaFile[] = [];
   uploadError = '';
@@ -76,7 +82,10 @@ export class CreateComplaintComponent implements OnInit {
     private readonly router: Router,
     private readonly sanitizer: DomSanitizer,
     private readonly translate: TranslateService,
-    private readonly cdr:       ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private complaintService: ComplaintService,
+    private syncService: ComplaintSyncService,
+    private offlineStorage: OfflineStorageService
   ) {
     this.translate.setDefaultLang('en');
     const savedLang = localStorage.getItem('lang') ?? 'en';
@@ -84,6 +93,11 @@ export class CreateComplaintComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    window.addEventListener('online', () => this.isOnline = true);
+    window.addEventListener('offline', () => this.isOnline = false);
+    this.syncService.pendingCount$.subscribe(count => {
+      this.pendingCount = count;
+    });
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -165,7 +179,7 @@ export class CreateComplaintComponent implements OnInit {
         }
         this.cdr.detectChanges();
       },
-      error: () => { this.isDetecting = false;this.cdr.detectChanges(); }
+      error: () => { this.isDetecting = false; this.cdr.detectChanges(); }
     });
   }
 
@@ -277,7 +291,6 @@ export class CreateComplaintComponent implements OnInit {
   prevStep(): void { if (this.currentStep > 1) { this.currentStep--; } }
 
   submitComplaint(): void {
-    // in submitComplaint()
     if (!this.title || !this.description || !this.department) {
       this.message = this.translate.instant('createComplaint.required');
       return;
@@ -290,6 +303,12 @@ export class CreateComplaintComponent implements OnInit {
     this.isSubmitting = true;
     this.message = '';
 
+    // ✅ Check offline BEFORE doing anything
+    if (!navigator.onLine) {
+      this.saveOffline();
+      return;
+    }
+
     const headers = new HttpHeaders({
       Authorization: 'Bearer ' + (localStorage.getItem('token') ?? '')
     });
@@ -299,6 +318,62 @@ export class CreateComplaintComponent implements OnInit {
     } else {
       this.submitWithMedia([], headers);
     }
+  }
+
+  private async saveOffline(): Promise<void> {
+    try {
+      // Convert all media files to base64
+      const offlineMedia: { base64: string; name: string; type: string }[] = [];
+
+      for (const mediaFile of this.mediaFiles) {
+        const base64 = await this.fileToBase64(mediaFile.file);
+        offlineMedia.push({
+          base64,
+          name: mediaFile.name,
+          type: mediaFile.file.type
+        });
+      }
+
+      await this.offlineStorage.saveComplaint({
+        title: this.title,
+        description: this.description,
+        category: '',
+        department: this.department,
+        location: `${this.latitude},${this.longitude}`,
+        latitude: this.latitude!,
+        longitude: this.longitude!,
+        priority: this.priority,
+        userId: localStorage.getItem('userId') ?? '',
+        authToken: localStorage.getItem('token') ?? '',
+        // Store first image (extend OfflineComplaint if needed for multiple)
+        imageBase64: offlineMedia[0]?.base64,
+        imageName: offlineMedia[0]?.name,
+        imageType: offlineMedia[0]?.type,
+        offlineMedia: JSON.stringify(offlineMedia), // all files
+        createdAt: Date.now(),
+        syncStatus: 'pending'
+      });
+
+      await this.syncService.updatePendingCount();
+      this.isSubmitting = false;
+      this.message = '📴 Saved offline! Will submit automatically when back online.';
+
+      // Navigate back after 2 seconds
+      setTimeout(() => this.router.navigate(['/citizen']), 2000);
+
+    } catch (error) {
+      this.isSubmitting = false;
+      this.message = '❌ Failed to save offline. Please try again.';
+    }
+  }
+
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   private uploadFilesSequentially(index: number, uploadedUrls: string[], headers: HttpHeaders): void {

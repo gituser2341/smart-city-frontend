@@ -4,6 +4,7 @@ import { filter, Subscription } from 'rxjs';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { inject } from '@angular/core';
 import { isDevMode } from '@angular/core';
+import { ComplaintSyncService } from './services/complaint-sync.service';
 
 const LIGHT_ROUTES = new Set([
   '/home', '/', '/login', '/register', '/citizen',
@@ -25,7 +26,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly router:   Router,
-    private readonly renderer: Renderer2
+    private readonly renderer: Renderer2,
+    private syncService: ComplaintSyncService
   ) {
     this.routerSub = this.router.events.pipe(
       filter((e): e is NavigationEnd => e instanceof NavigationEnd)
@@ -35,6 +37,23 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (navigator.onLine) {
+      this.syncService.syncPendingComplaints();
+    }
+
+     if (!navigator.onLine) {
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role');
+      const currentUrl = this.router.url;
+
+      if (token && role && currentUrl === '/login') {
+        if (role === 'CITIZEN') this.router.navigate(['/citizen']);
+        else if (role === 'OFFICER') this.router.navigate(['/officer']);
+        else if (role === 'ADMIN') this.router.navigate(['/admin']);
+        else if (role === 'DEPARTMENT_HEAD') this.router.navigate(['/dh']);
+      }
+    }
+    
     this.applyBodyTheme(this.router.url);
     this.initSwUpdate();
   }

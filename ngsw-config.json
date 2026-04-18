@@ -41,5 +41,32 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "complaints-api",
+      "urls": [
+        "http://localhost:8080/api/complaints/**"
+      ],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 100,
+        "maxAge": "1h",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "static-api",
+      "urls": [
+        "http://localhost:8080/api/categories/**",
+        "http://localhost:8080/api/departments/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "1d",
+        "timeout": "5s"
+      }
+    }
   ]
 }
